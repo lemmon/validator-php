@@ -1,0 +1,41 @@
+{
+    "name": "lemmon/validator",
+    "description": "A lightweight, fluent validation library for PHP.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jakub Pelák",
+            "email": "jpelak@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lemmon\\": "src/Lemmon/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lemmon\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "pestphp/pest": "^2.0",
+        "friendsofphp/php-cs-fixer": "^3.84",
+        "phpstan/phpstan": "^2.1"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "lint": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
+        "fix": "php-cs-fixer fix --allow-risky=yes",
+        "analyse": "phpstan analyse"
+    }
+}
