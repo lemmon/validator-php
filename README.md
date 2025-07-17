@@ -7,10 +7,12 @@ A lightweight, fluent validation library for PHP, inspired by Valibot and Zod.
 
 ## Usage
 
+### Associative array validation
+
 ```php
 use Lemmon\Validator;
 
-$schema = Validator::isArray([
+$schema = Validator::isAssociative([
   'required' => Validator::isString()->required(),
   'optional' => Validator::isString(),
   'forced'   => Validator::isString()->default('Hello!'),
@@ -28,4 +30,24 @@ $data = $schema->validate($input);
 
 // or
 [$valid, $data, $errors] = $schema->tryValidate($input);
+```
+
+### Array validation
+
+```php
+use Lemmon\Validator;
+
+// Validate plain arrays
+$arrayValidator = Validator::isArray();
+$data = $arrayValidator->validate([1, 2, 3, 'foo']); // ✓
+
+// With type validation for items
+$stringArrayValidator = Validator::isArray()->items(Validator::isString());
+$data = $stringArrayValidator->validate(['foo', 'bar', 'baz']); // ✓
+
+// With coercion
+$coercedArrayValidator = Validator::isArray()->coerce();
+$data = $coercedArrayValidator->validate(['key' => 'value', 'foo' => 'bar']); // becomes ['value', 'bar']
+$data = $coercedArrayValidator->validate('single'); // becomes ['single']
+$data = $coercedArrayValidator->validate(123); // becomes [123]
 ```
