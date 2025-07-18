@@ -69,7 +69,7 @@ abstract class FieldValidator
      * @return mixed The validated and potentially coerced value.
      * @throws ValidationException If validation fails.
      */
-    public function validate(mixed $value, string $key, array $input): mixed
+    public function validate(mixed $value, string $key = '', array $input = []): mixed
     {
         if (is_null($value)) {
             if ($this->hasDefault) {
@@ -84,7 +84,7 @@ abstract class FieldValidator
         $value = $this->coerce ? $this->coerceValue($value) : $value;
 
         if ($this->oneOf && !in_array($value, $this->oneOf, true)) {
-            throw new ValidationException(["Field '$key' must be one of: " . implode(', ', $this->oneOf)]);
+            throw new ValidationException(["Field '$key' must be one of: " . json_encode($this->oneOf)]);
         }
 
         return $this->validateType($value, $key);

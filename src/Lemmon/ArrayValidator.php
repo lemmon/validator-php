@@ -70,9 +70,10 @@ class ArrayValidator extends FieldValidator
             $validatedItems = [];
             foreach ($value as $index => $item) {
                 try {
-                    $validatedItems[] = $this->itemValidator->validate($item, "$key[$index]", []);
+                    $itemKey = ($key ? $key . '.' : '') . $index;
+                    $validatedItems[] = $this->itemValidator->validate($item, $itemKey, []);
                 } catch (ValidationException $e) {
-                    throw new ValidationException(["Field '$key[$index]': " . implode(', ', $e->getErrors())]);
+                    throw new ValidationException(["Field '" . ($key ? $key . '.' : '') . "$index': " . implode(', ', $e->getErrors())]);
                 }
             }
             return $validatedItems;
