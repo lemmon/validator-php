@@ -92,13 +92,7 @@ abstract class FieldValidator
     public function tryValidate(mixed $value, string $key = '', array $input = []): array
     {
         if (is_null($value)) {
-            if ($this->hasDefault) {
-                return [true, $this->default, null];
-            }
-            if ($this->required) {
-                return [false, $value, ['Value is required.']];
-            }
-            return [true, null, null];
+            return $this->hasDefault ? [true, $this->default, null] : ($this->required ? [false, $value, ['Value is required.']] : [true, null, null]);
         }
 
         $value = $this->coerce ? $this->coerceValue($value) : $value;

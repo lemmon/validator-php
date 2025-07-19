@@ -2,7 +2,7 @@
 
 namespace Lemmon;
 
-class SchemaValidator
+class SchemaValidator extends FieldValidator
 {
     private bool $coerceAll = false;
 
@@ -21,42 +21,46 @@ class SchemaValidator
     }
 
     /**
-     * @param array<string, mixed> $input
-     * @return array<string, mixed>
-     * @throws ValidationException
+     * @inheritDoc
      */
-    public function validate(array $input): array
+    protected function coerceValue(mixed $value): mixed
     {
-        [$valid, $data, $errors] = $this->tryValidate($input);
-        if (!$valid) {
-            throw new ValidationException($errors);
+        // If it's already an array, return as-is
+        if (is_array($value)) {
+            return $value;
         }
-        return $data;
+        // For other types, return as-is; validateType will handle the error
+        return $value;
     }
 
     /**
-     * @param array<string, mixed> $input
-     * @return array{bool, array<string, mixed>, array<string, mixed>}
+     * @inheritDoc
      */
-    public function tryValidate(array $input): array
+    protected function validateType(mixed $value, string $key): mixed
     {
+        if (!is_array($value)) {
+            throw new ValidationException(['Value must be an array.']);
+        }
+
         $data = [];
         $errors = [];
 
-        foreach ($this->schema as $key => $validator) {
+        foreach ($this->schema as $fieldKey => $validator) {
             if ($this->coerceAll) {
                 $validator->coerce();
             }
 
-            $value = $input[$key] ?? null;
+            $fieldValue = $value[$fieldKey] ?? null;
 
-            try {
-                $data[$key] = $validator->validate($value, $key, $input);
-            } catch (ValidationException $e) {
-                $errors[$key] = $e->getErrors();
-            }
+            [$valid, $validatedFieldValue, $fieldErrors] = $validator->tryValidate($fieldValue, $fieldKey, $value);
+
+            (!$valid) ? $errors[$fieldKey] = $fieldErrors : $data[$fieldKey] = $validatedFieldValue;
         }
 
-        return [!$errors, $data, $errors];
+        if (!empty($errors)) {
+            throw new ValidationException($errors);
+        }
+
+        return $data;
     }
 }

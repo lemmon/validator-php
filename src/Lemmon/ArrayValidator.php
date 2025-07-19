@@ -38,14 +38,9 @@ class ArrayValidator extends FieldValidator
             return array_values($value);
         }
 
-        // Convert strings to single-item array
-        if (is_string($value)) {
-            return [$value];
-        }
-
-        // For other scalar values, wrap in array
+        // Coerce scalar values to array: empty string to empty array, others to single-item array
         if (is_scalar($value)) {
-            return [$value];
+            return ($value === '') ? [] : [$value];
         }
 
         return $value;

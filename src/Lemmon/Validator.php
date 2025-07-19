@@ -10,7 +10,7 @@ class Validator
      * @param array<string, FieldValidator> $schema The schema definition.
      * @return SchemaValidator
      */
-    public static function isAssociative(array $schema): SchemaValidator
+    public static function isAssociative(array $schema = []): SchemaValidator
     {
         return new SchemaValidator($schema);
     }

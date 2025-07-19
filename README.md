@@ -12,13 +12,14 @@ A lightweight, fluent validation library for PHP, inspired by Valibot and Zod.
 ```php
 use Lemmon\Validator;
 
+// Define a schema for an associative array. Fields are optional by default.
 $schema = Validator::isAssociative([
   'required' => Validator::isString()->required(),
   'optional' => Validator::isString(),
   'forced'   => Validator::isString()->default('Hello!'),
   'level'    => Validator::isInt()->coerce()->oneOf([3, 5, 8])->default(3),
   'override' => Validator::isBool()->coerce()->default(false),
-])->coerceAll();
+])->required(); // Make the top-level schema required to ensure it's an array
 
 $input = [
     'required' => 'test',
@@ -28,8 +29,16 @@ $input = [
 // throws ValidationException on error
 $data = $schema->validate($input);
 
-// or
+// or use tryValidate for non-throwing validation
 [$valid, $data, $errors] = $schema->tryValidate($input);
+
+// You can also define an empty schema
+$emptySchema = Validator::isAssociative();
+$emptyData = $emptySchema->validate([]); // Validates an empty array
+
+// Unlike the main example, if the SchemaValidator is not explicitly required(), it will also pass with a null value.
+[$validNull, $dataNull, $errorsNull] = $emptySchema->tryValidate(null);
+// $validNull will be true, $dataNull will be null, $errorsNull will be null
 ```
 
 ### Array validation
@@ -50,4 +59,26 @@ $coercedArrayValidator = Validator::isArray()->coerce();
 $data = $coercedArrayValidator->validate(['key' => 'value', 'foo' => 'bar']); // becomes ['value', 'bar']
 $data = $coercedArrayValidator->validate('single'); // becomes ['single']
 $data = $coercedArrayValidator->validate(123); // becomes [123]
+$data = $coercedArrayValidator->validate(''); // becomes [] (empty string coerces to empty array)
+```
+
+### Field Validator (Standalone)
+
+```php
+use Lemmon\Validator;
+
+// Validate a single string value
+$stringValidator = Validator::isString();
+$data = $stringValidator->validate('hello'); // 'hello'
+
+// Use tryValidate for non-throwing validation
+[$valid, $data, $errors] = $stringValidator->tryValidate(123);
+// $valid will be false, $data will be 123, $errors will be ['Value must be a string.']
+
+// Optional field handling
+$optionalString = Validator::isString();
+$data = $optionalString->validate(null); // null (passes, as not required)
+
+$requiredString = Validator::isString()->required();
+// $requiredString->validate(null); // Throws ValidationException: ['Value is required.']
 ```

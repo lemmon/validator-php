@@ -141,3 +141,87 @@ it('should handle null correctly with coercion', function () {
     $validator = Validator::isArray()->coerce()->required();
     $validator->validate(null, 'test', []);
 })->throws(Lemmon\ValidationException::class);
+
+it('should throw a validation exception with a generic message for standalone validators', function () {
+    try {
+        Validator::isString()->validate(123);
+    } catch (Lemmon\ValidationException $e) {
+        expect($e->getErrors())->toBe(['Value must be a string.']);
+    }
+});
+
+it('should return a result tuple for standalone validators', function () {
+    [$valid, $data, $errors] = Validator::isString()->tryValidate('hello');
+    expect($valid)->toBe(true);
+    expect($data)->toBe('hello');
+    expect($errors)->toBe(null);
+
+    [$valid, $data, $errors] = Validator::isString()->tryValidate(123);
+    expect($valid)->toBe(false);
+    expect($data)->toBe(123);
+    expect($errors)->toBe(['Value must be a string.']);
+});
+
+it('should throw a validation exception for non-array input in SchemaValidator', function () {
+    $schema = Validator::isAssociative([]);
+
+    try {
+        $schema->validate('not an array');
+    } catch (Lemmon\ValidationException $e) {
+        expect($e->getErrors())->toBe(['Value must be an array.']);
+    }
+});
+
+it('should validate an empty associative array with an empty schema', function () {
+    $schema = Validator::isAssociative([]);
+    $data = $schema->validate([]);
+    expect($data)->toBe([]);
+});
+
+it('should allow null for optional array validator', function () {
+    $validator = Validator::isArray();
+    [$valid, $data, $errors] = $validator->tryValidate(null);
+    expect($valid)->toBe(true);
+    expect($data)->toBe(null);
+    expect($errors)->toBe(null);
+});
+
+it('should allow Validator::isAssociative() to be called without arguments', function () {
+    $schema = Validator::isAssociative();
+    $data = $schema->validate([]);
+    expect($data)->toBe([]);
+});
+
+
+it('should handle null input for SchemaValidator created without arguments gracefully', function () {
+    $schema = Validator::isAssociative();
+    [$valid, $data, $errors] = $schema->tryValidate(null);
+    expect($valid)->toBe(true);
+    expect($data)->toBe(null);
+    expect($errors)->toBe(null);
+});
+
+it('should allow null for optional associative array validator', function () {
+    $validator = Validator::isAssociative();
+    $data = $validator->validate(null);
+    expect($data)->toBe(null);
+});
+
+it('should allow null for optional nested associative array in schema', function () {
+    $schema = Validator::isAssociative([
+        'nested' => Validator::isAssociative(),
+    ]);
+
+    $input = [
+        'nested' => null,
+    ];
+
+    $data = $schema->validate($input);
+    expect($data)->toBe(['nested' => null]);
+});
+
+it('should coerce empty string to empty array', function () {
+    $validator = Validator::isArray()->coerce();
+    $data = $validator->validate('');
+    expect($data)->toBe([]);
+});
