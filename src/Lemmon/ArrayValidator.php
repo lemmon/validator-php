@@ -57,12 +57,12 @@ class ArrayValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_array($value)) {
-            throw new ValidationException([$key ? "Field '$key' must be an array." : 'Value must be an array.']);
+            throw new ValidationException(['Value must be an array.']);
         }
 
         // Check if it's a list (indexed array starting from 0)
         if (!array_is_list($value)) {
-            throw new ValidationException([$key ? "Field '$key' must be an indexed array (list)." : 'Value must be an indexed array (list).']);
+            throw new ValidationException(['Value must be an indexed array (list).']);
         }
 
         // If item validator is set, validate each item

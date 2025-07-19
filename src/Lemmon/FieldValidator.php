@@ -71,23 +71,48 @@ abstract class FieldValidator
      */
     public function validate(mixed $value, string $key = '', array $input = []): mixed
     {
+        [$valid, $data, $errors] = $this->tryValidate($value, $key, $input);
+        if (!$valid) {
+            throw new ValidationException($errors);
+        }
+        return $data;
+    }
+
+    /**
+     * Tries to validate the given value and returns a result tuple.
+     *
+     * @param mixed $value The value to validate.
+     * @param string $key The key of the field being validated.
+     * @param array<string, mixed> $input The entire input array.
+     * @return array{bool, mixed, array<string>|null} A tuple containing:
+     *                                                 - bool: true if validation is successful, false otherwise.
+     *                                                 - mixed: The validated and potentially coerced value, or the original value on failure.
+     *                                                 - array|null: An array of error messages on failure, or null on success.
+     */
+    public function tryValidate(mixed $value, string $key = '', array $input = []): array
+    {
         if (is_null($value)) {
             if ($this->hasDefault) {
-                return $this->default;
+                return [true, $this->default, null];
             }
             if ($this->required) {
-                throw new ValidationException([$key ? "Field '$key' is required." : 'Value is required.']);
+                return [false, $value, ['Value is required.']];
             }
-            return null;
+            return [true, null, null];
         }
 
         $value = $this->coerce ? $this->coerceValue($value) : $value;
 
         if ($this->oneOf && !in_array($value, $this->oneOf, true)) {
-            throw new ValidationException([$key ? "Field '$key' must be one of: " . json_encode($this->oneOf) : 'Value must be one of: ' . json_encode($this->oneOf)]);
+            return [false, $value, ['Value must be one of: ' . json_encode($this->oneOf)]];
         }
 
-        return $this->validateType($value, $key);
+        try {
+            $validatedValue = $this->validateType($value, $key);
+            return [true, $validatedValue, null];
+        } catch (ValidationException $e) {
+            return [false, $value, $e->getErrors()];
+        }
     }
 
     /**
