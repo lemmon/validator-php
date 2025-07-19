@@ -18,7 +18,7 @@ class IntValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_int($value)) {
-            throw new ValidationException(["Field '$key' must be an integer."]);
+            throw new ValidationException([$key ? "Field '$key' must be an integer." : 'Value must be an integer.']);
         }
         return $value;
     }

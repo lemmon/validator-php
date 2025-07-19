@@ -18,7 +18,7 @@ class StringValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_string($value)) {
-            throw new ValidationException(["Field '$key' must be a string."]);
+            throw new ValidationException([$key ? "Field '$key' must be a string." : 'Value must be a string.']);
         }
         return $value;
     }

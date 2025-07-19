@@ -76,7 +76,7 @@ abstract class FieldValidator
                 return $this->default;
             }
             if ($this->required) {
-                throw new ValidationException(["Field '$key' is required."]);
+                throw new ValidationException([$key ? "Field '$key' is required." : 'Value is required.']);
             }
             return null;
         }
@@ -84,7 +84,7 @@ abstract class FieldValidator
         $value = $this->coerce ? $this->coerceValue($value) : $value;
 
         if ($this->oneOf && !in_array($value, $this->oneOf, true)) {
-            throw new ValidationException(["Field '$key' must be one of: " . json_encode($this->oneOf)]);
+            throw new ValidationException([$key ? "Field '$key' must be one of: " . json_encode($this->oneOf) : 'Value must be one of: ' . json_encode($this->oneOf)]);
         }
 
         return $this->validateType($value, $key);

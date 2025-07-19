@@ -24,7 +24,7 @@ class BoolValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_bool($value)) {
-            throw new ValidationException(["Field '$key' must be a boolean."]);
+            throw new ValidationException([$key ? "Field '$key' must be a boolean." : 'Value must be a boolean.']);
         }
         return $value;
     }
