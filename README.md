@@ -81,4 +81,11 @@ $data = $optionalString->validate(null); // null (passes, as not required)
 
 $requiredString = Validator::isString()->required();
 // $requiredString->validate(null); // Throws ValidationException: ['Value is required.']
+
+// Nullify empty values
+$nullifyingString = Validator::isString()->nullifyEmpty();
+$data = $nullifyingString->validate(''); // null
+
+$nullifyingArray = Validator::isArray()->nullifyEmpty();
+$data = $nullifyingArray->validate([]); // null
 ```

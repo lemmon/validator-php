@@ -8,6 +8,7 @@ abstract class FieldValidator
     protected mixed $default = null;
     protected bool $hasDefault = false;
     protected bool $coerce = false;
+    protected bool $nullifyEmpty = false;
     /**
      * @var array<mixed>|null
      */
@@ -45,6 +46,17 @@ abstract class FieldValidator
     public function coerce(): self
     {
         $this->coerce = true;
+        return $this;
+    }
+
+    /**
+     * Enables nullification of empty values (empty string, empty array) to null.
+     *
+     * @return $this
+     */
+    public function nullifyEmpty(): self
+    {
+        $this->nullifyEmpty = true;
         return $this;
     }
 
@@ -91,6 +103,10 @@ abstract class FieldValidator
      */
     public function tryValidate(mixed $value, string $key = '', array $input = []): array
     {
+        if ($this->nullifyEmpty && (($value === '') || (is_array($value) && empty($value)))) {
+            $value = null;
+        }
+
         if (is_null($value)) {
             return $this->hasDefault ? [true, $this->default, null] : ($this->required ? [false, $value, ['Value is required.']] : [true, null, null]);
         }

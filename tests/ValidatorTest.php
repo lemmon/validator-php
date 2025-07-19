@@ -225,3 +225,16 @@ it('should coerce empty string to empty array', function () {
     $data = $validator->validate('');
     expect($data)->toBe([]);
 });
+
+it('should nullify empty string and empty array when nullifyEmpty is called', function () {
+    $stringValidator = Validator::isString()->nullifyEmpty();
+    expect($stringValidator->validate(''))->toBe(null);
+
+    $arrayValidator = Validator::isArray()->nullifyEmpty();
+    expect($arrayValidator->validate([]))->toBe(null);
+
+    // Should not nullify non-empty values
+    expect($stringValidator->validate('hello'))->toBe('hello');
+    expect($arrayValidator->validate([1, 2]))->toBe([1, 2]);
+    expect($stringValidator->validate(null))->toBe(null);
+});
