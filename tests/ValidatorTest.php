@@ -162,13 +162,13 @@ it('should return a result tuple for standalone validators', function () {
     expect($errors)->toBe(['Value must be a string.']);
 });
 
-it('should throw a validation exception for non-array input in SchemaValidator', function () {
+it('should throw a validation exception for non-array input in AssociativeValidator', function () {
     $schema = Validator::isAssociative([]);
 
     try {
         $schema->validate('not an array');
     } catch (Lemmon\ValidationException $e) {
-        expect($e->getErrors())->toBe(['Value must be an array.']);
+        expect($e->getErrors())->toBe(['Input must be an associative array.']);
     }
 });
 
@@ -193,7 +193,7 @@ it('should allow Validator::isAssociative() to be called without arguments', fun
 });
 
 
-it('should handle null input for SchemaValidator created without arguments gracefully', function () {
+it('should handle null input for AssociativeValidator created without arguments gracefully', function () {
     $schema = Validator::isAssociative();
     [$valid, $data, $errors] = $schema->tryValidate(null);
     expect($valid)->toBe(true);
@@ -237,4 +237,90 @@ it('should nullify empty string and empty array when nullifyEmpty is called', fu
     expect($stringValidator->validate('hello'))->toBe('hello');
     expect($arrayValidator->validate([1, 2]))->toBe([1, 2]);
     expect($stringValidator->validate(null))->toBe(null);
+});
+
+it('should coerce stdClass object to associative array when coerce is enabled', function () {
+    $schema = Lemmon\Validator::isAssociative([
+        'name' => Lemmon\Validator::isString(),
+        'age' => Lemmon\Validator::isInt(),
+    ])->coerce();
+
+    $object = new stdClass();
+    $object->name = 'John Doe';
+    $object->age = 42;
+
+    $validated = $schema->validate($object);
+
+    expect($validated)->toBe([
+        'name' => 'John Doe',
+        'age' => 42,
+    ]);
+});
+
+it('should fail to validate stdClass object when coerce is not enabled', function () {
+    $schema = Lemmon\Validator::isAssociative([
+        'name' => Lemmon\Validator::isString(),
+    ]);
+
+    $object = new stdClass();
+    $object->name = 'John Doe';
+
+    $schema->validate($object);
+})->throws(Lemmon\ValidationException::class, 'Input must be an associative array.');
+
+it('should validate a stdClass object', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString(),
+        'age' => Validator::isInt()->coerce(),
+    ]);
+
+    $input = (object)[
+        'name' => 'John Doe',
+        'age' => '42',
+    ];
+
+    $data = $schema->validate($input);
+
+    $expected = new stdClass();
+    $expected->name = 'John Doe';
+    $expected->age = 42;
+
+    expect($data)->toEqual($expected);
+});
+
+it('should coerce an associative array to a stdClass object', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString(),
+        'age' => Validator::isInt(),
+    ])->coerce();
+
+    $input = [
+        'name' => 'Jane Doe',
+        'age' => 30,
+    ];
+
+    $data = $schema->validate($input);
+
+    $expected = new stdClass();
+    $expected->name = 'Jane Doe';
+    $expected->age = 30;
+
+    expect($data)->toEqual($expected);
+});
+
+it('should fail to validate an associative array when coerce is not enabled', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString(),
+    ]);
+
+    $input = ['name' => 'John Doe'];
+
+    try {
+        $schema->validate($input);
+    } catch (Lemmon\ValidationException $e) {
+        expect($e->getErrors())->toBe(['Input must be an object.']);
+        return;
+    }
+
+    $this->fail('ValidationException was not thrown.');
 });

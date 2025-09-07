@@ -3,9 +3,10 @@
 This roadmap outlines the planned features for future releases, prioritizing commonly needed functionalities for application development.
 
 **Released:**
+- `0.2.0` - Added `ObjectValidator`, refactored `SchemaValidator` to `AssociativeValidator`, and enabled cross-coercion between them.
 - `0.1.0` - Initial release.
 
-## Release 0.2: Common Formats & Utility Constraints
+## Common Formats & Utility Constraints
 
 This release focuses on introducing highly practical format validators for strings and other frequently used utility constraints.
 
@@ -26,11 +27,11 @@ This release focuses on introducing highly practical format validators for strin
     *   Implement `enum(array $allowedValues)`: Validates that a value is one of a predefined set of values (for all `FieldValidator` types).
     *   Implement `const(mixed $constantValue)`: Validates that a value is exactly equal to a specific constant.
 
-## Release 0.3: Advanced Structure & Relationships
+## Advanced Structure & Relationships
 
 This release introduces more sophisticated validation rules for complex data structures and their interdependencies.
 
-*   **SchemaValidator (Object Properties)**:
+*   **AssociativeValidator & ObjectValidator**:
     *   Implement `additionalProperties(FieldValidator|bool $validatorOrBoolean)`: Controls whether properties not explicitly defined in the schema are allowed, and optionally validates them against a subschema.
     *   Implement `patternProperties(array $regexToValidatorMap)`: Validates properties whose names match a given regular expression against a subschema.
     *   Implement `propertyNames(StringValidator $validator)`: Validates the names of all properties in an object against a string schema.
@@ -39,7 +40,7 @@ This release introduces more sophisticated validation rules for complex data str
     *   Implement `contains(FieldValidator $validator)`: Validates that an array contains at least one item that matches a given subschema.
     *   Implement `additionalItems(FieldValidator|bool $validatorOrBoolean)`: Controls whether items beyond those defined in `items` (when `items` is an array of schemas) are allowed, and optionally validates them.
 
-## Release 0.4: Logical Combinators
+## Logical Combinators
 
 This release introduces the powerful logical combinators for expressing complex validation rules.
 

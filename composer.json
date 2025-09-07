@@ -3,6 +3,8 @@
     "description": "A lightweight, fluent validation library for PHP.",
     "type": "library",
     "license": "MIT",
+    "homepage": "https://github.com/lemmon/validator-php",
+    "keywords": ["validation", "validator", "schema", "zod", "valibot"],
     "authors": [
         {
             "name": "Jakub Pelák",

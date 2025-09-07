@@ -85,7 +85,7 @@ abstract class FieldValidator
     {
         [$valid, $data, $errors] = $this->tryValidate($value, $key, $input);
         if (!$valid) {
-            throw new ValidationException($errors);
+            throw new ValidationException($errors ?? ['Validation failed.']);
         }
         return $data;
     }
@@ -95,13 +95,13 @@ abstract class FieldValidator
      *
      * @param mixed $value The value to validate.
      * @param string $key The key of the field being validated.
-     * @param array<string, mixed> $input The entire input array.
+     * @param mixed|null $input The entire input payload (array or object).
      * @return array{bool, mixed, array<string>|null} A tuple containing:
      *                                                 - bool: true if validation is successful, false otherwise.
      *                                                 - mixed: The validated and potentially coerced value, or the original value on failure.
      *                                                 - array|null: An array of error messages on failure, or null on success.
      */
-    public function tryValidate(mixed $value, string $key = '', array $input = []): array
+    public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
         if ($this->nullifyEmpty && (($value === '') || (is_array($value) && empty($value)))) {
             $value = null;

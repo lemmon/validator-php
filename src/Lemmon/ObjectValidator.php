@@ -2,7 +2,7 @@
 
 namespace Lemmon;
 
-class SchemaValidator extends FieldValidator
+class ObjectValidator extends FieldValidator
 {
     private bool $coerceAll = false;
 
@@ -25,11 +25,12 @@ class SchemaValidator extends FieldValidator
      */
     protected function coerceValue(mixed $value): mixed
     {
-        // If it's already an array, return as-is
         if (is_array($value)) {
-            return $value;
+            return (object) $value;
         }
-        // For other types, return as-is; validateType will handle the error
+
+        // For other types (including objects), return as-is.
+        // The subsequent validateType method will handle non-object errors.
         return $value;
     }
 
@@ -38,11 +39,11 @@ class SchemaValidator extends FieldValidator
      */
     protected function validateType(mixed $value, string $key): mixed
     {
-        if (!is_array($value)) {
-            throw new ValidationException(['Value must be an array.']);
+        if (!is_object($value)) {
+            throw new ValidationException(['Input must be an object.']);
         }
 
-        $data = [];
+        $data = new \stdClass();
         $errors = [];
 
         foreach ($this->schema as $fieldKey => $validator) {
@@ -50,11 +51,15 @@ class SchemaValidator extends FieldValidator
                 $validator->coerce();
             }
 
-            $fieldValue = $value[$fieldKey] ?? null;
+            $fieldValue = $value->{$fieldKey} ?? null;
 
             [$valid, $validatedFieldValue, $fieldErrors] = $validator->tryValidate($fieldValue, $fieldKey, $value);
 
-            (!$valid) ? $errors[$fieldKey] = $fieldErrors : $data[$fieldKey] = $validatedFieldValue;
+            if (!$valid) {
+                $errors[$fieldKey] = $fieldErrors;
+            } elseif (isset($validatedFieldValue)) {
+                $data->{$fieldKey} = $validatedFieldValue;
+            }
         }
 
         if (!empty($errors)) {

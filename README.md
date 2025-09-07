@@ -1,9 +1,18 @@
 # Lemmon Validator
 
 [![CI](https://github.com/lemmon/validator-php/actions/workflows/ci.yml/badge.svg)](https://github.com/lemmon/validator-php/actions/workflows/ci.yml)
+[![Latest Stable Version](https://img.shields.io/packagist/v/lemmon/validator.svg)](https://packagist.org/packages/lemmon/validator)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A lightweight, fluent validation library for PHP, inspired by Valibot and Zod.
+
+## Installation
+
+Install the package with Composer:
+
+```bash
+composer require lemmon/validator
+```
 
 ## Usage
 
@@ -39,6 +48,28 @@ $emptyData = $emptySchema->validate([]); // Validates an empty array
 // Unlike the main example, if the SchemaValidator is not explicitly required(), it will also pass with a null value.
 [$validNull, $dataNull, $errorsNull] = $emptySchema->tryValidate(null);
 // $validNull will be true, $dataNull will be null, $errorsNull will be null
+```
+
+### Object validation
+
+Similar to associative arrays, you can validate `stdClass` objects.
+
+```php
+use Lemmon\Validator;
+
+// Define a schema for an object
+$schema = Validator::isObject([
+  'name' => Validator::isString()->required(),
+  'age'  => Validator::isInt()->coerce(),
+]);
+
+// Validate a stdClass object
+$object = (object)['name' => 'John Doe', 'age' => '42'];
+$validatedObject = $schema->validate($object); // ✓ $validatedObject->age is now (int) 42
+
+// Coerce an associative array into a stdClass object
+$array = ['name' => 'Jane Doe', 'age' => 30];
+$coercedObject = $schema->coerce()->validate($array); // ✓
 ```
 
 ### Array validation

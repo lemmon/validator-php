@@ -5,7 +5,7 @@ namespace Lemmon;
 class ValidationException extends \Exception
 {
     /**
-     * @param array<string> $errors
+     * @param array<array-key, mixed> $errors
      */
     public function __construct(
         private array $errors
@@ -15,7 +15,7 @@ class ValidationException extends \Exception
     }
 
     /**
-     * @return array<string>
+     * @return array<array-key, mixed>
      */
     public function getErrors(): array
     {

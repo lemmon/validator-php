@@ -5,14 +5,25 @@ namespace Lemmon;
 class Validator
 {
     /**
-     * Creates a new SchemaValidator for associative array validation.
+     * Creates a new AssociativeValidator for associative array validation.
      *
      * @param array<string, FieldValidator> $schema The schema definition.
-     * @return SchemaValidator
+     * @return AssociativeValidator
      */
-    public static function isAssociative(array $schema = []): SchemaValidator
+    public static function isAssociative(array $schema = []): AssociativeValidator
     {
-        return new SchemaValidator($schema);
+        return new AssociativeValidator($schema);
+    }
+
+    /**
+     * Creates a new ObjectValidator for stdClass object validation.
+     *
+     * @param array<string, FieldValidator> $schema The schema definition.
+     * @return ObjectValidator
+     */
+    public static function isObject(array $schema = []): ObjectValidator
+    {
+        return new ObjectValidator($schema);
     }
 
     /**
