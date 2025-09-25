@@ -65,4 +65,14 @@ class Validator
     {
         return new BoolValidator();
     }
+
+    /**
+     * Creates a new FloatValidator for floating-point numbers.
+     *
+     * @return FloatValidator
+     */
+    public static function isFloat(): FloatValidator
+    {
+        return new FloatValidator();
+    }
 }

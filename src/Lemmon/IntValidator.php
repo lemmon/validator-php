@@ -4,6 +4,8 @@ namespace Lemmon;
 
 class IntValidator extends FieldValidator
 {
+    use NumericConstraintsTrait;
+
     /**
      * @inheritDoc
      */
