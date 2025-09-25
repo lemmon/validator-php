@@ -3,24 +3,48 @@
 This roadmap outlines the planned features for future releases, prioritizing commonly needed functionalities for application development.
 
 **Released:**
+- `0.3.0` - Major feature release with comprehensive string validation, FloatValidator, NumericConstraintsTrait, logical combinators, enhanced error collection, and organized test suite.
 - `0.2.0` - Added `ObjectValidator`, refactored `SchemaValidator` to `AssociativeValidator`, and enabled cross-coercion between them.
 - `0.1.0` - Initial release.
 
-## Common Formats & Utility Constraints
+## Completed Features (v0.3.0)
 
-This release focuses on introducing highly practical format validators for strings and other frequently used utility constraints.
+✅ **StringValidator** - Complete implementation:
+    *   ✅ `email()`: Validates a string as an email address.
+    *   ✅ `url()`: Validates a string as a URL.
+    *   ✅ `uuid()`: Validates a string as a UUID.
+    *   ✅ `ip()`: Validates a string as an IPv4 or IPv6 address.
+    *   ✅ `datetime()`: Validates a string as a date-time format (e.g., ISO 8601).
+    *   ✅ `date()`: Validates a string as a date format.
+    *   ✅ `minLength()`, `maxLength()`, `length()`: String length constraints.
+    *   ✅ `pattern()`: Regular expression pattern matching.
+
+✅ **FloatValidator** - Complete implementation:
+    *   ✅ `isFloat()`: For floating-point numbers.
+    *   ✅ `min()`, `max()`: Range constraints.
+    *   ✅ `multipleOf(float $value)`: Validates that a number is a multiple of a given number.
+    *   ✅ `positive()`, `negative()`: Sign constraints.
+
+✅ **IntValidator** - Enhanced with numeric constraints:
+    *   ✅ `min()`, `max()`: Range constraints.
+    *   ✅ `multipleOf(int $value)`: Multiple validation.
+    *   ✅ `positive()`, `negative()`: Sign constraints.
+
+✅ **NumericConstraintsTrait** - Shared numeric validation logic.
+
+✅ **Logical Combinators** - Advanced validation logic:
+    *   ✅ `allOf(array $validators)`: Value must be valid against all provided subschemas.
+    *   ✅ `anyOf(array $validators)`: Value must be valid against at least one of the provided subschemas.
+    *   ✅ `not(FieldValidator $validator)`: Value must *not* be valid against the provided subschema.
+
+✅ **Enhanced Error Collection** - Comprehensive error reporting instead of early exit.
+
+✅ **Context-Aware Validation** - Custom validators receive `(value, key, input)` parameters.
+
+## Next Release - Additional Utility Features
 
 *   **StringValidator**:
-    *   Implement `email()`: Validates a string as an email address.
-    *   Implement `url()`: Validates a string as a URL.
-    *   Implement `uuid()`: Validates a string as a UUID.
-    *   Implement `ip()`: Validates a string as an IPv4 or IPv6 address.
-    *   Implement `datetime()`: Validates a string as a date-time format (e.g., ISO 8601).
-    *   Implement `date()`: Validates a string as a date format.
     *   Implement `time()`: Validates a string as a time format.
-*   **NumberValidator**:
-    *   Implement `isFloat()` / `isNumber()`: For floating-point numbers.
-    *   Implement `multipleOf(float $value)`: Validates that a number is a multiple of a given number.
 *   **ArrayValidator**:
     *   Implement `uniqueItems(bool $unique = true)`: Validates that all items in an array are unique.
 *   **Enum & Const**:
