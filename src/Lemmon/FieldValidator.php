@@ -13,6 +13,11 @@ abstract class FieldValidator
      * @var array<mixed>|null
      */
     protected $oneOf = null;
+    /**
+     * @var array<array{rule: callable, message: string}>
+     */
+    protected array $validations = [];
+
 
     /**
      * Marks the field as required.
@@ -73,6 +78,83 @@ abstract class FieldValidator
     }
 
     /**
+     * Adds a custom validation rule.
+     *
+     * @param callable $validation The validation function that receives (value, key, input).
+     * @param string $message The error message if validation fails.
+     * @return $this
+     */
+    public function addValidation(callable $validation, string $message): self
+    {
+        $this->validations[] = ['rule' => $validation, 'message' => $message];
+        return $this;
+    }
+
+    /**
+     * Validates that the value passes ALL of the provided validators.
+     *
+     * @param array<FieldValidator> $validators Array of validators that must all pass.
+     * @param ?string $message Custom error message.
+     * @return $this
+     */
+    public function allOf(array $validators, ?string $message = null): self
+    {
+        return $this->addValidation(
+            function ($value, $key = null, $input = null) use ($validators) {
+                foreach ($validators as $validator) {
+                    [$valid, , ] = $validator->tryValidate($value, $key, $input);
+                    if (!$valid) {
+                        return false;
+                    }
+                }
+                return true;
+            },
+            $message ?? 'Value must satisfy all validation rules.'
+        );
+    }
+
+    /**
+     * Validates that the value passes ANY of the provided validators.
+     *
+     * @param array<FieldValidator> $validators Array of validators, at least one must pass.
+     * @param ?string $message Custom error message.
+     * @return $this
+     */
+    public function anyOf(array $validators, ?string $message = null): self
+    {
+        return $this->addValidation(
+            function ($value, $key = null, $input = null) use ($validators) {
+                foreach ($validators as $validator) {
+                    [$valid, , ] = $validator->tryValidate($value, $key, $input);
+                    if ($valid) {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            $message ?? 'Value must satisfy at least one validation rule.'
+        );
+    }
+
+    /**
+     * Validates that the value does NOT pass the provided validator.
+     *
+     * @param FieldValidator $validator The validator that must fail.
+     * @param ?string $message Custom error message.
+     * @return $this
+     */
+    public function not(FieldValidator $validator, ?string $message = null): self
+    {
+        return $this->addValidation(
+            function ($value, $key = null, $input = null) use ($validator) {
+                [$valid, , ] = $validator->tryValidate($value, $key, $input);
+                return !$valid;
+            },
+            $message ?? 'Value must not satisfy the validation rule.'
+        );
+    }
+
+    /**
      * Validates the given value against the defined rules.
      *
      * @param mixed $value The value to validate.
@@ -119,6 +201,19 @@ abstract class FieldValidator
 
         try {
             $validatedValue = $this->validateType($value, $key);
+
+            // Collect all validation errors
+            $validationErrors = [];
+            foreach ($this->validations as $validation) {
+                if (!$validation['rule']($validatedValue, $key, $input)) {
+                    $validationErrors[] = $validation['message'];
+                }
+            }
+
+            if (!empty($validationErrors)) {
+                return [false, $validatedValue, $validationErrors];
+            }
+
             return [true, $validatedValue, null];
         } catch (ValidationException $e) {
             return [false, $value, $e->getErrors()];
