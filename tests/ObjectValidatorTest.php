@@ -52,9 +52,9 @@ it('should fail to validate an associative array when coerce is not enabled', fu
     try {
         $schema->validate($input);
     } catch (Lemmon\ValidationException $e) {
-        expect($e->getErrors())->toBe(['Input must be an object.']);
+        expect($e->getErrors())->toBe(['Input must be an object']);
         return;
     }
 
-    $this->fail('ValidationException was not thrown.');
+    $this->fail('ValidationException was not thrown');
 });

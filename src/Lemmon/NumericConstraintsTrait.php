@@ -21,7 +21,7 @@ trait NumericConstraintsTrait
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => $value >= $min,
-            $message ?? "Value must be at least {$min}."
+            $message ?? "Value must be at least {$min}"
         );
     }
 
@@ -36,7 +36,7 @@ trait NumericConstraintsTrait
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => $value <= $max,
-            $message ?? "Value must be at most {$max}."
+            $message ?? "Value must be at most {$max}"
         );
     }
 
@@ -56,7 +56,7 @@ trait NumericConstraintsTrait
                 }
                 return fmod((float) $value, (float) $divisor) === 0.0;
             },
-            $message ?? "Value must be a multiple of {$divisor}."
+            $message ?? "Value must be a multiple of {$divisor}"
         );
     }
 
@@ -70,7 +70,7 @@ trait NumericConstraintsTrait
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => $value > 0,
-            $message ?? 'Value must be positive.'
+            $message ?? 'Value must be positive'
         );
     }
 
@@ -84,7 +84,7 @@ trait NumericConstraintsTrait
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => $value < 0,
-            $message ?? 'Value must be negative.'
+            $message ?? 'Value must be negative'
         );
     }
 }

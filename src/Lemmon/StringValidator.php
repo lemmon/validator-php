@@ -18,7 +18,7 @@ class StringValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_string($value)) {
-            throw new ValidationException(['Value must be a string.']);
+            throw new ValidationException(['Value must be a string']);
         }
         return $value;
     }
@@ -27,7 +27,7 @@ class StringValidator extends FieldValidator
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => filter_var($value, FILTER_VALIDATE_EMAIL) !== false,
-            $message ?? 'Value must be a valid email address.'
+            $message ?? 'Value must be a valid email address'
         );
     }
 
@@ -35,7 +35,7 @@ class StringValidator extends FieldValidator
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => filter_var($value, FILTER_VALIDATE_URL) !== false,
-            $message ?? 'Value must be a valid URL.'
+            $message ?? 'Value must be a valid URL'
         );
     }
 
@@ -43,7 +43,7 @@ class StringValidator extends FieldValidator
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $value) === 1,
-            $message ?? 'Value must be a valid UUID.'
+            $message ?? 'Value must be a valid UUID'
         );
     }
 
@@ -51,7 +51,7 @@ class StringValidator extends FieldValidator
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => filter_var($value, FILTER_VALIDATE_IP) !== false,
-            $message ?? 'Value must be a valid IP address.'
+            $message ?? 'Value must be a valid IP address'
         );
     }
 
@@ -59,7 +59,7 @@ class StringValidator extends FieldValidator
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => mb_strlen($value) >= $min,
-            $message ?? "Value must be at least {$min} characters long."
+            $message ?? "Value must be at least {$min} characters long"
         );
     }
 
@@ -67,7 +67,7 @@ class StringValidator extends FieldValidator
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => mb_strlen($value) <= $max,
-            $message ?? "Value must be at most {$max} characters long."
+            $message ?? "Value must be at most {$max} characters long"
         );
     }
 
@@ -75,7 +75,7 @@ class StringValidator extends FieldValidator
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => mb_strlen($value) === $exact,
-            $message ?? "Value must be exactly {$exact} characters long."
+            $message ?? "Value must be exactly {$exact} characters long"
         );
     }
 
@@ -83,7 +83,7 @@ class StringValidator extends FieldValidator
     {
         return $this->addValidation(
             fn ($value, $key = null, $input = null) => preg_match($regex, $value) === 1,
-            $message ?? 'Value does not match the required pattern.'
+            $message ?? 'Value does not match the required pattern'
         );
     }
 
@@ -94,7 +94,7 @@ class StringValidator extends FieldValidator
                 $date = \DateTime::createFromFormat($format, $value);
                 return $date !== false && $date->format($format) === $value;
             },
-            $message ?? "Value must be a valid datetime in format '{$format}'."
+            $message ?? "Value must be a valid datetime in format '{$format}'"
         );
     }
 
@@ -105,7 +105,7 @@ class StringValidator extends FieldValidator
                 $date = \DateTime::createFromFormat($format, $value);
                 return $date !== false && $date->format($format) === $value;
             },
-            $message ?? "Value must be a valid date in format '{$format}'."
+            $message ?? "Value must be a valid date in format '{$format}'"
         );
     }
 }

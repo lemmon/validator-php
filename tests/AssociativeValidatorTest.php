@@ -46,7 +46,7 @@ it('should throw a validation exception for non-array input in AssociativeValida
     try {
         $schema->validate('not an array');
     } catch (Lemmon\ValidationException $e) {
-        expect($e->getErrors())->toBe(['Input must be an associative array.']);
+        expect($e->getErrors())->toBe(['Input must be an associative array']);
     }
 });
 
@@ -116,4 +116,4 @@ it('should fail to validate stdClass object when coerce is not enabled', functio
     $object->name = 'John Doe';
 
     $schema->validate($object);
-})->throws(Lemmon\ValidationException::class, 'Input must be an associative array.');
+})->throws(Lemmon\ValidationException::class, 'Input must be an associative array');

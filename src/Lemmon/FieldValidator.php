@@ -109,7 +109,7 @@ abstract class FieldValidator
                 }
                 return true;
             },
-            $message ?? 'Value must satisfy all validation rules.'
+            $message ?? 'Value must satisfy all validation rules'
         );
     }
 
@@ -132,7 +132,7 @@ abstract class FieldValidator
                 }
                 return false;
             },
-            $message ?? 'Value must satisfy at least one validation rule.'
+            $message ?? 'Value must satisfy at least one validation rule'
         );
     }
 
@@ -150,7 +150,7 @@ abstract class FieldValidator
                 [$valid, , ] = $validator->tryValidate($value, $key, $input);
                 return !$valid;
             },
-            $message ?? 'Value must not satisfy the validation rule.'
+            $message ?? 'Value must not satisfy the validation rule'
         );
     }
 
@@ -167,7 +167,7 @@ abstract class FieldValidator
     {
         [$valid, $data, $errors] = $this->tryValidate($value, $key, $input);
         if (!$valid) {
-            throw new ValidationException($errors ?? ['Validation failed.']);
+            throw new ValidationException($errors ?? ['Validation failed']);
         }
         return $data;
     }
@@ -190,7 +190,7 @@ abstract class FieldValidator
         }
 
         if (is_null($value)) {
-            return $this->hasDefault ? [true, $this->default, null] : ($this->required ? [false, $value, ['Value is required.']] : [true, null, null]);
+            return $this->hasDefault ? [true, $this->default, null] : ($this->required ? [false, $value, ['Value is required']] : [true, null, null]);
         }
 
         $value = $this->coerce ? $this->coerceValue($value) : $value;

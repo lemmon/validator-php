@@ -10,7 +10,7 @@ it('should validate floats', function () {
     expect($validator->validate('123.45'))->toBe(123.45);
 
     $validator->validate('not-a-float');
-})->throws(Lemmon\ValidationException::class, 'Value must be a float.');
+})->throws(Lemmon\ValidationException::class, 'Value must be a float');
 
 it('should validate float ranges', function () {
     $rangeValidator = Validator::isFloat()->min(10)->max(100);
@@ -29,7 +29,7 @@ it('should validate float multiples', function () {
     expect($multipleValidator->validate(20))->toBe(20.0);
 
     $multipleValidator->validate(13);
-})->throws(Lemmon\ValidationException::class, 'Value must be a multiple of 5.');
+})->throws(Lemmon\ValidationException::class, 'Value must be a multiple of 5');
 
 it('should validate positive floats', function () {
     $positiveValidator = Validator::isFloat()->positive();
@@ -38,4 +38,4 @@ it('should validate positive floats', function () {
     expect($positiveValidator->validate(0.1))->toBe(0.1);
 
     $positiveValidator->validate(-1);
-})->throws(Lemmon\ValidationException::class, 'Value must be positive.');
+})->throws(Lemmon\ValidationException::class, 'Value must be positive');

@@ -6,7 +6,7 @@ it('should throw a validation exception with a generic message for standalone va
     try {
         Validator::isString()->validate(123);
     } catch (Lemmon\ValidationException $e) {
-        expect($e->getErrors())->toBe(['Value must be a string.']);
+        expect($e->getErrors())->toBe(['Value must be a string']);
     }
 });
 
@@ -19,7 +19,7 @@ it('should return a result tuple for standalone validators', function () {
     [$valid, $data, $errors] = Validator::isString()->tryValidate(123);
     expect($valid)->toBe(false);
     expect($data)->toBe(123);
-    expect($errors)->toBe(['Value must be a string.']);
+    expect($errors)->toBe(['Value must be a string']);
 });
 
 it('should collect all validation errors', function () {
@@ -29,9 +29,9 @@ it('should collect all validation errors', function () {
 
     expect($valid)->toBe(false);
     expect($errors)->toHaveCount(3);
-    expect($errors)->toContain('Value must be at least 10 characters long.');
-    expect($errors)->toContain('Value must be at most 3 characters long.');
-    expect($errors)->toContain('Value must be a valid email address.');
+    expect($errors)->toContain('Value must be at least 10 characters long');
+    expect($errors)->toContain('Value must be at most 3 characters long');
+    expect($errors)->toContain('Value must be a valid email address');
 });
 
 it('should pass context to custom validators', function () {
@@ -39,7 +39,7 @@ it('should pass context to custom validators', function () {
         function ($value, $key, $input) {
             return $key === 'test' && is_array($input) && isset($input['other']);
         },
-        'Custom validation failed.'
+        'Custom validation failed'
     );
 
     [$valid, $data, $errors] = $validator->tryValidate('value', 'test', ['other' => 'data']);
@@ -47,7 +47,7 @@ it('should pass context to custom validators', function () {
 
     [$valid, $data, $errors] = $validator->tryValidate('value', 'wrong', ['other' => 'data']);
     expect($valid)->toBe(false);
-    expect($errors)->toContain('Custom validation failed.');
+    expect($errors)->toContain('Custom validation failed');
 });
 
 it('should validate allOf combinator', function () {
@@ -60,7 +60,7 @@ it('should validate allOf combinator', function () {
     expect($validator->validate('hello'))->toBe('hello');
 
     $validator->validate('hi'); // Too short
-})->throws(Lemmon\ValidationException::class, 'Value must satisfy all validation rules.');
+})->throws(Lemmon\ValidationException::class, 'Value must satisfy all validation rules');
 
 it('should validate anyOf combinator', function () {
     $validator = Validator::isString()->anyOf([
@@ -74,7 +74,7 @@ it('should validate anyOf combinator', function () {
     expect($validator->validate('550e8400-e29b-41d4-a716-446655440000'))->toBe('550e8400-e29b-41d4-a716-446655440000');
 
     $validator->validate('invalid-value');
-})->throws(Lemmon\ValidationException::class, 'Value must satisfy at least one validation rule.');
+})->throws(Lemmon\ValidationException::class, 'Value must satisfy at least one validation rule');
 
 it('should validate not combinator', function () {
     $validator = Validator::isString()->not(Validator::isString()->email());
@@ -83,4 +83,4 @@ it('should validate not combinator', function () {
     expect($validator->validate('hello world'))->toBe('hello world');
 
     $validator->validate('test@example.com');
-})->throws(Lemmon\ValidationException::class, 'Value must not satisfy the validation rule.');
+})->throws(Lemmon\ValidationException::class, 'Value must not satisfy the validation rule');

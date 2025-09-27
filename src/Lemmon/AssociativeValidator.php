@@ -40,7 +40,7 @@ class AssociativeValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_array($value)) {
-            throw new ValidationException(['Input must be an associative array.']);
+            throw new ValidationException(['Input must be an associative array']);
         }
 
         $data = [];

@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Comprehensive Documentation**: Complete documentation restructure with focused guides, API reference, and practical examples
+  - Getting Started guides (Installation, Basic Usage, Core Concepts)
+  - Validation Guides (String, Numeric, Custom, Error Handling)
+  - API Reference with complete method documentation
+  - Real-world Examples (Form validation, API validation, E-commerce)
+- **Enhanced README**: Concise overview with quick start examples and organized navigation
+
 ## [0.3.0] - 2025-09-25
 
 ### Added

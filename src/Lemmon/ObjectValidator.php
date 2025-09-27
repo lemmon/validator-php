@@ -40,7 +40,7 @@ class ObjectValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_object($value)) {
-            throw new ValidationException(['Input must be an object.']);
+            throw new ValidationException(['Input must be an object']);
         }
 
         $data = new \stdClass();
