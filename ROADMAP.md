@@ -8,14 +8,43 @@ This roadmap outlines the strategic development plan for future releases, priori
 - [ ] **`time()`** - Validates time format (HH:MM:SS, HH:MM)
 - [ ] **`regex()` alias** - Alternative name for `pattern()` method for clarity
 
+### String Transformations
+- [ ] **`trim()`** - Removes leading/trailing whitespace (extremely common)
+- [ ] **`normalizeSpaces()`** - Collapses multiple spaces into single spaces (complex pattern)
+- [ ] **`slugify()`** - Convert to URL-friendly slugs (complex: accents, case, special chars)
+- [ ] **`toCamelCase()`** / **`toSnakeCase()`** - Advanced case formatting (complex logic)
+- [ ] **`transform()`** - Generic method for custom transformations (core functionality)
+
 ### Array Enhancements
 - [ ] **`uniqueItems()`** - Validates that all array items are unique
 - [ ] **`minItems()`** / **`maxItems()`** - Array length constraints
 - [ ] **`contains()`** - Validates array contains specific item
 
+### Array Transformations
+- [ ] **`filterEmpty()`** - Remove null/empty values (specific filtering logic)
+- [ ] **`unique()`** - Remove duplicates while preserving structure
+- [ ] **`flatten()`** - Flatten nested arrays (complex recursive logic)
+- [ ] **`transform()`** - Generic method for custom transformations (core functionality)
+
+### Numeric Enhancements
+- [ ] **`nonNegative()`** - Validates numbers >= 0 (includes zero)
+- [ ] **`nonPositive()`** - Validates numbers <= 0 (includes zero)
+- [ ] **`gt()`** / **`gte()`** - Greater than / greater than or equal explicit comparisons
+- [ ] **`lt()`** / **`lte()`** - Less than / less than or equal explicit comparisons
+
+### Numeric Transformations
+- [ ] **`clamp(min, max)`** - Restrict numbers to range (not obvious: max(min, min(max, value)))
+- [ ] **`round(precision)`** - Round with precision parameter (convenience for common pattern)
+- [ ] **`transform()`** - Generic method for custom transformations (core functionality)
+
 ### Universal Validators
 - [ ] **`enum()`** - Validates value is one of predefined options (available on all validators)
 - [ ] **`const()`** - Validates value equals specific constant
+
+### Universal Transformations
+- [ ] **`transform()`** - Generic transformation method (available on all validators)
+- [ ] **`when(condition, transform)`** - Conditional transformations
+- [ ] **`pipe()`** - Alias for transform() with functional programming style
 
 ### Enhanced Error Handling
 - [ ] **Structured error codes** - Programmatic error identification
