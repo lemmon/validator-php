@@ -4,13 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2024-12-19
+
 ### Added
+- **Static Logical Combinators**: New static factory methods for advanced validation logic
+  - `Validator::anyOf(array $validators)` - Creates validator that passes if ANY validator passes (perfect for mixed-type validation)
+  - `Validator::allOf(array $validators)` - Creates validator that passes if ALL validators pass (ideal for combining constraints)
+  - `Validator::not(FieldValidator $validator)` - Creates validator that passes if the provided validator does NOT pass (exclusion logic)
+- **Enhanced Mixed-Type Support**: Clean syntax for validating arrays with mixed item types
 - **Comprehensive Documentation**: Complete documentation restructure with focused guides, API reference, and practical examples
   - Getting Started guides (Installation, Basic Usage, Core Concepts)
-  - Validation Guides (String, Numeric, Custom, Error Handling)
-  - API Reference with complete method documentation
+  - Validation Guides (String, Numeric, Array, Object, Custom, Error Handling)
+  - API Reference with complete method documentation including new static combinators
   - Real-world Examples (Form validation, API validation, E-commerce)
 - **Enhanced README**: Concise overview with quick start examples and organized navigation
+- **Comprehensive Test Suite**: Added 19 new tests (76 total) with 54 new assertions (208 total) for static logical combinators
+
+### Improved
+- **API Consistency**: Static logical combinators provide cleaner syntax than instance-only methods
+- **Mixed-Type Validation**: Simplified array validation with `Validator::anyOf()` for mixed types
+- **Documentation Coverage**: All new methods fully documented with practical examples
+- **Type Safety**: Static combinators work with any data type while maintaining type safety
 
 ## [0.3.0] - 2025-09-25
 

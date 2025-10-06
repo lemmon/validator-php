@@ -2,7 +2,15 @@
 
 This roadmap outlines the strategic development plan for future releases, prioritizing features that deliver maximum value to the PHP validation ecosystem.
 
-## 📋 Next Release (v0.4.0) - Utility Features
+## ✅ Recently Completed (v0.4.0) - Static Logical Combinators
+
+### Advanced Validation Logic
+- [x] ✅ **Static Logical Combinators** - `Validator::anyOf()`, `Validator::allOf()`, `Validator::not()` for type-agnostic validation
+- [x] ✅ **Enhanced Mixed-Type Support** - Clean syntax for arrays with mixed item types
+- [x] ✅ **Comprehensive Documentation** - Complete API reference and practical examples
+- [x] ✅ **Comprehensive Test Suite** - 19 new tests (76 total) with 54 new assertions (208 total)
+
+## 📋 Next Release (v0.5.0) - Utility Features
 
 ### String Enhancements
 - [ ] **`time()`** - Validates time format (HH:MM:SS, HH:MM)
@@ -50,7 +58,7 @@ This roadmap outlines the strategic development plan for future releases, priori
 - [ ] **Structured error codes** - Programmatic error identification
 - [ ] **Error path enhancement** - Full field paths for nested validation errors
 
-## 🏗️ Future Release (v0.5.0) - Advanced Schema Features
+## 🏗️ Future Release (v0.6.0) - Advanced Schema Features
 
 ### Schema Composition
 - [ ] **`additionalProperties()`** - Control undefined properties in schemas
@@ -95,9 +103,10 @@ This roadmap outlines the strategic development plan for future releases, priori
 - [ ] **Interactive documentation** - Runnable examples
 
 ### Testing & Quality
-- [x] ✅ Organized test suite (8 focused test files)
+- [x] ✅ Organized test suite (9 focused test files, 76 tests, 208 assertions)
 - [x] ✅ 100% PHPStan compliance
 - [x] ✅ PHP-CS-Fixer standards
+- [x] ✅ Static logical combinators test coverage
 - [ ] **Mutation testing** - Enhanced test quality verification
 - [ ] **Property-based testing** - Randomized validation testing
 - [ ] **Performance benchmarking** - Continuous performance monitoring

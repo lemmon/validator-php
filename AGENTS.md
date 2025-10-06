@@ -22,7 +22,8 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ## 🚀 Advanced Features
 
 ### Validation Capabilities
-- **Logical Combinators** - `allOf()`, `anyOf()`, `not()` for complex rule composition
+- **Static Logical Combinators** - `Validator::allOf()`, `Validator::anyOf()`, `Validator::not()` for complex rule composition and mixed-type validation
+- **Instance Logical Combinators** - `allOf()`, `anyOf()`, `not()` instance methods for chaining validation rules
 - **Context-Aware Validation** - Custom validators receive `(value, key, input)` parameters
 - **Comprehensive Error Collection** - All validation errors collected, not just the first failure
 - **Smart Type Coercion** - Configurable automatic type conversion
@@ -58,7 +59,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ## 🔧 Development Workflow
 
 ### Code Quality
-- **Testing** - Pest PHP with organized test suite (8 focused test files, 57 tests, 154 assertions)
+- **Testing** - Pest PHP with organized test suite (9 focused test files, 76 tests, 208 assertions)
 - **Static Analysis** - PHPStan at maximum level for type safety
 - **Code Style** - PHP-CS-Fixer for consistent formatting
 - **Performance** - Optimized validation logic with eliminated code duplication
@@ -71,31 +72,34 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ### Test Organization
 ```
 tests/
-├── AssociativeValidatorTest.php  # Schema validation
-├── ObjectValidatorTest.php       # stdClass validation
-├── ArrayValidatorTest.php        # Indexed arrays
-├── StringValidatorTest.php       # String formats
-├── IntValidatorTest.php          # Integer constraints
-├── FloatValidatorTest.php        # Float constraints
-├── FieldValidatorTest.php        # Base functionality
-└── NumericConstraintsTraitTest.php # Shared numeric logic
+├── AssociativeValidatorTest.php     # Schema validation
+├── ObjectValidatorTest.php          # stdClass validation
+├── ArrayValidatorTest.php           # Indexed arrays
+├── StringValidatorTest.php          # String formats
+├── IntValidatorTest.php             # Integer constraints
+├── FloatValidatorTest.php           # Float constraints
+├── FieldValidatorTest.php           # Base functionality
+├── NumericConstraintsTraitTest.php  # Shared numeric logic
+└── ValidatorStaticCombinatorsTest.php # Static logical combinators
 ```
 
 ## 🎯 Project Status
 
-### Current Version: 0.3.0
+### Current Version: 0.4.0
 - ✅ Complete string validation suite
 - ✅ Dedicated float validator with numeric constraints
-- ✅ Logical combinators for complex validation logic
+- ✅ Static logical combinators for advanced validation logic
+- ✅ Instance logical combinators for chaining validation rules
+- ✅ Enhanced mixed-type validation support
 - ✅ Comprehensive error collection and context-aware validation
 - ✅ Organized test suite and enterprise documentation
 - ✅ 100% PHPStan compliance and PHP-CS-Fixer standards
 
 ### Key Metrics
 - **8 validator types** covering all PHP data types
-- **25+ built-in validation methods** for common use cases
-- **3,000+ lines of documentation** with practical examples
-- **57 unit tests** with comprehensive coverage
+- **28+ built-in validation methods** including static logical combinators
+- **4,000+ lines of documentation** with practical examples
+- **76 unit tests** with comprehensive coverage (208 assertions)
 - **Zero technical debt** with modern PHP 8.1+ codebase
 
 ## 🔮 Vision & Roadmap

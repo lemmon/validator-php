@@ -2,6 +2,38 @@
 
 This document captures innovative ideas and suggestions for potential future enhancements to the Lemmon Validator library. These concepts represent opportunities for expanding the library's capabilities beyond the current roadmap.
 
+## ✅ Recently Implemented
+
+### Static Logical Combinators (v0.4.0)
+**Status**: ✅ **IMPLEMENTED**
+**Concept**: Static factory methods for advanced validation logic.
+```php
+// Mixed-type validation
+$flexibleId = Validator::anyOf([
+    Validator::isInt()->positive(),
+    Validator::isString()->uuid(),
+    Validator::isString()->pattern('/^[A-Z]{3}-\d{4}$/')
+]);
+
+// Multiple constraints
+$strictString = Validator::allOf([
+    Validator::isString()->minLength(5),
+    Validator::isString()->maxLength(20),
+    Validator::isString()->pattern('/^[A-Za-z]+$/')
+]);
+
+// Exclusion logic
+$notBanned = Validator::not(
+    Validator::isString()->oneOf(['banned', 'suspended']),
+    'User cannot be banned or suspended'
+);
+```
+**Benefits**:
+- ✅ Clean syntax for mixed-type validation
+- ✅ Type-agnostic logical operations
+- ✅ Enhanced API consistency
+- ✅ Simplified array validation with mixed item types
+
 ## 💡 Core Enhancement Ideas
 
 ### 1. Data Transformation Pipeline

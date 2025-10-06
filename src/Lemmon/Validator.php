@@ -75,4 +75,70 @@ class Validator
     {
         return new FloatValidator();
     }
+
+    /**
+     * Creates a validator that passes if ANY of the provided validators pass.
+     *
+     * @param array<FieldValidator> $validators Array of validators, at least one must pass.
+     * @param ?string $message Custom error message.
+     * @return FieldValidator
+     */
+    public static function anyOf(array $validators, ?string $message = null): FieldValidator
+    {
+        return (new class () extends FieldValidator {
+            protected function coerceValue(mixed $value): mixed
+            {
+                return $value; // No coercion for mixed types
+            }
+
+            protected function validateType(mixed $value, string $key): mixed
+            {
+                return $value; // Accept any type
+            }
+        })->anyOf($validators, $message);
+    }
+
+    /**
+     * Creates a validator that passes if ALL of the provided validators pass.
+     *
+     * @param array<FieldValidator> $validators Array of validators that must all pass.
+     * @param ?string $message Custom error message.
+     * @return FieldValidator
+     */
+    public static function allOf(array $validators, ?string $message = null): FieldValidator
+    {
+        return (new class () extends FieldValidator {
+            protected function coerceValue(mixed $value): mixed
+            {
+                return $value; // No coercion for mixed types
+            }
+
+            protected function validateType(mixed $value, string $key): mixed
+            {
+                return $value; // Accept any type
+            }
+        })->allOf($validators, $message);
+    }
+
+    /**
+     * Creates a validator that passes if the provided validator does NOT pass.
+     *
+     * @param FieldValidator $validator The validator that must fail.
+     * @param ?string $message Custom error message.
+     * @return FieldValidator
+     */
+    public static function not(FieldValidator $validator, ?string $message = null): FieldValidator
+    {
+        return (new class () extends FieldValidator {
+            protected function coerceValue(mixed $value): mixed
+            {
+                return $value; // No coercion for mixed types
+            }
+
+            protected function validateType(mixed $value, string $key): mixed
+            {
+                return $value; // Accept any type
+            }
+        })->not($validator, $message);
+    }
 }

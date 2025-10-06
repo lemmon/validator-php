@@ -51,9 +51,14 @@ All validators extend `FieldValidator`, which provides:
 - `addValidation(callable $rule, string $message): static` - Adds custom rules
 
 ### Logical Combinators
-- `allOf(array $validators): static` - Must pass all validators
-- `anyOf(array $validators): static` - Must pass at least one validator
-- `not(FieldValidator $validator): static` - Must NOT pass the validator
+- `allOf(array $validators): static` - Must pass all validators (instance method)
+- `anyOf(array $validators): static` - Must pass at least one validator (instance method)
+- `not(FieldValidator $validator): static` - Must NOT pass the validator (instance method)
+
+### Static Logical Combinators
+- `Validator::allOf(array $validators)` - Creates validator that must pass all validators
+- `Validator::anyOf(array $validators)` - Creates validator that must pass at least one validator
+- `Validator::not(FieldValidator $validator)` - Creates validator that must NOT pass the validator
 
 ## Type-Specific Validators
 

@@ -365,6 +365,108 @@ class UserSchemas
 }
 ```
 
+---
+
+### `anyOf(array $validators, ?string $message = null): FieldValidator`
+
+Creates a validator that passes if ANY of the provided validators pass. Perfect for mixed-type validation.
+
+```php
+// Mixed type validation - accepts string, int, or float
+$flexibleId = Validator::anyOf([
+    Validator::isInt()->positive(),
+    Validator::isString()->uuid(),
+    Validator::isString()->pattern('/^[A-Z]{3}-\d{4}$/')
+]);
+
+$result1 = $flexibleId->validate(123); // ✅ Valid (positive int)
+$result2 = $flexibleId->validate('550e8400-e29b-41d4-a716-446655440000'); // ✅ Valid (UUID)
+$result3 = $flexibleId->validate('ABC-1234'); // ✅ Valid (custom pattern)
+
+// Array of mixed types
+$mixedArray = Validator::isArray()->items(
+    Validator::anyOf([
+        Validator::isString(),
+        Validator::isInt(),
+        Validator::isFloat()
+    ])
+);
+```
+
+**Parameters:**
+- `$validators`: Array of `FieldValidator` instances, at least one must pass
+- `$message` (optional): Custom error message if all validators fail
+
+**Returns:** `FieldValidator` instance that accepts any type matching at least one validator.
+
+---
+
+### `allOf(array $validators, ?string $message = null): FieldValidator`
+
+Creates a validator that passes if ALL of the provided validators pass. Useful for combining multiple constraints.
+
+```php
+// String that must satisfy multiple conditions
+$strictString = Validator::allOf([
+    Validator::isString()->minLength(5),
+    Validator::isString()->maxLength(20),
+    Validator::isString()->pattern('/^[A-Za-z]+$/'),
+    Validator::isString()->addValidation(
+        fn($value) => !in_array(strtolower($value), ['admin', 'root']),
+        'Cannot be reserved word'
+    )
+]);
+
+$result = $strictString->validate('HelloWorld'); // ✅ Valid (passes all conditions)
+
+// Schema validation with combined constraints
+$userSchema = Validator::isAssociative([
+    'name' => Validator::allOf([
+        Validator::isString()->required(),
+        Validator::isString()->minLength(2),
+        Validator::isString()->maxLength(50)
+    ])
+]);
+```
+
+**Parameters:**
+- `$validators`: Array of `FieldValidator` instances that must all pass
+- `$message` (optional): Custom error message if any validator fails
+
+**Returns:** `FieldValidator` instance that requires all validators to pass.
+
+---
+
+### `not(FieldValidator $validator, ?string $message = null): FieldValidator`
+
+Creates a validator that passes if the provided validator does NOT pass. Perfect for exclusion logic.
+
+```php
+// String that is NOT an email
+$notEmail = Validator::not(
+    Validator::isString()->email(),
+    'Value must not be an email address'
+);
+
+$result1 = $notEmail->validate('hello world'); // ✅ Valid (not an email)
+$result2 = $notEmail->validate(123); // ✅ Valid (not an email)
+
+// User status that cannot be banned or suspended
+$validStatus = Validator::not(
+    Validator::isString()->oneOf(['banned', 'suspended']),
+    'User cannot have banned or suspended status'
+);
+
+$result3 = $validStatus->validate('active'); // ✅ Valid
+$result4 = $validStatus->validate('pending'); // ✅ Valid
+```
+
+**Parameters:**
+- `$validator`: The `FieldValidator` instance that must fail
+- `$message` (optional): Custom error message if the validator passes
+
+**Returns:** `FieldValidator` instance that passes when the provided validator fails.
+
 ## See Also
 
 - [FieldValidator API Reference](field-validator.md) - Base validator methods

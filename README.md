@@ -12,7 +12,7 @@ A comprehensive, fluent validation library for PHP, inspired by Valibot and Zod.
 - 🔗 **Fluent, chainable API** for readable and maintainable validation rules
 - 📋 **Comprehensive error collection** with detailed, structured feedback
 - ⚙️ **Custom validation functions** with context-aware parameters
-- 🧩 **Logical combinators** (`allOf`, `anyOf`, `not`) for complex validation logic
+- 🧩 **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
 - 🔄 **Smart type coercion** with configurable behavior
 - 🎯 **Schema validation** for nested data structures
 
@@ -125,6 +125,11 @@ $strictUser = Validator::allOf([
     Validator::isAssociative(['name' => Validator::isString()]),
     Validator::isAssociative(['email' => Validator::isString()->email()])
 ]);
+
+$notBanned = Validator::not(
+    Validator::isString()->oneOf(['banned', 'suspended']),
+    'User cannot be banned or suspended'
+);
 ```
 
 ## 🤝 Contributing
