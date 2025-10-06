@@ -95,7 +95,7 @@ $numbersValidator = Validator::isArray(
 $numbers = $numbersValidator->validate([1, 2, 3]); // Each item validated as positive int
 
 // Array of email addresses
-$emailsValidator = Validator::isArray(
+$emailsValidator = Validator::isArray()->items(
     Validator::isString()->email()
 );
 ```

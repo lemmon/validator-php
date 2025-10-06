@@ -54,21 +54,12 @@ $userSchema = Validator::isAssociative([
 - 🏗️ [Object & Schema Validation](docs/guides/object-validation.md) - Complex nested structures
 - ⚙️ [Custom Validation](docs/guides/custom-validation.md) - User-defined functions and business logic
 - ❌ [Error Handling](docs/guides/error-handling.md) - Working with validation errors
-- 🧩 [Advanced Patterns](docs/guides/advanced-patterns.md) - Combinators and complex rules
 
 ### API Reference
 - 🏭 [Validator Factory](docs/api-reference/validator-factory.md)
-- 🔤 [StringValidator](docs/api-reference/string-validator.md)
-- 🔢 [IntValidator & FloatValidator](docs/api-reference/numeric-validators.md)
-- 📋 [ArrayValidator](docs/api-reference/array-validator.md)
-- 🏗️ [AssociativeValidator & ObjectValidator](docs/api-reference/structure-validators.md)
-- ⚙️ [FieldValidator](docs/api-reference/field-validator.md) - Base validator methods
 
 ### Examples
 - 📝 [Form Validation](docs/examples/form-validation.md)
-- 🌐 [API Validation](docs/examples/api-validation.md)
-- ⚙️ [Configuration Validation](docs/examples/configuration-validation.md)
-- 🏢 [Real-world Schemas](docs/examples/real-world-schemas.md)
 
 ## 📦 Installation
 
