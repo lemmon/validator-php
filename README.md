@@ -95,11 +95,33 @@ $age = Validator::isInt()
     ->max(120)
     ->validate(25);
 
+// Enhanced coercion for form data
+$quantity = Validator::isInt()
+    ->coerce() // Empty strings become 0
+    ->validate(''); // Returns: 0
+
 // Float with precision
 $price = Validator::isFloat()
     ->positive()
     ->multipleOf(0.01) // Cents precision
+    ->coerce() // Empty strings become 0.0
     ->validate(19.99);
+```
+
+### Array Validation
+```php
+// Array filtering with auto-reindexing
+$tags = Validator::isArray()
+    ->filterEmpty() // Removes '', null but keeps 0, false, []
+    ->validate(['php', '', 'javascript', null, 'react']);
+// Returns: ['php', 'javascript', 'react'] (properly indexed)
+
+// With item validation
+$numbers = Validator::isArray()
+    ->items(Validator::isInt()->positive())
+    ->filterEmpty()
+    ->validate([1, '', 2, null, 3]);
+// Returns: [1, 2, 3]
 ```
 
 ### Custom Validation

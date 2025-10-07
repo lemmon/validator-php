@@ -2,6 +2,54 @@
 
 use Lemmon\Validator;
 
+it('should filter empty values and reindex array', function () {
+    $validator = Validator::isArray()->filterEmpty();
+
+    $input = ['apple', '', 'banana', null, 'cherry'];
+    $result = $validator->validate($input);
+
+    expect($result)->toBe(['apple', 'banana', 'cherry']);
+    expect(array_keys($result))->toBe([0, 1, 2]); // Properly reindexed
+});
+
+it('should preserve valid falsy values when filtering', function () {
+    $validator = Validator::isArray()->filterEmpty();
+
+    $input = ['hello', '', 0, null, false, 'world'];
+    $result = $validator->validate($input);
+
+    expect($result)->toBe(['hello', 0, false, 'world']);
+    expect(array_keys($result))->toBe([0, 1, 2, 3]); // Properly reindexed
+});
+
+it('should filter empty values with item validator', function () {
+    $validator = Validator::isArray()->items(Validator::isString())->filterEmpty();
+
+    $input = ['hello', '', 'world', null, 'test'];
+    $result = $validator->validate($input);
+
+    expect($result)->toBe(['hello', 'world', 'test']);
+    expect(array_keys($result))->toBe([0, 1, 2]); // Properly reindexed
+});
+
+it('should handle empty array after filtering', function () {
+    $validator = Validator::isArray()->filterEmpty();
+
+    $input = ['', null, '', null];
+    $result = $validator->validate($input);
+
+    expect($result)->toBe([]);
+});
+
+it('should work without filtering when not enabled', function () {
+    $validator = Validator::isArray();
+
+    $input = ['apple', '', 'banana', null, 'cherry'];
+    $result = $validator->validate($input);
+
+    expect($result)->toBe(['apple', '', 'banana', null, 'cherry']); // No filtering
+});
+
 it('should validate plain arrays', function () {
     $validator = Validator::isArray();
 

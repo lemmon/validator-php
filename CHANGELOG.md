@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Enhanced Numeric Coercion**: `IntValidator` and `FloatValidator` now coerce empty strings to 0/0.0 respectively
+  - Addresses real-world HTML form scenarios where empty fields are common
+  - Maintains backward compatibility for existing numeric coercion behavior
+- **Array Filtering with Auto-Reindexing**: New `filterEmpty()` method for `ArrayValidator`
+  - Removes empty strings (`''`) and `null` values while preserving valid falsy values (`0`, `false`, `[]`)
+  - Automatically reindexes arrays to maintain indexed array structure (0, 1, 2, 3...)
+  - Works seamlessly with item validators for comprehensive array cleanup
+
+### Improved
+- **Form Data Handling**: Enhanced coercion makes form validation significantly more practical and intuitive
+- **Array Data Integrity**: `filterEmpty()` maintains ArrayValidator's contract of returning properly indexed arrays
+- **Test Coverage**: Added 11 new tests across numeric and array validators (87 total tests, 85 assertions)
+
 ## [0.4.0] - 2024-12-19
 
 ### Added

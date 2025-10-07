@@ -108,8 +108,7 @@ $formValidator = Validator::isAssociative([
     'salary' => Validator::isFloat()
         ->coerce(),                                     // Enhanced: empty strings → 0.0
     'tags' => Validator::isArray()
-        ->filterEmpty()                                 // Remove empty values
-        ->reindex()                                     // Re-index after filtering
+        ->filterEmpty()                                 // Remove empty values + auto-reindex
         ->default([])
 ]);
 
@@ -121,8 +120,7 @@ $formValidator = Validator::isAssociative([
 
 // After (clean and discoverable):
 ->coerce()                                              // ✅ Enhanced: empty strings → 0!
-->filterEmpty()                                         // Clean array method
-->reindex()                                             // Clean array method
+->filterEmpty()                                         // ✅ Clean array method + auto-reindex!
 
 // Complex array processing with existing tools:
 $arrayValidator = Validator::isArray()
@@ -143,8 +141,7 @@ $stringValidator = Validator::isString()
 ### Array Transformations
 - [ ] **`transform()`** / **`pipe()`** - Generic transformation methods (core functionality)
 - [x] ✅ **`nullifyEmpty()`** - Convert empty arrays to null (already implemented!)
-- [ ] **`filterEmpty()`** - Remove empty/null values from array (common cleanup)
-- [ ] **`reindex()`** - Re-index array with `array_values()` (after filtering)
+- [x] ✅ **`filterEmpty()`** - Remove empty/null values and reindex automatically (already implemented!)
 
 ### Removed from Scope
 - ~~`unique()`~~ - Use `array_unique()` or Laravel Collections (complex deduplication logic)

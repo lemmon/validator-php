@@ -4,6 +4,24 @@ This document captures innovative ideas and suggestions for potential future enh
 
 ## ✅ Recently Implemented
 
+### Enhanced Numeric Coercion & Array Filtering (v0.5.0-dev)
+**Status**: ✅ **IMPLEMENTED**
+**Concept**: Practical enhancements for real-world form data handling.
+```php
+// Enhanced coercion - empty strings to numbers
+$age = Validator::isInt()->coerce()->validate(''); // Returns: 0
+$price = Validator::isFloat()->coerce()->validate(''); // Returns: 0.0
+
+// Array filtering with auto-reindexing
+$tags = Validator::isArray()->filterEmpty()->validate(['php', '', 'javascript', null]);
+// Returns: ['php', 'javascript'] (properly reindexed)
+```
+**Benefits**:
+- ✅ Seamless HTML form data handling
+- ✅ Maintains validator type contracts (indexed arrays stay indexed)
+- ✅ Preserves valid falsy values (0, false, [])
+- ✅ Comprehensive test coverage
+
 ### Static Logical Combinators (v0.4.0)
 **Status**: ✅ **IMPLEMENTED**
 **Concept**: Static factory methods for advanced validation logic.

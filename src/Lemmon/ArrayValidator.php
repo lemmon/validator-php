@@ -5,6 +5,7 @@ namespace Lemmon;
 class ArrayValidator extends FieldValidator
 {
     private ?FieldValidator $itemValidator = null;
+    private bool $filterEmpty = false;
 
     /**
      * Sets the validator for array items.
@@ -15,6 +16,18 @@ class ArrayValidator extends FieldValidator
     public function items(FieldValidator $validator): self
     {
         $this->itemValidator = $validator;
+        return $this;
+    }
+
+    /**
+     * Removes empty values (empty strings and null) from the array and reindexes it.
+     * Maintains the indexed array structure that ArrayValidator expects.
+     *
+     * @return $this
+     */
+    public function filterEmpty(): self
+    {
+        $this->filterEmpty = true;
         return $this;
     }
 
@@ -58,6 +71,11 @@ class ArrayValidator extends FieldValidator
         // Check if it's a list (indexed array starting from 0)
         if (!array_is_list($value)) {
             throw new ValidationException(['Value must be an indexed array (list)']);
+        }
+
+        // Apply filterEmpty transformation if enabled
+        if ($this->filterEmpty) {
+            $value = array_values(array_filter($value, fn($item) => $item !== '' && $item !== null));
         }
 
         // If item validator is set, validate each item
