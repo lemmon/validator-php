@@ -2,6 +2,12 @@
 
 This roadmap outlines the strategic development plan for future releases, prioritizing features that deliver maximum value to the PHP validation ecosystem.
 
+## 🎯 **Strategic Philosophy**
+
+**Extensibility Over Reinvention:** We focus on creating a clean, extensible validation flow rather than reimplementing existing libraries. Our `transform()` method enables seamless integration with established libraries like Laravel Str, Symfony String, and Laravel Collections. This approach keeps our library lightweight while providing unlimited flexibility through the rich PHP ecosystem.
+
+**Core Principle:** Validate first, transform with the best tools available.
+
 ## ✅ Recently Completed (v0.4.0) - Static Logical Combinators
 
 ### Advanced Validation Logic
@@ -14,14 +20,121 @@ This roadmap outlines the strategic development plan for future releases, priori
 
 ### String Enhancements
 - [ ] **`time()`** - Validates time format (HH:MM:SS, HH:MM)
+- [ ] **`base64()`** - Validates Base64 encoded strings (simple regex, no dependencies)
+- [ ] **`hex()`** - Validates hexadecimal strings (simple regex, optional length constraints)
 - [ ] **`regex()` alias** - Alternative name for `pattern()` method for clarity
 
 ### String Transformations
-- [ ] **`trim()`** - Removes leading/trailing whitespace (extremely common)
-- [ ] **`normalizeSpaces()`** - Collapses multiple spaces into single spaces (complex pattern)
-- [ ] **`slugify()`** - Convert to URL-friendly slugs (complex: accents, case, special chars)
-- [ ] **`toCamelCase()`** / **`toSnakeCase()`** - Advanced case formatting (complex logic)
-- [ ] **`transform()`** - Generic method for custom transformations (core functionality)
+- [ ] **`transform()`** - Single transformation method (core functionality)
+- [ ] **`pipe(...$transformers)`** - Multiple transformations in sequence (variadic arguments)
+- [x] ✅ **`nullifyEmpty()`** - Convert empty strings/arrays to null (already implemented!)
+
+### Common Normalization Patterns
+```php
+// Empty-to-null conversions (very common in forms):
+->transform(fn($v) => $v === '' ? null : $v)           // Empty string to null
+->transform(fn($v) => empty($v) ? null : $v)           // Empty array/string to null
+
+// String normalizations:
+->transform(fn($v) => $v === 'null' ? null : $v)       // String "null" to actual null
+->transform(fn($v) => $v === '0' ? 0 : $v)             // String "0" to integer 0
+->transform(fn($v) => $v === 'false' ? false : $v)     // String "false" to boolean false
+
+// Numeric normalizations:
+->transform(fn($v) => $v === '' ? 0 : $v)              // Empty string to zero
+->transform(fn($v) => is_string($v) ? (float)$v : $v)  // String numbers to float
+
+// Array normalizations:
+->transform(fn($v) => array_filter($v))                // Remove empty values
+->transform(fn($v) => array_values($v))                // Re-index array
+```
+
+### Removed from Scope
+- ~~`trim()`~~ - Use `->transform('trim')` or `->transform(fn($v) => trim($v))` for predictability
+- ~~`toCamelCase()` / `toSnakeCase()`~~ - Better handled by specialized libraries (Laravel Str, Symfony String)
+- ~~`slugify()`~~ - Complex internationalization logic, use dedicated libraries
+- ~~`normalizeSpaces()`~~ - Complex whitespace handling (spaces, tabs, newlines, Unicode), use `Str::squish()`
+- ~~`cuid2()` / `nanoid()` / `ulid()`~~ - Use specialized libraries (ramsey/uuid, hidehalo/nanoid-php, ulid/php)
+
+### Extensibility Examples
+```php
+// Single transformations (explicit and clear):
+$validator = Validator::isString()
+    ->minLength(3)
+    ->transform('trim')                         // Single transformation
+    ->transform(fn($v) => Str::squish($v))      // Another single transformation
+    ->transform(fn($v) => Str::slug($v));       // Laravel: create URL slug
+
+// Pipeline transformations (clean variadic syntax):
+$textValidator = Validator::isString()
+    ->required()
+    ->pipe(                                    // Multiple transformations - no array brackets!
+        'trim',
+        'mb_strtolower',
+        fn($v) => Str::title($v),
+        fn($v) => Str::limit($v, 50)
+    );
+
+// Mixed approach (semantic clarity):
+$mixedValidator = Validator::isString()
+    ->transform('trim')                        // Important single step
+    ->pipe('strtolower', fn($v) => Str::title($v)) // Clean batch operations
+    ->transform(fn($v) => Str::slug($v));      // Final transformation
+
+// Dynamic pipeline building:
+$transformers = ['trim', 'strtolower'];
+$dynamicValidator = Validator::isString()
+    ->pipe(...$transformers);                  // Spread operator for dynamic arrays
+
+// Modern identifier validation with specialized libraries:
+use Ramsey\Uuid\Uuid;
+use Hidehalo\Nanoid\Client as NanoidClient;
+
+$uuidValidator = Validator::isString()
+    ->addValidation(fn($v) => Uuid::isValid($v), 'Must be valid UUID');
+
+$nanoidValidator = Validator::isString()
+    ->addValidation(fn($v) => (new NanoidClient())->isValid($v), 'Must be valid Nano ID');
+
+// Real-world form data normalization (with dedicated methods):
+$formValidator = Validator::isAssociative([
+    'name' => Validator::isString()
+        ->nullifyEmpty()                                // Already implemented! ✅
+        ->transform('trim')
+        ->required(),
+    'age' => Validator::isInt()
+        ->nullifyEmpty()                                // Works across all types ✅
+        ->coerce(),
+    'salary' => Validator::isFloat()
+        ->emptyToZero()                                 // New numeric-specific method
+        ->coerce(),
+    'tags' => Validator::isArray()
+        ->filterEmpty()                                 // Remove empty values
+        ->reindex()                                     // Re-index after filtering
+        ->default([])
+]);
+
+// Compare: Before vs After
+// Before (verbose):
+->transform(fn($v) => $v === '' ? null : $v)
+->transform(fn($v) => array_filter($v))
+->transform(fn($v) => array_values($v))
+
+// After (clean and discoverable):
+->nullifyEmpty()                                        // ✅ Already exists!
+->filterEmpty()
+->reindex()
+
+// Complex array processing with existing tools:
+$arrayValidator = Validator::isArray()
+    ->minItems(1)
+    ->transform(fn($v) => collect($v)->unique()->values()->all()); // Laravel Collections
+
+// String processing with Symfony:
+$stringValidator = Validator::isString()
+    ->email()
+    ->transform(fn($v) => u($v)->lower()->toString()); // Symfony String
+```
 
 ### Array Enhancements
 - [ ] **`uniqueItems()`** - Validates that all array items are unique
@@ -29,10 +142,14 @@ This roadmap outlines the strategic development plan for future releases, priori
 - [ ] **`contains()`** - Validates array contains specific item
 
 ### Array Transformations
-- [ ] **`filterEmpty()`** - Remove null/empty values (specific filtering logic)
-- [ ] **`unique()`** - Remove duplicates while preserving structure
-- [ ] **`flatten()`** - Flatten nested arrays (complex recursive logic)
-- [ ] **`transform()`** - Generic method for custom transformations (core functionality)
+- [ ] **`transform()`** / **`pipe()`** - Generic transformation methods (core functionality)
+- [x] ✅ **`nullifyEmpty()`** - Convert empty arrays to null (already implemented!)
+- [ ] **`filterEmpty()`** - Remove empty/null values from array (common cleanup)
+- [ ] **`reindex()`** - Re-index array with `array_values()` (after filtering)
+
+### Removed from Scope
+- ~~`unique()`~~ - Use `array_unique()` or Laravel Collections (complex deduplication logic)
+- ~~`flatten()`~~ - Complex recursive logic, use Laravel Collections or `array_merge_recursive()`
 
 ### Numeric Enhancements
 - [ ] **`nonNegative()`** - Validates numbers >= 0 (includes zero)
@@ -43,16 +160,19 @@ This roadmap outlines the strategic development plan for future releases, priori
 ### Numeric Transformations
 - [ ] **`clamp(min, max)`** - Restrict numbers to range (not obvious: max(min, min(max, value)))
 - [ ] **`round(precision)`** - Round with precision parameter (convenience for common pattern)
-- [ ] **`transform()`** - Generic method for custom transformations (core functionality)
+- [ ] **`emptyToZero()`** - Convert empty strings to 0 (common in numeric forms)
+- [x] ✅ **`nullifyEmpty()`** - Convert empty strings to null (already implemented!)
+- [ ] **`transform()`** / **`pipe()`** - Generic transformation methods (core functionality)
 
 ### Universal Validators
 - [ ] **`enum()`** - Validates value is one of predefined options (available on all validators)
 - [ ] **`const()`** - Validates value equals specific constant
 
 ### Universal Transformations
-- [ ] **`transform()`** - Generic transformation method (available on all validators)
-- [ ] **`when(condition, transform)`** - Conditional transformations
-- [ ] **`pipe()`** - Alias for transform() with functional programming style
+- [ ] **`transform()`** / **`pipe()`** - Generic transformation methods (available on all validators)
+
+### Removed from Scope
+- ~~`when(condition, transform)`~~ - Complex conditional logic, use external control flow
 
 ### Enhanced Error Handling
 - [ ] **Structured error codes** - Programmatic error identification
@@ -131,6 +251,7 @@ This roadmap outlines the strategic development plan for future releases, priori
 - ✅ **Backward compatibility** preservation
 - ✅ **Performance benchmarking** - No regressions
 - ✅ **Documentation completeness** - Guides and examples
+- ✅ **Ecosystem integration** - Prefer extensibility over reimplementation
 
 ### Release Cadence
 - **Major releases** (x.0.0) - Breaking changes, major features (quarterly)
