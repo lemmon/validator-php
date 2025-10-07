@@ -11,6 +11,9 @@ class FloatValidator extends FieldValidator
      */
     protected function coerceValue(mixed $value): mixed
     {
+        if ($value === '') {
+            return 0.0;
+        }
         if (is_numeric($value)) {
             return is_int($value) ? (float) $value : (float) $value;
         }

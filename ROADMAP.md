@@ -106,8 +106,7 @@ $formValidator = Validator::isAssociative([
         ->nullifyEmpty()                                // Works across all types ✅
         ->coerce(),
     'salary' => Validator::isFloat()
-        ->emptyToZero()                                 // New numeric-specific method
-        ->coerce(),
+        ->coerce(),                                     // Enhanced: empty strings → 0.0
     'tags' => Validator::isArray()
         ->filterEmpty()                                 // Remove empty values
         ->reindex()                                     // Re-index after filtering
@@ -116,14 +115,14 @@ $formValidator = Validator::isAssociative([
 
 // Compare: Before vs After
 // Before (verbose):
-->transform(fn($v) => $v === '' ? null : $v)
-->transform(fn($v) => array_filter($v))
-->transform(fn($v) => array_values($v))
+->transform(fn($v) => $v === '' ? 0 : $v)               // Empty string to zero
+->transform(fn($v) => array_filter($v))                 // Remove empty values
+->transform(fn($v) => array_values($v))                 // Re-index array
 
 // After (clean and discoverable):
-->nullifyEmpty()                                        // ✅ Already exists!
-->filterEmpty()
-->reindex()
+->coerce()                                              // ✅ Enhanced: empty strings → 0!
+->filterEmpty()                                         // Clean array method
+->reindex()                                             // Clean array method
 
 // Complex array processing with existing tools:
 $arrayValidator = Validator::isArray()
@@ -160,7 +159,7 @@ $stringValidator = Validator::isString()
 ### Numeric Transformations
 - [ ] **`clamp(min, max)`** - Restrict numbers to range (not obvious: max(min, min(max, value)))
 - [ ] **`round(precision)`** - Round with precision parameter (convenience for common pattern)
-- [ ] **`emptyToZero()`** - Convert empty strings to 0 (common in numeric forms)
+- [x] ✅ **Enhanced `coerce()`** - Empty strings → 0 for numeric types (already implemented!)
 - [x] ✅ **`nullifyEmpty()`** - Convert empty strings to null (already implemented!)
 - [ ] **`transform()`** / **`pipe()`** - Generic transformation methods (core functionality)
 

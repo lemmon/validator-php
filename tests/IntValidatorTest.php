@@ -2,6 +2,26 @@
 
 use Lemmon\Validator;
 
+it('should coerce empty string to zero', function () {
+    $validator = Validator::isInt()->coerce();
+
+    expect($validator->validate(''))->toBe(0);
+});
+
+it('should coerce numeric strings to integers', function () {
+    $validator = Validator::isInt()->coerce();
+
+    expect($validator->validate('123'))->toBe(123);
+    expect($validator->validate('0'))->toBe(0);
+    expect($validator->validate('-42'))->toBe(-42);
+});
+
+it('should fail coercion for non-numeric strings', function () {
+    $validator = Validator::isInt()->coerce();
+
+    $validator->validate('abc');
+})->throws(Lemmon\ValidationException::class, 'Value must be an integer');
+
 it('should validate integer ranges', function () {
     $rangeValidator = Validator::isInt()->min(10)->max(100);
 

@@ -2,6 +2,27 @@
 
 use Lemmon\Validator;
 
+it('should coerce empty string to zero', function () {
+    $validator = Validator::isFloat()->coerce();
+
+    expect($validator->validate(''))->toBe(0.0);
+});
+
+it('should coerce numeric strings to floats', function () {
+    $validator = Validator::isFloat()->coerce();
+
+    expect($validator->validate('123.45'))->toBe(123.45);
+    expect($validator->validate('0'))->toBe(0.0);
+    expect($validator->validate('-42.7'))->toBe(-42.7);
+    expect($validator->validate('123'))->toBe(123.0);
+});
+
+it('should fail coercion for non-numeric strings', function () {
+    $validator = Validator::isFloat()->coerce();
+
+    $validator->validate('abc');
+})->throws(Lemmon\ValidationException::class, 'Value must be a float');
+
 it('should validate floats', function () {
     $validator = Validator::isFloat();
 
