@@ -19,14 +19,15 @@ This roadmap outlines the strategic development plan for future releases, priori
 ## 📋 Next Release (v0.5.0) - Utility Features
 
 ### String Enhancements
+- [ ] **`hostname()`** - Validates hostname format (domain names, subdomains)
 - [ ] **`time()`** - Validates time format (HH:MM:SS, HH:MM)
 - [ ] **`base64()`** - Validates Base64 encoded strings (simple regex, no dependencies)
 - [ ] **`hex()`** - Validates hexadecimal strings (simple regex, optional length constraints)
 - [ ] **`regex()` alias** - Alternative name for `pattern()` method for clarity
 
 ### String Transformations
-- [ ] **`transform()`** - Single transformation method (core functionality)
-- [ ] **`pipe(...$transformers)`** - Multiple transformations in sequence (variadic arguments)
+- [x] ✅ **`transform()`** - Single transformation method (already implemented!)
+- [x] ✅ **`pipe(...$transformers)`** - Multiple transformations in sequence with variadic arguments (already implemented!)
 - [x] ✅ **`nullifyEmpty()`** - Convert empty strings/arrays to null (already implemented!)
 
 ### Common Normalization Patterns
@@ -122,6 +123,14 @@ $formValidator = Validator::isAssociative([
 ->coerce()                                              // ✅ Enhanced: empty strings → 0!
 ->filterEmpty()                                         // ✅ Clean array method + auto-reindex!
 
+// Type-aware transformation chains (NEW!):
+$result = Validator::isArray()
+    ->pipe('array_unique', 'array_reverse')        // Array operations (auto-reindexed)
+    ->transform(fn($v) => implode(',', $v))        // Array → String (type switch)
+    ->pipe('trim', 'strtoupper')                   // String operations
+    ->transform('strlen')                          // String → Int (type switch)
+    ->validate(['a', 'b', 'a']); // Returns: 3
+
 // Complex array processing with existing tools:
 $arrayValidator = Validator::isArray()
     ->minItems(1)
@@ -134,12 +143,11 @@ $stringValidator = Validator::isString()
 ```
 
 ### Array Enhancements
-- [ ] **`uniqueItems()`** - Validates that all array items are unique
 - [ ] **`minItems()`** / **`maxItems()`** - Array length constraints
 - [ ] **`contains()`** - Validates array contains specific item
 
 ### Array Transformations
-- [ ] **`transform()`** / **`pipe()`** - Generic transformation methods (core functionality)
+- [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
 - [x] ✅ **`nullifyEmpty()`** - Convert empty arrays to null (already implemented!)
 - [x] ✅ **`filterEmpty()`** - Remove empty/null values and reindex automatically (already implemented!)
 
@@ -155,17 +163,19 @@ $stringValidator = Validator::isString()
 
 ### Numeric Transformations
 - [ ] **`clamp(min, max)`** - Restrict numbers to range (not obvious: max(min, min(max, value)))
-- [ ] **`round(precision)`** - Round with precision parameter (convenience for common pattern)
 - [x] ✅ **Enhanced `coerce()`** - Empty strings → 0 for numeric types (already implemented!)
 - [x] ✅ **`nullifyEmpty()`** - Convert empty strings to null (already implemented!)
-- [ ] **`transform()`** / **`pipe()`** - Generic transformation methods (core functionality)
+- [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
+
+### Removed from Scope
+- ~~`round(precision)`~~ - Use `->pipe(fn($v) => round($v, $precision))` for clarity
 
 ### Universal Validators
 - [ ] **`enum()`** - Validates value is one of predefined options (available on all validators)
 - [ ] **`const()`** - Validates value equals specific constant
 
 ### Universal Transformations
-- [ ] **`transform()`** / **`pipe()`** - Generic transformation methods (available on all validators)
+- [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented on all validators!)
 
 ### Removed from Scope
 - ~~`when(condition, transform)`~~ - Complex conditional logic, use external control flow
@@ -219,7 +229,7 @@ $stringValidator = Validator::isString()
 - [ ] **Interactive documentation** - Runnable examples
 
 ### Testing & Quality
-- [x] ✅ Organized test suite (9 focused test files, 76 tests, 208 assertions)
+- [x] ✅ Organized test suite (9 focused test files, 103 tests, 250 assertions)
 - [x] ✅ 100% PHPStan compliance
 - [x] ✅ PHP-CS-Fixer standards
 - [x] ✅ Static logical combinators test coverage

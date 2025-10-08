@@ -17,6 +17,14 @@ abstract class FieldValidator
      * @var array<array{rule: callable, message: string}>
      */
     protected array $validations = [];
+    /**
+     * @var array<callable>
+     */
+    protected array $transformations = [];
+    /**
+     * Current type context for transformations (null = original validator type)
+     */
+    protected ?string $currentType = null;
 
 
     /**
@@ -155,6 +163,46 @@ abstract class FieldValidator
     }
 
     /**
+     * Adds a transformation function to be applied after successful validation.
+     * Can change the type - subsequent operations work with the new type.
+     *
+     * @param callable $transformer The transformation function that receives the validated value.
+     * @return $this
+     */
+    public function transform(callable $transformer): self
+    {
+        $this->transformations[] = function ($value) use ($transformer) {
+            $result = $transformer($value);
+
+            // Update current type context based on result
+            $this->currentType = $this->detectType($result);
+
+            return $result; // No coercion - transform can change type
+        };
+        return $this;
+    }
+
+    /**
+     * Adds multiple transformation functions to be applied after successful validation.
+     * Maintains the current type - applies type-specific coercion to results.
+     *
+     * @param callable ...$transformers The transformation functions (variadic arguments).
+     * @return $this
+     */
+    public function pipe(callable ...$transformers): self
+    {
+        foreach ($transformers as $transformer) {
+            $this->transformations[] = function ($value) use ($transformer) {
+                $result = $transformer($value);
+
+                // Apply type-specific coercion based on current type context
+                return $this->coerceForCurrentType($result);
+            };
+        }
+        return $this;
+    }
+
+    /**
      * Validates the given value against the defined rules.
      *
      * @param mixed $value The value to validate.
@@ -214,7 +262,13 @@ abstract class FieldValidator
                 return [false, $validatedValue, $validationErrors];
             }
 
-            return [true, $validatedValue, null];
+            // Apply transformations after successful validation
+            $transformedValue = $validatedValue;
+            foreach ($this->transformations as $transformation) {
+                $transformedValue = $transformation($transformedValue);
+            }
+
+            return [true, $transformedValue, null];
         } catch (ValidationException $e) {
             return [false, $value, $e->getErrors()];
         }
@@ -237,4 +291,85 @@ abstract class FieldValidator
      * @throws ValidationException If the type validation fails.
      */
     abstract protected function validateType(mixed $value, string $key): mixed;
+
+    /**
+     * Returns the type that this validator represents.
+     *
+     * @return string The validator type (e.g., 'string', 'int', 'indexed_array', 'associative_array')
+     */
+    abstract protected function getValidatorType(): string;
+
+    /**
+     * Gets the current type context for transformations.
+     *
+     * @return string The current type or the validator's original type
+     */
+    protected function getCurrentType(): string
+    {
+        return $this->currentType ?? $this->getValidatorType();
+    }
+
+    /**
+     * Detects the type of a value for transformation context.
+     *
+     * @param mixed $value The value to analyze
+     * @return string The detected type
+     */
+    protected function detectType(mixed $value): string
+    {
+        return match(true) {
+            is_array($value) && array_is_list($value) => 'indexed_array',
+            is_array($value) => 'associative_array',
+            is_string($value) => 'string',
+            is_int($value) => 'int',
+            is_float($value) => 'float',
+            is_bool($value) => 'bool',
+            is_object($value) => 'object',
+            default => 'mixed'
+        };
+    }
+
+    /**
+     * Applies type-specific coercion based on current type context.
+     *
+     * @param mixed $value The value to coerce
+     * @return mixed The coerced value
+     */
+    protected function coerceForCurrentType(mixed $value): mixed
+    {
+        return match($this->getCurrentType()) {
+            'indexed_array' => $this->coerceToIndexedArray($value),
+            'associative_array' => $this->coerceToAssociativeArray($value),
+            'string' => $value, // No coercion needed
+            'int' => $value,    // No coercion needed
+            'float' => $value,  // No coercion needed
+            'bool' => $value,   // No coercion needed
+            'object' => $value, // No coercion needed
+            default => $value
+        };
+    }
+
+    /**
+     * Coerces value to indexed array (reindexes if necessary).
+     *
+     * @param mixed $value The value to coerce
+     * @return mixed The coerced value
+     */
+    protected function coerceToIndexedArray(mixed $value): mixed
+    {
+        if (!is_array($value)) return $value;
+        return array_is_list($value) ? $value : array_values($value);
+    }
+
+    /**
+     * Coerces value to associative array (preserves keys).
+     *
+     * @param mixed $value The value to coerce
+     * @return mixed The coerced value
+     */
+    protected function coerceToAssociativeArray(mixed $value): mixed
+    {
+        if (!is_array($value)) return $value;
+        return $value; // Preserve keys - no reindexing!
+    }
 }

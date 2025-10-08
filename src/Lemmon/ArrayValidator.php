@@ -8,6 +8,14 @@ class ArrayValidator extends FieldValidator
     private bool $filterEmpty = false;
 
     /**
+     * @inheritDoc
+     */
+    protected function getValidatorType(): string
+    {
+        return 'indexed_array';
+    }
+
+    /**
      * Sets the validator for array items.
      *
      * @param FieldValidator $validator The validator for each array item.

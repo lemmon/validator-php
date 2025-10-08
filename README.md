@@ -15,6 +15,7 @@ A comprehensive, fluent validation library for PHP, inspired by Valibot and Zod.
 - 🧩 **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
 - 🔄 **Smart type coercion** with configurable behavior
 - 🎯 **Schema validation** for nested data structures
+- ⚡ **Universal transformations** (`transform()`, `pipe()`) for post-validation data processing
 
 ## 🚀 Quick Start
 
@@ -122,6 +123,29 @@ $numbers = Validator::isArray()
     ->filterEmpty()
     ->validate([1, '', 2, null, 3]);
 // Returns: [1, 2, 3]
+```
+
+### Data Transformations
+```php
+// Type-preserving transformations with pipe()
+$name = Validator::isString()
+    ->pipe('trim', 'strtoupper') // Maintains string type
+    ->validate('  john doe  '); // Returns: "JOHN DOE"
+
+// Type-changing transformations with transform()
+$count = Validator::isString()
+    ->transform(fn($v) => explode(',', $v)) // String → Array
+    ->pipe('array_unique')                  // Array operations (auto-reindexed)
+    ->transform('count')                    // Array → Int
+    ->validate('a,b,a,c'); // Returns: 3
+
+// Complex multi-type chains
+$result = Validator::isArray()
+    ->pipe('array_unique', 'array_reverse') // Array operations
+    ->transform(fn($v) => implode(',', $v)) // Array → String
+    ->pipe('trim', 'strtoupper')            // String operations
+    ->transform('strlen')                   // String → Int
+    ->validate(['a', 'b', 'a']); // Returns: 3
 ```
 
 ### Custom Validation

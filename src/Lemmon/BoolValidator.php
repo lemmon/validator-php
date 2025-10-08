@@ -21,6 +21,14 @@ class BoolValidator extends FieldValidator
     /**
      * @inheritDoc
      */
+    protected function getValidatorType(): string
+    {
+        return 'bool';
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_bool($value)) {

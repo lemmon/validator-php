@@ -15,6 +15,14 @@ class StringValidator extends FieldValidator
     /**
      * @inheritDoc
      */
+    protected function getValidatorType(): string
+    {
+        return 'string';
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_string($value)) {

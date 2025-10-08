@@ -14,6 +14,14 @@ class AssociativeValidator extends FieldValidator
     ) {
     }
 
+    /**
+     * @inheritDoc
+     */
+    protected function getValidatorType(): string
+    {
+        return 'associative_array';
+    }
+
     public function coerceAll(): self
     {
         $this->coerceAll = true;

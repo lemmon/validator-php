@@ -14,6 +14,14 @@ class ObjectValidator extends FieldValidator
     ) {
     }
 
+    /**
+     * @inheritDoc
+     */
+    protected function getValidatorType(): string
+    {
+        return 'object';
+    }
+
     public function coerceAll(): self
     {
         $this->coerceAll = true;

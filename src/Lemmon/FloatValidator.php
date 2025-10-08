@@ -23,6 +23,14 @@ class FloatValidator extends FieldValidator
     /**
      * @inheritDoc
      */
+    protected function getValidatorType(): string
+    {
+        return 'float';
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_numeric($value)) {

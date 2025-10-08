@@ -20,6 +20,14 @@ class IntValidator extends FieldValidator
     /**
      * @inheritDoc
      */
+    protected function getValidatorType(): string
+    {
+        return 'int';
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_int($value)) {

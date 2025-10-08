@@ -95,6 +95,11 @@ class Validator
             {
                 return $value; // Accept any type
             }
+
+            protected function getValidatorType(): string
+            {
+                return 'mixed'; // Mixed type validator
+            }
         })->anyOf($validators, $message);
     }
 
@@ -117,6 +122,11 @@ class Validator
             {
                 return $value; // Accept any type
             }
+
+            protected function getValidatorType(): string
+            {
+                return 'mixed'; // Mixed type validator
+            }
         })->allOf($validators, $message);
     }
 
@@ -138,6 +148,11 @@ class Validator
             protected function validateType(mixed $value, string $key): mixed
             {
                 return $value; // Accept any type
+            }
+
+            protected function getValidatorType(): string
+            {
+                return 'mixed'; // Mixed type validator
             }
         })->not($validator, $message);
     }

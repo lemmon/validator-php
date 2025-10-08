@@ -12,11 +12,19 @@ All notable changes to this project will be documented in this file.
   - Removes empty strings (`''`) and `null` values while preserving valid falsy values (`0`, `false`, `[]`)
   - Automatically reindexes arrays to maintain indexed array structure (0, 1, 2, 3...)
   - Works seamlessly with item validators for comprehensive array cleanup
+- **Type-Aware Transformation System**: Revolutionary transformation infrastructure with intelligent type handling
+  - `transform(callable $transformer)` - Type-flexible transformations that can change data types
+  - `pipe(callable ...$transformers)` - Type-preserving transformations that maintain current type context
+  - **Dynamic Type Context**: Automatically tracks and switches type context during transformation chains
+  - **Smart Array Coercion**: `pipe()` operations on arrays automatically reindex to maintain structure
+  - **Associative Key Preservation**: AssociativeValidator preserves keys during `pipe()` operations
+  - Enables complex multi-type transformation chains (Array → String → Int) with intuitive syntax
 
 ### Improved
 - **Form Data Handling**: Enhanced coercion makes form validation significantly more practical and intuitive
 - **Array Data Integrity**: `filterEmpty()` maintains ArrayValidator's contract of returning properly indexed arrays
-- **Test Coverage**: Added 11 new tests across numeric and array validators (87 total tests, 85 assertions)
+- **Extensibility**: Universal transformation methods enable unlimited flexibility with external library integration
+- **Test Coverage**: Added 27 new tests across numeric, array, and type-aware transformation validators (103 total tests, 250 assertions)
 
 ## [0.4.0] - 2024-12-19
 

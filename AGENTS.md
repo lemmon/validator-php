@@ -26,6 +26,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Instance Logical Combinators** - `allOf()`, `anyOf()`, `not()` instance methods for chaining validation rules
 - **Enhanced Numeric Coercion** - Empty strings automatically coerce to 0/0.0 for practical form handling
 - **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
+- **Type-Aware Transformations** - Revolutionary `transform()` and `pipe()` system with intelligent type context switching
 - **Context-Aware Validation** - Custom validators receive `(value, key, input)` parameters
 - **Comprehensive Error Collection** - All validation errors collected, not just the first failure
 - **Smart Type Coercion** - Configurable automatic type conversion with form-friendly defaults
@@ -61,7 +62,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ## 🔧 Development Workflow
 
 ### Code Quality
-- **Testing** - Pest PHP with organized test suite (9 focused test files, 87 tests, 85 assertions)
+- **Testing** - Pest PHP with organized test suite (9 focused test files, 103 tests, 250 assertions)
 - **Static Analysis** - PHPStan at maximum level for type safety
 - **Code Style** - PHP-CS-Fixer for consistent formatting
 - **Performance** - Optimized validation logic with eliminated code duplication
@@ -99,9 +100,9 @@ tests/
 
 ### Key Metrics
 - **8 validator types** covering all PHP data types
-- **30+ built-in validation methods** including static logical combinators and array filtering
+- **32+ built-in validation methods** including static logical combinators, array filtering, and type-aware transformations
 - **4,000+ lines of documentation** with practical examples
-- **87 unit tests** with comprehensive coverage (85 assertions)
+- **103 unit tests** with comprehensive coverage (250 assertions)
 - **Zero technical debt** with modern PHP 8.1+ codebase
 
 ## 🔮 Vision & Roadmap
