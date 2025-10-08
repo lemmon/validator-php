@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [0.5.0] - 2024-12-19
+## [0.5.0] - 2025-10-08
 
 ### Added
 - **Enhanced Numeric Coercion**: `IntValidator` and `FloatValidator` now coerce empty strings to 0/0.0 respectively
@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
 - **Extensibility**: Universal transformation methods enable unlimited flexibility with external library integration
 - **Test Coverage**: Added 27 new tests across numeric, array, and type-aware transformation validators (103 total tests, 250 assertions)
 
-## [0.4.0] - 2024-12-19
+## [0.4.0] - 2025-10-06
 
 ### Added
 - **Static Logical Combinators**: New static factory methods for advanced validation logic
