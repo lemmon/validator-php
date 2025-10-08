@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2024-12-19
+
 ### Added
 - **Enhanced Numeric Coercion**: `IntValidator` and `FloatValidator` now coerce empty strings to 0/0.0 respectively
   - Addresses real-world HTML form scenarios where empty fields are common
