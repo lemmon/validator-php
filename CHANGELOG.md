@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-10-09
+
 ### Fixed
 - **CRITICAL BUG**: Fixed ObjectValidator null property handling - `isset()` was excluding null properties from result objects
   - ObjectValidator now correctly includes all validated properties in the result, even when they are null
@@ -30,6 +32,12 @@ All notable changes to this project will be documented in this file.
   - Tests for string boolean coercion (`'true'`, `'false'`, `'on'`, `'off'`, `'1'`, `'0'`)
   - Case-insensitive coercion support
   - Empty string safety validation
+
+### Improved
+- **Developer Experience**: Natural language validation with `satisfies()` method reads like English
+- **API Consistency**: Optional error messages eliminate forced message requirements
+- **Documentation Quality**: Comprehensive updates across all guides with practical examples
+- **Form Safety**: Real-world protection against dangerous zero defaults in financial and quantity fields
 
 ## [0.5.0] - 2025-10-08
 
