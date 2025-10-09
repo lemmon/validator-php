@@ -173,6 +173,82 @@ $obj = new stdClass(); $obj->key = 'value';
 $result = $arrayValidator->validate($obj); // Returns: ['key' => 'value']
 ```
 
+### Form-Safe Empty String Handling
+
+**BREAKING CHANGE (v0.6.0)**: The library now prioritizes real-world form safety over PHP's default type casting behavior.
+
+#### The Problem with Traditional Coercion
+
+In traditional PHP type casting, empty strings convert to "falsy" defaults:
+- `(int) ''` → `0`
+- `(float) ''` → `0.0`
+- `(bool) ''` → `false`
+
+This creates **dangerous scenarios** in real-world applications:
+
+```php
+// ❌ DANGEROUS: Traditional PHP behavior
+$bankBalance = (int) $_POST['balance']; // Empty field becomes 0!
+$itemQuantity = (int) $_POST['quantity']; // Empty field becomes 0!
+$isActive = (bool) $_POST['active']; // Empty checkbox becomes false!
+```
+
+#### Form-Safe Solution
+
+The Lemmon Validator treats empty strings as **"no value provided"** (`null`) rather than converting to potentially dangerous defaults:
+
+```php
+// ✅ SAFE: Lemmon Validator behavior
+$validator = Validator::isInt()->coerce();
+$bankBalance = $validator->validate(''); // Returns: null (not dangerous 0)
+
+$validator = Validator::isFloat()->coerce();
+$price = $validator->validate(''); // Returns: null (not dangerous 0.0)
+
+$validator = Validator::isBool()->coerce();
+$isActive = $validator->validate(''); // Returns: null (not dangerous false)
+```
+
+#### Real-World Form Scenarios
+
+```php
+// Form validation with safe empty string handling
+$formValidator = Validator::isAssociative([
+    'name' => Validator::isString()->required(), // Must be provided
+    'age' => Validator::isInt()->coerce(),       // Empty → null (optional)
+    'salary' => Validator::isFloat()->coerce(),  // Empty → null (safe!)
+    'active' => Validator::isBool()->coerce(),   // Empty → null (optional)
+]);
+
+// Safe handling of empty form fields
+$formData = [
+    'name' => 'John Doe',
+    'age' => '',      // Empty form field
+    'salary' => '',   // Empty form field
+    'active' => '',   // Empty checkbox
+];
+
+[$valid, $result, $errors] = $formValidator->tryValidate($formData);
+// Result: ['name' => 'John Doe', 'age' => null, 'salary' => null, 'active' => null]
+```
+
+#### Migration Guide
+
+If you need explicit zero defaults for empty fields, use `default()`:
+
+```php
+// If you need zero defaults (rare cases)
+$quantity = Validator::isInt()
+    ->coerce()
+    ->default(0)  // Explicit zero default
+    ->validate(''); // Returns: 0
+
+// Better: Use nullifyEmpty() for explicit null conversion
+$optional = Validator::isInt()
+    ->nullifyEmpty() // Explicit empty → null
+    ->validate(''); // Returns: null
+```
+
 ## Schema Validation Deep Dive
 
 Schema validation works recursively:

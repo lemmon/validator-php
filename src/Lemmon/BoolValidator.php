@@ -9,6 +9,9 @@ class BoolValidator extends FieldValidator
      */
     protected function coerceValue(mixed $value): mixed
     {
+        if ($value === '') {
+            return null; // Empty string to null for form safety
+        }
         if (in_array(strtolower((string) $value), ['true', 'on', '1'], true)) {
             return true;
         }

@@ -65,8 +65,8 @@ class ObjectValidator extends FieldValidator
 
             if (!$valid) {
                 $errors[$fieldKey] = $fieldErrors;
-            } elseif (isset($validatedFieldValue)) {
-                $data->{$fieldKey} = $validatedFieldValue;
+            } else {
+                $data->{$fieldKey} = $validatedFieldValue; // Always set if valid, even if null
             }
         }
 

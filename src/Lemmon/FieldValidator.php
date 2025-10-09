@@ -243,6 +243,11 @@ abstract class FieldValidator
 
         $value = $this->coerce ? $this->coerceValue($value) : $value;
 
+        // Handle null values after coercion (e.g., empty strings coerced to null)
+        if (is_null($value)) {
+            return $this->hasDefault ? [true, $this->default, null] : ($this->required ? [false, $value, ['Value is required']] : [true, null, null]);
+        }
+
         if ($this->oneOf && !in_array($value, $this->oneOf, true)) {
             return [false, $value, ['Value must be one of: ' . json_encode($this->oneOf)]];
         }

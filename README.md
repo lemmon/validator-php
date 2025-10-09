@@ -96,16 +96,16 @@ $age = Validator::isInt()
     ->max(120)
     ->validate(25);
 
-// Enhanced coercion for form data
+// Form-safe coercion (BREAKING CHANGE in latest version)
 $quantity = Validator::isInt()
-    ->coerce() // Empty strings become 0
-    ->validate(''); // Returns: 0
+    ->coerce() // Empty strings become null (not dangerous 0)
+    ->validate(''); // Returns: null
 
 // Float with precision
 $price = Validator::isFloat()
     ->positive()
     ->multipleOf(0.01) // Cents precision
-    ->coerce() // Empty strings become 0.0
+    ->coerce() // Empty strings become null (not dangerous 0.0)
     ->validate(19.99);
 ```
 

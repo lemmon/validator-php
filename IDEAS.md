@@ -8,9 +8,9 @@ This document captures innovative ideas and suggestions for potential future enh
 **Status**: ✅ **IMPLEMENTED**
 **Concept**: Revolutionary transformation system with intelligent type context switching.
 ```php
-// Enhanced coercion - empty strings to numbers
-$age = Validator::isInt()->coerce()->validate(''); // Returns: 0
-$price = Validator::isFloat()->coerce()->validate(''); // Returns: 0.0
+// Enhanced coercion - empty strings to null for form safety
+$age = Validator::isInt()->coerce()->validate(''); // Returns: null (not dangerous 0)
+$price = Validator::isFloat()->coerce()->validate(''); // Returns: null (not dangerous 0.0)
 
 // Array filtering with auto-reindexing
 $tags = Validator::isArray()->filterEmpty()->validate(['php', '', 'javascript', null]);
@@ -41,7 +41,7 @@ $formatted = Validator::isString()
     ->validate('hello world'); // Laravel Str integration
 ```
 **Benefits**:
-- ✅ Seamless HTML form data handling
+- ✅ Form-safe empty string handling (prevents dangerous zero defaults)
 - ✅ Maintains validator type contracts (indexed arrays stay indexed)
 - ✅ Preserves valid falsy values (0, false, [])
 - ✅ Type-aware transformation methods with intelligent context switching
@@ -49,7 +49,7 @@ $formatted = Validator::isString()
 - ✅ Smart array coercion (indexed arrays auto-reindex, associative keys preserved)
 - ✅ Clean variadic syntax with `pipe(...$transformers)`
 - ✅ Perfect integration with external libraries (Laravel, Symfony)
-- ✅ Comprehensive test coverage (103 tests, 250 assertions)
+- ✅ Comprehensive test coverage (110 tests, 278 assertions)
 
 ### Static Logical Combinators (v0.4.0)
 **Status**: ✅ **IMPLEMENTED**

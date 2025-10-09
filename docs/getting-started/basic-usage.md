@@ -108,7 +108,10 @@ $withDefault = Validator::isString()->default('Hello World');
 $coercing = Validator::isInt()->coerce();
 
 $result = $coercing->validate('123'); // Returns: 123 (integer)
+$result = $coercing->validate('');    // Returns: null (form-safe!)
 ```
+
+> **Form Safety Note**: Empty strings convert to `null` (not `0`/`0.0`/`false`) to prevent dangerous defaults in form handling. See [Core Concepts - Form-Safe Empty String Handling](core-concepts.md#form-safe-empty-string-handling) for details.
 
 ### Allowed Values
 

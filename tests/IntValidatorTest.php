@@ -2,10 +2,10 @@
 
 use Lemmon\Validator;
 
-it('should coerce empty string to zero', function () {
+it('should coerce empty string to null for form safety', function () {
     $validator = Validator::isInt()->coerce();
 
-    expect($validator->validate(''))->toBe(0);
+    expect($validator->validate(''))->toBe(null);
 });
 
 it('should coerce numeric strings to integers', function () {

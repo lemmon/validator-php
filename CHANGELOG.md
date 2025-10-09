@@ -4,12 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **CRITICAL BUG**: Fixed ObjectValidator null property handling - `isset()` was excluding null properties from result objects
+  - ObjectValidator now correctly includes all validated properties in the result, even when they are null
+  - Maintains consistency with AssociativeValidator behavior
+  - Added comprehensive test coverage to prevent regression
+
+### Changed
+- **BREAKING CHANGE**: Enhanced form safety for empty string coercion across all validators
+  - `IntValidator::coerce()`: Empty strings (`''`) now convert to `null` instead of `0`
+  - `FloatValidator::coerce()`: Empty strings (`''`) now convert to `null` instead of `0.0`
+  - `BoolValidator::coerce()`: Empty strings (`''`) now convert to `null` instead of validation failure
+  - **Rationale**: Prevents dangerous zero defaults in form fields (e.g., bank balances, quantities)
+  - **Migration**: Use explicit `->default(0)` if you need zero defaults for empty form fields
+  - Added comprehensive test coverage for new behavior (110 tests, 278 assertions)
+
+### Added
+- **BoolValidator Test Suite**: Complete test coverage for boolean validation and coercion
+  - Tests for string boolean coercion (`'true'`, `'false'`, `'on'`, `'off'`, `'1'`, `'0'`)
+  - Case-insensitive coercion support
+  - Empty string safety validation
+
 ## [0.5.0] - 2025-10-08
 
 ### Added
-- **Enhanced Numeric Coercion**: `IntValidator` and `FloatValidator` now coerce empty strings to 0/0.0 respectively
-  - Addresses real-world HTML form scenarios where empty fields are common
-  - Maintains backward compatibility for existing numeric coercion behavior
+- **Enhanced Numeric Coercion**: `IntValidator` and `FloatValidator` coercion improvements for form handling
+  - ⚠️ **SUPERSEDED**: This behavior was changed in the next release for safety reasons
+  - See "Unreleased" section for current empty string coercion behavior
 - **Array Filtering with Auto-Reindexing**: New `filterEmpty()` method for `ArrayValidator`
   - Removes empty strings (`''`) and `null` values while preserving valid falsy values (`0`, `false`, `[]`)
   - Automatically reindexes arrays to maintain indexed array structure (0, 1, 2, 3...)

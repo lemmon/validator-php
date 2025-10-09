@@ -12,7 +12,7 @@ class IntValidator extends FieldValidator
     protected function coerceValue(mixed $value): mixed
     {
         if ($value === '') {
-            return 0;
+            return null; // Empty string to null for form safety
         }
         return is_numeric($value) ? (int) $value : $value;
     }

@@ -22,6 +22,35 @@ it('should validate a stdClass object', function () {
     expect($data)->toEqual($expected);
 });
 
+it('should include null properties in validated object result', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString()->nullifyEmpty(),
+        'age' => Validator::isInt()->coerce()->nullifyEmpty(),
+        'active' => Validator::isBool()->coerce(),
+    ]);
+
+    $input = (object)[
+        'name' => null,
+        'age' => null,
+        'active' => null,
+    ];
+
+    $data = $schema->validate($input);
+
+    // Should include all properties, even if they are null
+    expect($data)->toHaveProperty('name', null);
+    expect($data)->toHaveProperty('age', null);
+    expect($data)->toHaveProperty('active', null);
+
+    // Verify the object structure
+    $expected = new stdClass();
+    $expected->name = null;
+    $expected->age = null;
+    $expected->active = null;
+
+    expect($data)->toEqual($expected);
+});
+
 it('should coerce an associative array to a stdClass object', function () {
     $schema = Validator::isObject([
         'name' => Validator::isString(),

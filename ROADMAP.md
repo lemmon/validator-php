@@ -29,16 +29,23 @@ This roadmap outlines the strategic development plan for future releases, priori
 - [ ] **Update all documentation** - Replace `addValidation()` with `validate()` across all guides and examples
 
 ### Critical Bug Fixes
-- [ ] **Fix ObjectValidator null property handling** - `isset($validatedFieldValue)` excludes null properties from result object
-  - Should return object with null properties, not empty object
-  - AssociativeValidator works correctly, ObjectValidator has the bug
-- [ ] **Fix dangerous empty string coercion across all validators** - Make `coerce()` convert `''` → `null` (not 0/false) for form safety
+- [x] ✅ **Fix ObjectValidator null property handling** - `isset($validatedFieldValue)` excluded null properties from result object
+  - Fixed: ObjectValidator now correctly includes all validated properties, even when null
+  - Maintains consistency with AssociativeValidator behavior
+  - Added comprehensive test coverage to prevent regression
+- [x] ✅ **Fix dangerous empty string coercion across all validators** - **BREAKING CHANGE**: `coerce()` now converts `''` → `null` for form safety
   - IntValidator: `''` → `null` (not 0) - prevents dangerous zero defaults in forms
   - FloatValidator: `''` → `null` (not 0.0) - prevents dangerous zero defaults in forms
   - BoolValidator: `''` → `null` (not false) - empty query params should be null
-  - This is a **BREAKING CHANGE** but critical for real-world form/API safety
-- [ ] **Add comprehensive tests for empty string handling** - Ensure all validators treat empty strings as "no value provided"
-- [ ] **Update documentation** - Explain the form-safety rationale behind empty string → null coercion
+  - Critical for real-world form/API safety (prevents accidental zero bank balances, etc.)
+- [x] ✅ **Add comprehensive tests for empty string handling** - Added BoolValidator test suite and updated existing tests
+  - 110 tests total with 278 assertions
+  - Complete coverage for new empty string → null coercion behavior
+- [x] ✅ **Update documentation** - Explain the form-safety rationale behind empty string → null coercion
+  - Added comprehensive form-safety sections to Core Concepts and Numeric Validation guides
+  - Included real-world examples showing dangerous scenarios prevented
+  - Added migration guidance for users who need explicit zero defaults
+  - Added brief form-safety note in Basic Usage guide with cross-references
 
 ## 📋 Next Release (v0.5.0) - Utility Features
 
@@ -144,7 +151,7 @@ $formValidator = Validator::isAssociative([
 ->transform(fn($v) => array_values($v))                 // Re-index array
 
 // After (clean and discoverable):
-->coerce()                                              // ✅ Enhanced: empty strings → 0!
+->coerce()                                              // ✅ Enhanced: empty strings → null (form-safe)!
 ->filterEmpty()                                         // ✅ Clean array method + auto-reindex!
 
 // Type-aware transformation chains (NEW!):
@@ -188,7 +195,7 @@ $stringValidator = Validator::isString()
 
 ### Numeric Transformations
 - [ ] **`clamp(min, max)`** - Restrict numbers to range (not obvious: max(min, min(max, value)))
-- [x] ✅ **Enhanced `coerce()`** - Empty strings → 0 for numeric types (already implemented!)
+- [x] ✅ **Enhanced `coerce()`** - Empty strings → `null` for form safety (BREAKING CHANGE implemented!)
 - [x] ✅ **`nullifyEmpty()`** - Convert empty strings to null (already implemented!)
 - [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
 

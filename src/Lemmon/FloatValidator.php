@@ -12,7 +12,7 @@ class FloatValidator extends FieldValidator
     protected function coerceValue(mixed $value): mixed
     {
         if ($value === '') {
-            return 0.0;
+            return null; // Empty string to null for form safety
         }
         if (is_numeric($value)) {
             return is_int($value) ? (float) $value : (float) $value;

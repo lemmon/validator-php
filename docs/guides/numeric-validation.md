@@ -144,6 +144,78 @@ $result = $coercingFloat->validate('123'); // Returns: 123.0 (float)
 $result = $coercingFloat->validate(42); // Returns: 42.0 (float)
 ```
 
+### Form-Safe Empty String Handling
+
+**BREAKING CHANGE (v0.6.0)**: Empty strings now convert to `null` instead of `0`/`0.0` for real-world form safety.
+
+#### Why This Change Was Critical
+
+Traditional PHP type casting creates dangerous scenarios in form handling:
+
+```php
+// ❌ DANGEROUS: Old behavior (PHP default)
+$balance = (int) $_POST['balance'];    // Empty field → 0 (dangerous!)
+$price = (float) $_POST['price'];      // Empty field → 0.0 (dangerous!)
+$quantity = (int) $_POST['quantity'];  // Empty field → 0 (dangerous!)
+```
+
+**Real-world problems:**
+- Bank balance field left empty → account balance becomes $0
+- Product quantity field empty → order quantity becomes 0 items
+- Price field empty → product becomes free ($0.00)
+
+#### Safe Coercion Behavior
+
+The Lemmon Validator now treats empty strings as "no value provided":
+
+```php
+// ✅ SAFE: New behavior
+$intValidator = Validator::isInt()->coerce();
+$balance = $intValidator->validate(''); // Returns: null (safe!)
+
+$floatValidator = Validator::isFloat()->coerce();
+$price = $floatValidator->validate(''); // Returns: null (safe!)
+```
+
+#### Practical Form Validation
+
+```php
+// Safe form validation schema
+$orderValidator = Validator::isAssociative([
+    'customer_id' => Validator::isInt()->required(),
+    'quantity' => Validator::isInt()->coerce()->min(1), // Empty → null → validation fails (safe!)
+    'unit_price' => Validator::isFloat()->coerce()->positive(), // Empty → null → validation fails (safe!)
+    'discount' => Validator::isFloat()->coerce()->default(0.0), // Empty → null → 0.0 default (explicit)
+]);
+
+$formData = [
+    'customer_id' => '123',
+    'quantity' => '',    // Empty field - safely handled
+    'unit_price' => '',  // Empty field - safely handled
+    'discount' => '',    // Empty field - gets default
+];
+
+[$valid, $result, $errors] = $orderValidator->tryValidate($formData);
+// quantity and unit_price will fail validation (safe!)
+// discount will use default value (explicit choice)
+```
+
+#### Migration Guide
+
+If you need zero defaults for empty fields, be explicit:
+
+```php
+// If you genuinely need zero for empty fields (rare)
+$explicitZero = Validator::isInt()
+    ->coerce()
+    ->default(0)  // Explicit zero default
+    ->validate(''); // Returns: 0
+
+// Better: Handle empty values explicitly in your business logic
+$quantity = Validator::isInt()->coerce()->validate($input['quantity']);
+$finalQuantity = $quantity ?? 1; // Default to 1 if empty, not 0
+```
+
 ## Real-World Examples
 
 ### Age Validation
