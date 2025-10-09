@@ -220,7 +220,7 @@ $result = $objectSchema->validate($array);
 ```php
 $schema = Validator::isAssociative([
     'type' => Validator::isString()->oneOf(['user', 'admin'])->required(),
-    'permissions' => Validator::isArray()->addValidation(
+    'permissions' => Validator::isArray()->satisfies(
         function ($value, $key, $input) {
             // Only require permissions for admin users
             if ($input['type'] === 'admin') {
@@ -308,7 +308,7 @@ $contactFormSchema = Validator::isAssociative([
     'subject' => Validator::isString()->required()->maxLength(100),
     'message' => Validator::isString()->required()->minLength(10)->maxLength(1000),
     'newsletter' => Validator::isBool()->default(false),
-    'terms' => Validator::isBool()->addValidation(
+    'terms' => Validator::isBool()->satisfies(
         fn($value) => $value === true,
         'You must accept the terms and conditions'
     )
@@ -402,7 +402,7 @@ if (!$valid) {
 $step1Schema = Validator::isAssociative([
     'email' => Validator::isString()->email()->required(),
     'password' => Validator::isString()->minLength(8)->required(),
-    'password_confirm' => Validator::isString()->addValidation(
+    'password_confirm' => Validator::isString()->satisfies(
         function ($value, $key, $input) {
             return isset($input['password']) && $value === $input['password'];
         },

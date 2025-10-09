@@ -151,7 +151,7 @@ $comprehensiveValidator = Validator::isString()
     ->minLength(5)
     ->maxLength(50)
     ->email()
-    ->addValidation(
+    ->satisfies(
         fn($email) => !str_ends_with($email, '.temp'),
         'Temporary email addresses are not allowed'
     );
@@ -225,7 +225,7 @@ $articleValidator = Validator::isAssociative([
     'slug' => Validator::isString()
         ->required()
         ->pattern('/^[a-z0-9-]+$/', 'Slug can only contain lowercase letters, numbers, and hyphens')
-        ->addValidation(
+        ->satisfies(
             fn($slug) => !str_starts_with($slug, '-') && !str_ends_with($slug, '-'),
             'Slug cannot start or end with a hyphen'
         ),

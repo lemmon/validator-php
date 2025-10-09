@@ -11,9 +11,9 @@ A comprehensive, fluent validation library for PHP, inspired by Valibot and Zod.
 - 🔒 **Type-safe validation** for strings, integers, floats, arrays, and objects
 - 🔗 **Fluent, chainable API** for readable and maintainable validation rules
 - 📋 **Comprehensive error collection** with detailed, structured feedback
-- ⚙️ **Custom validation functions** with context-aware parameters
+- ⚙️ **Intuitive custom validation** with `satisfies()` method and optional error messages
 - 🧩 **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
-- 🔄 **Smart type coercion** with configurable behavior
+- 🔄 **Form-safe coercion** - empty strings become `null` (not dangerous `0`/`false`) for real-world safety
 - 🎯 **Schema validation** for nested data structures
 - ⚡ **Universal transformations** (`transform()`, `pipe()`) for post-validation data processing
 
@@ -150,13 +150,16 @@ $result = Validator::isArray()
 
 ### Custom Validation
 ```php
-// Context-aware validation
-$passwordConfirm = Validator::isString()->addValidation(
+// Context-aware validation with optional error message
+$passwordConfirm = Validator::isString()->satisfies(
     function ($value, $key, $input) {
         return isset($input['password']) && $value === $input['password'];
     },
     'Password confirmation must match password'
 );
+
+// Shorter syntax with default error message
+$positiveNumber = Validator::isInt()->satisfies(fn($v) => $v > 0);
 ```
 
 ### Advanced Logic

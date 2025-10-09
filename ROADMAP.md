@@ -24,9 +24,18 @@ This roadmap outlines the strategic development plan for future releases, priori
 - [ ] **Update getting started guides** - Include `nullifyEmpty()` in basic usage patterns
 
 ### Critical API Improvements
-- [ ] **Rename `addValidation()` to `validate()`** - Shorter, cleaner method name consistent with `transform()` pattern
-- [ ] **Make error message optional in `validate()`** - Add generic fallback message for better developer experience
-- [ ] **Update all documentation** - Replace `addValidation()` with `validate()` across all guides and examples
+- [x] ✅ **Rename `addValidation()` to `satisfies()`** - Intuitive, descriptive method name that clearly indicates validation intent
+  - Added new `satisfies(callable $validation, ?string $message = null)` method with optional error message
+  - Maintains backward compatibility with deprecated `addValidation()` method
+  - Provides generic fallback message "Custom validation failed" when no message provided
+  - Added comprehensive test coverage (4 new tests, 12 new assertions)
+  - Method reads naturally: `->satisfies(fn($v) => $v > 0)` - "value must satisfy this condition"
+- [x] ✅ **Update all documentation** - Replace `addValidation()` with `satisfies()` across all guides and examples
+  - Updated Custom Validation Guide (primary guide for this method)
+  - Updated Form Validation Examples (22+ references)
+  - Updated Core Concepts, Basic Usage, and API Reference guides
+  - Updated Error Handling, Numeric, String, and Object Validation guides
+  - Maintained backward compatibility with deprecated `addValidation()` method
 
 ### Critical Bug Fixes
 - [x] ✅ **Fix ObjectValidator null property handling** - `isset($validatedFieldValue)` excluded null properties from result object

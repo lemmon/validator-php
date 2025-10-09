@@ -141,7 +141,7 @@ class UserRegistrationValidator
             'email' => Validator::isString()
                 ->required('Email is required')
                 ->email('Please enter a valid email address')
-                ->addValidation(
+                ->satisfies(
                     fn($email) => $this->isEmailUnique($email),
                     'This email address is already registered'
                 ),
@@ -155,7 +155,7 @@ class UserRegistrationValidator
                 ->minLength(3, 'Username must be at least 3 characters')
                 ->maxLength(30, 'Username cannot exceed 30 characters')
                 ->pattern('/^[A-Za-z0-9_]+$/', 'Username can only contain letters, numbers, and underscores')
-                ->addValidation(
+                ->satisfies(
                     fn($username) => $this->isUsernameUnique($username),
                     'This username is already taken'
                 ),
@@ -164,7 +164,7 @@ class UserRegistrationValidator
 
             'password_confirm' => Validator::isString()
                 ->required('Please confirm your password')
-                ->addValidation(
+                ->satisfies(
                     function ($value, $key, $input) {
                         return isset($input['password']) && $value === $input['password'];
                     },
@@ -175,7 +175,7 @@ class UserRegistrationValidator
             'date_of_birth' => Validator::isString()
                 ->required('Date of birth is required')
                 ->date('Please enter a valid date (YYYY-MM-DD)')
-                ->addValidation(
+                ->satisfies(
                     function ($date) {
                         $birthDate = new DateTime($date);
                         $today = new DateTime();
@@ -204,7 +204,7 @@ class UserRegistrationValidator
             'terms_accepted' => Validator::isBool()
                 ->coerce()
                 ->required('You must accept the terms and conditions')
-                ->addValidation(
+                ->satisfies(
                     fn($value) => $value === true,
                     'You must accept the terms and conditions'
                 )
@@ -217,23 +217,23 @@ class UserRegistrationValidator
             ->required('Password is required')
             ->minLength(8, 'Password must be at least 8 characters')
             ->maxLength(128, 'Password cannot exceed 128 characters')
-            ->addValidation(
+            ->satisfies(
                 fn($value) => preg_match('/[A-Z]/', $value),
                 'Password must contain at least one uppercase letter'
             )
-            ->addValidation(
+            ->satisfies(
                 fn($value) => preg_match('/[a-z]/', $value),
                 'Password must contain at least one lowercase letter'
             )
-            ->addValidation(
+            ->satisfies(
                 fn($value) => preg_match('/\d/', $value),
                 'Password must contain at least one number'
             )
-            ->addValidation(
+            ->satisfies(
                 fn($value) => preg_match('/[!@#$%^&*(),.?":{}|<>]/', $value),
                 'Password must contain at least one special character'
             )
-            ->addValidation(
+            ->satisfies(
                 fn($value) => !preg_match('/(.)\1{2,}/', $value),
                 'Password cannot contain more than 2 consecutive identical characters'
             );
@@ -344,11 +344,11 @@ class ProductFormValidator
             'slug' => Validator::isString()
                 ->required('Product slug is required')
                 ->pattern('/^[a-z0-9-]+$/', 'Slug can only contain lowercase letters, numbers, and hyphens')
-                ->addValidation(
+                ->satisfies(
                     fn($slug) => !str_starts_with($slug, '-') && !str_ends_with($slug, '-'),
                     'Slug cannot start or end with a hyphen'
                 )
-                ->addValidation(
+                ->satisfies(
                     fn($slug) => $this->isSlugUnique($slug),
                     'This slug is already in use'
                 ),
@@ -372,7 +372,7 @@ class ProductFormValidator
                 ->coerce()
                 ->positive('Compare price must be positive')
                 ->multipleOf(0.01, 'Compare price must be in cents')
-                ->addValidation(
+                ->satisfies(
                     function ($comparePrice, $key, $input) {
                         if (isset($input['price']) && $comparePrice) {
                             return $comparePrice > $input['price'];
@@ -391,7 +391,7 @@ class ProductFormValidator
             'sku' => Validator::isString()
                 ->required('SKU is required')
                 ->pattern('/^[A-Z0-9-]+$/', 'SKU can only contain uppercase letters, numbers, and hyphens')
-                ->addValidation(
+                ->satisfies(
                     fn($sku) => $this->isSkuUnique($sku),
                     'This SKU is already in use'
                 ),
@@ -401,7 +401,7 @@ class ProductFormValidator
             'inventory_quantity' => Validator::isInt()
                 ->coerce()
                 ->min(0, 'Inventory quantity cannot be negative')
-                ->addValidation(
+                ->satisfies(
                     function ($quantity, $key, $input) {
                         $trackInventory = $input['track_inventory'] ?? true;
                         return !$trackInventory || $quantity !== null;
@@ -416,11 +416,11 @@ class ProductFormValidator
                 Validator::isInt()->positive()
             )
             ->required('At least one category is required')
-            ->addValidation(
+            ->satisfies(
                 fn($categories) => count($categories) > 0,
                 'At least one category must be selected'
             )
-            ->addValidation(
+            ->satisfies(
                 fn($categories) => $this->validateCategoryIds($categories),
                 'One or more selected categories do not exist'
             ),
@@ -446,7 +446,7 @@ class ProductFormValidator
 
             'published_at' => Validator::isString()
                 ->datetime('Please enter a valid date and time')
-                ->addValidation(
+                ->satisfies(
                     function ($datetime, $key, $input) {
                         if ($input['status'] === 'active' && !$datetime) {
                             return false;
@@ -479,7 +479,7 @@ class ProductFormValidator
                     'size' => Validator::isInt()->positive()
                 ])
             )
-            ->addValidation(
+            ->satisfies(
                 function ($files, $key, $input) {
                     $isDigital = $input['is_digital'] ?? false;
                     return !$isDigital || count($files) > 0;
@@ -530,7 +530,7 @@ class MultiStepRegistrationValidator
 
             'password_confirm' => Validator::isString()
                 ->required('Please confirm your password')
-                ->addValidation(
+                ->satisfies(
                     function ($value, $key, $input) {
                         return isset($input['password']) && $value === $input['password'];
                     },
@@ -615,7 +615,7 @@ class MultiStepRegistrationValidator
             'terms_accepted' => Validator::isBool()
                 ->coerce()
                 ->required('You must accept the terms')
-                ->addValidation(fn($value) => $value === true, 'You must accept the terms'),
+                ->satisfies(fn($value) => $value === true, 'You must accept the terms'),
 
             'newsletter' => Validator::isBool()->coerce()->default(false)
         ]);
@@ -724,7 +724,7 @@ class FileUploadValidator
 
             'error' => Validator::isInt()
                 ->required()
-                ->addValidation(fn($error) => $error === UPLOAD_ERR_OK, 'File upload failed'),
+                ->satisfies(fn($error) => $error === UPLOAD_ERR_OK, 'File upload failed'),
 
             'type' => Validator::isString()
                 ->required()

@@ -17,9 +17,15 @@ All notable changes to this project will be documented in this file.
   - `BoolValidator::coerce()`: Empty strings (`''`) now convert to `null` instead of validation failure
   - **Rationale**: Prevents dangerous zero defaults in form fields (e.g., bank balances, quantities)
   - **Migration**: Use explicit `->default(0)` if you need zero defaults for empty form fields
-  - Added comprehensive test coverage for new behavior (110 tests, 278 assertions)
+  - Added comprehensive test coverage for new behavior (114 tests, 290 assertions)
 
 ### Added
+- **New `satisfies()` Method**: Intuitive custom validation with optional error messages
+  - Replaces verbose `addValidation()` with natural language: `->satisfies(fn($v) => $v > 0)`
+  - Optional error message parameter with sensible default: "Custom validation failed"
+  - Maintains backward compatibility with deprecated `addValidation()` method
+  - Added comprehensive test coverage (4 new tests, 12 new assertions)
+  - Updated all documentation (65+ references) to use new method
 - **BoolValidator Test Suite**: Complete test coverage for boolean validation and coercion
   - Tests for string boolean coercion (`'true'`, `'false'`, `'on'`, `'off'`, `'1'`, `'0'`)
   - Case-insensitive coercion support

@@ -49,7 +49,41 @@ $formatted = Validator::isString()
 - ✅ Smart array coercion (indexed arrays auto-reindex, associative keys preserved)
 - ✅ Clean variadic syntax with `pipe(...$transformers)`
 - ✅ Perfect integration with external libraries (Laravel, Symfony)
-- ✅ Comprehensive test coverage (110 tests, 278 assertions)
+- ✅ Comprehensive test coverage (114 tests, 290 assertions)
+
+### Intuitive Custom Validation (v0.6.0-dev)
+**Status**: ✅ **IMPLEMENTED**
+**Concept**: Natural language custom validation with optional error messages.
+```php
+// Natural, readable validation
+$positiveNumber = Validator::isInt()->satisfies(fn($v) => $v > 0);
+
+// Multiple conditions with fluent chaining
+$strongPassword = Validator::isString()
+    ->minLength(8)
+    ->satisfies(fn($v) => preg_match('/[A-Z]/', $v), 'Must contain uppercase')
+    ->satisfies(fn($v) => preg_match('/[0-9]/', $v), 'Must contain number')
+    ->satisfies(fn($v) => preg_match('/[!@#$%^&*]/', $v), 'Must contain special character');
+
+// Context-aware validation
+$passwordConfirm = Validator::isString()->satisfies(
+    function ($value, $key, $input) {
+        return isset($input['password']) && $value === $input['password'];
+    },
+    'Password confirmation must match'
+);
+
+// Business logic validation
+$workingAge = Validator::isInt()
+    ->satisfies(fn($age) => $age >= 16, 'Must be at least 16 to work')
+    ->satisfies(fn($age) => $age <= 65, 'Must be under retirement age');
+```
+**Benefits**:
+- ✅ Natural language: "value must satisfy this condition"
+- ✅ Optional error messages with sensible defaults
+- ✅ Backward compatibility with deprecated `addValidation()`
+- ✅ Comprehensive documentation updates (65+ references)
+- ✅ Enhanced developer experience and API discoverability
 
 ### Static Logical Combinators (v0.4.0)
 **Status**: ✅ **IMPLEMENTED**

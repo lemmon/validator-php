@@ -294,7 +294,7 @@ $financialSchema = Validator::isAssociative([
 $evenPositiveValidator = Validator::isInt()
     ->positive()
     ->multipleOf(2)
-    ->addValidation(
+    ->satisfies(
         fn($value) => $value <= 1000,
         'Value must not exceed 1000'
     );
@@ -304,7 +304,7 @@ $evenPositiveValidator = Validator::isInt()
 
 ```php
 $temperatureValidator = Validator::isFloat()
-    ->addValidation(
+    ->satisfies(
         function ($temp, $key, $input) {
             $unit = $input['unit'] ?? 'celsius';
 
@@ -330,7 +330,7 @@ $temperatureSchema = Validator::isAssociative([
 
 ```php
 $precisionValidator = Validator::isFloat()
-    ->addValidation(
+    ->satisfies(
         function ($value) {
             // Ensure no more than 2 decimal places
             return round($value, 2) === $value;
@@ -400,7 +400,7 @@ $currencyValidator = Validator::isFloat()
 $scoreValidator = Validator::isFloat()
     ->min(0.0)
     ->max(100.0)
-    ->addValidation(
+    ->satisfies(
         fn($score) => round($score, 1) === $score,
         'Score must have at most 1 decimal place'
     );

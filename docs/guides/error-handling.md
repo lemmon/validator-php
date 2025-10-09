@@ -127,15 +127,15 @@ $customValidator = Validator::isString()
 
 ### Custom Validation Messages
 
-For `addValidation()`, provide custom messages:
+For `satisfies()`, provide custom messages:
 
 ```php
 $strongPasswordValidator = Validator::isString()
-    ->addValidation(
+    ->satisfies(
         fn($value) => preg_match('/[A-Z]/', $value),
         'Password must contain at least one uppercase letter'
     )
-    ->addValidation(
+    ->satisfies(
         fn($value) => preg_match('/\d/', $value),
         'Password must contain at least one number'
     );
@@ -293,7 +293,7 @@ class ConfigValidator
 ### Adding Context to Errors
 
 ```php
-$contextValidator = Validator::isString()->addValidation(
+$contextValidator = Validator::isString()->satisfies(
     function ($value, $key, $input) {
         if ($key === 'email' && isset($input['domain_whitelist'])) {
             $domain = substr(strrchr($value, '@'), 1);

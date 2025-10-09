@@ -48,7 +48,7 @@ All validators extend `FieldValidator`, which provides:
 - `oneOf(array $values): static` - Restricts to specific values
 
 ### Custom Validation
-- `addValidation(callable $rule, string $message): static` - Adds custom rules
+- `satisfies(callable $rule, ?string $message = null): static` - Adds custom rules with optional error message
 
 ### Logical Combinators
 - `allOf(array $validators): static` - Must pass all validators (instance method)
@@ -142,7 +142,7 @@ This provides better user experience by showing all validation issues at once.
 Custom validation functions receive context about the validation:
 
 ```php
-$validator->addValidation(
+$validator->satisfies(
     function ($value, $key, $input) {
         // $value - the current field value
         // $key - the field name (in schema validation)

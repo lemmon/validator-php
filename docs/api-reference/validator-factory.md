@@ -246,7 +246,7 @@ $complexValidator = Validator::isString()
     ->minLength(8)
     ->maxLength(100)
     ->pattern('/^[A-Za-z0-9]+$/')
-    ->addValidation(
+    ->satisfies(
         fn($value) => !in_array(strtolower($value), ['password', '123456']),
         'Value cannot be a common weak password'
     );
@@ -411,7 +411,7 @@ $strictString = Validator::allOf([
     Validator::isString()->minLength(5),
     Validator::isString()->maxLength(20),
     Validator::isString()->pattern('/^[A-Za-z]+$/'),
-    Validator::isString()->addValidation(
+    Validator::isString()->satisfies(
         fn($value) => !in_array(strtolower($value), ['admin', 'root']),
         'Cannot be reserved word'
     )

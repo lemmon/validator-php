@@ -1,6 +1,6 @@
 # Custom Validation Guide
 
-The Lemmon Validator allows you to add custom validation logic using the `addValidation()` method. This is perfect for business rules, complex validation logic, and context-aware validation that built-in validators can't handle.
+The Lemmon Validator allows you to add custom validation logic using the `satisfies()` method. This is perfect for business rules, complex validation logic, and context-aware validation that built-in validators can't handle.
 
 ## Basic Custom Validation
 
@@ -9,7 +9,7 @@ The Lemmon Validator allows you to add custom validation logic using the `addVal
 ```php
 use Lemmon\Validator;
 
-$validator = Validator::isString()->addValidation(
+$validator = Validator::isString()->satisfies(
     function ($value) {
         return strlen($value) > 0 && ctype_alpha($value);
     },
@@ -25,12 +25,12 @@ $result = $validator->validate('Hello'); // ✅ Valid
 For simple validations, arrow functions provide cleaner syntax:
 
 ```php
-$positiveNumberValidator = Validator::isInt()->addValidation(
+$positiveNumberValidator = Validator::isInt()->satisfies(
     fn($value) => $value > 0,
     'Number must be positive'
 );
 
-$evenNumberValidator = Validator::isInt()->addValidation(
+$evenNumberValidator = Validator::isInt()->satisfies(
     fn($value) => $value % 2 === 0,
     'Number must be even'
 );
@@ -43,7 +43,7 @@ Custom validators receive three parameters: `$value`, `$key`, and `$input`, enab
 ### Understanding the Parameters
 
 ```php
-$contextValidator = Validator::isString()->addValidation(
+$contextValidator = Validator::isString()->satisfies(
     function ($value, $key, $input) {
         // $value - the current field value being validated
         // $key - the field name (in schema validation) or null
@@ -60,7 +60,7 @@ $contextValidator = Validator::isString()->addValidation(
 A classic use case for context-aware validation:
 
 ```php
-$passwordConfirmValidator = Validator::isString()->addValidation(
+$passwordConfirmValidator = Validator::isString()->satisfies(
     function ($value, $key, $input) {
         // Ensure password confirmation matches the password field
         return isset($input['password']) && $value === $input['password'];
@@ -92,7 +92,7 @@ $validData = $registrationSchema->validate([
 Validate fields based on other field values:
 
 ```php
-$conditionalValidator = Validator::isString()->addValidation(
+$conditionalValidator = Validator::isString()->satisfies(
     function ($value, $key, $input) {
         // If account type is 'business', company name is required
         if (isset($input['account_type']) && $input['account_type'] === 'business') {
@@ -116,7 +116,7 @@ $accountSchema = Validator::isAssociative([
 Ensure consistency between related fields:
 
 ```php
-$endDateValidator = Validator::isString()->date()->addValidation(
+$endDateValidator = Validator::isString()->date()->satisfies(
     function ($value, $key, $input) {
         if (isset($input['start_date'])) {
             $startDate = new DateTime($input['start_date']);
@@ -139,7 +139,7 @@ $eventSchema = Validator::isAssociative([
 ### Custom Format Validation
 
 ```php
-$productCodeValidator = Validator::isString()->addValidation(
+$productCodeValidator = Validator::isString()->satisfies(
     function ($value) {
         // Product code: 3 letters + hyphen + 4 digits + check digit
         if (!preg_match('/^[A-Z]{3}-\d{4}\d$/', $value)) {
@@ -175,7 +175,7 @@ class UserValidator
     {
         return Validator::isString()
             ->email()
-            ->addValidation(
+            ->satisfies(
                 function ($email) {
                     $existingUser = $this->database->findUserByEmail($email);
                     return $existingUser === null;
@@ -193,7 +193,7 @@ $emailValidator = $userValidator->createUniqueEmailValidator();
 ### Complex Business Rules
 
 ```php
-$discountValidator = Validator::isFloat()->addValidation(
+$discountValidator = Validator::isFloat()->satisfies(
     function ($discount, $key, $input) {
         $orderTotal = $input['order_total'] ?? 0;
         $customerTier = $input['customer_tier'] ?? 'bronze';
@@ -228,23 +228,23 @@ You can chain multiple custom validations:
 ```php
 $strongPasswordValidator = Validator::isString()
     ->minLength(8)
-    ->addValidation(
+    ->satisfies(
         fn($value) => preg_match('/[A-Z]/', $value),
         'Password must contain at least one uppercase letter'
     )
-    ->addValidation(
+    ->satisfies(
         fn($value) => preg_match('/[a-z]/', $value),
         'Password must contain at least one lowercase letter'
     )
-    ->addValidation(
+    ->satisfies(
         fn($value) => preg_match('/\d/', $value),
         'Password must contain at least one number'
     )
-    ->addValidation(
+    ->satisfies(
         fn($value) => preg_match('/[!@#$%^&*]/', $value),
         'Password must contain at least one special character (!@#$%^&*)'
     )
-    ->addValidation(
+    ->satisfies(
         fn($value) => !preg_match('/(.)\1{2,}/', $value),
         'Password cannot contain more than 2 consecutive identical characters'
     );
@@ -257,8 +257,8 @@ Custom validations participate in comprehensive error collection:
 ```php
 $validator = Validator::isString()
     ->minLength(8)
-    ->addValidation(fn($v) => false, 'Custom error 1')
-    ->addValidation(fn($v) => false, 'Custom error 2');
+    ->satisfies(fn($v) => false, 'Custom error 1')
+    ->satisfies(fn($v) => false, 'Custom error 2');
 
 [$valid, $data, $errors] = $validator->tryValidate('short');
 
@@ -277,7 +277,7 @@ $validator = Validator::isString()
 ```php
 $emailDeliverabilityValidator = Validator::isString()
     ->email()
-    ->addValidation(
+    ->satisfies(
         function ($email) {
             // Check with email verification service
             $verificationService = new EmailVerificationService();
@@ -294,7 +294,7 @@ $emailDeliverabilityValidator = Validator::isString()
 ```php
 // Note: This is a conceptual example - the library currently doesn't support async
 $asyncValidator = Validator::isString()
-    ->addValidation(
+    ->satisfies(
         function ($value) {
             // In a real async implementation, this would return a Promise
             $apiResponse = $this->httpClient->get("/validate/{$value}");
@@ -307,7 +307,7 @@ $asyncValidator = Validator::isString()
 ### Conditional Validation Logic
 
 ```php
-$conditionalValidator = Validator::isString()->addValidation(
+$conditionalValidator = Validator::isString()->satisfies(
     function ($value, $key, $input) {
         $validationMode = $input['validation_mode'] ?? 'strict';
 
@@ -337,7 +337,7 @@ class CustomValidatorTest extends TestCase
 {
     public function testPasswordConfirmationValidator()
     {
-        $validator = Validator::isString()->addValidation(
+        $validator = Validator::isString()->satisfies(
             function ($value, $key, $input) {
                 return isset($input['password']) && $value === $input['password'];
             },
@@ -378,7 +378,7 @@ class CustomValidatorTest extends TestCase
 ### Good Custom Validator
 
 ```php
-$goodValidator = Validator::isString()->addValidation(
+$goodValidator = Validator::isString()->satisfies(
     function ($value, $key, $input) {
         // Clear, single responsibility
         // Handles edge cases
@@ -392,7 +392,7 @@ $goodValidator = Validator::isString()->addValidation(
 ### Avoid This
 
 ```php
-$badValidator = Validator::isString()->addValidation(
+$badValidator = Validator::isString()->satisfies(
     function ($value) {
         // Multiple responsibilities, unclear logic, no edge case handling
         return strlen($value) > 5 && preg_match('/complex/', $value) &&
@@ -406,5 +406,5 @@ $badValidator = Validator::isString()->addValidation(
 
 - 🧩 [Advanced Patterns Guide](advanced-patterns.md) - Logical combinators and complex rules
 - ❌ [Error Handling Guide](error-handling.md) - Working with validation errors
-- 📚 [API Reference - FieldValidator](../api-reference/field-validator.md) - Complete `addValidation()` reference
+- 📚 [API Reference - FieldValidator](../api-reference/field-validator.md) - Complete `satisfies()` reference
 - 💡 [Real-world Examples](../examples/real-world-schemas.md) - See custom validation in action

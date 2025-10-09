@@ -199,7 +199,7 @@ $complexValidator = Validator::isString()
     ->minLength(8)
     ->maxLength(100)
     ->pattern('/^[A-Za-z0-9]+$/')
-    ->addValidation(
+    ->satisfies(
         fn($value) => !in_array(strtolower($value), ['password', '123456']),
         'Password cannot be a common weak password'
     );

@@ -254,3 +254,51 @@ it('should validate not combinator', function () {
 
     $validator->validate('test@example.com');
 })->throws(Lemmon\ValidationException::class, 'Value must not satisfy the validation rule');
+
+it('should add custom validation with satisfies() method and custom message', function () {
+    $validator = Validator::isString()->satisfies(
+        fn($value) => strlen($value) > 5,
+        'String must be longer than 5 characters'
+    );
+
+    expect($validator->validate('long enough'))->toBe('long enough');
+
+    $validator->validate('short');
+})->throws(Lemmon\ValidationException::class, 'String must be longer than 5 characters');
+
+it('should add custom validation with satisfies() method and default message', function () {
+    $validator = Validator::isString()->satisfies(
+        fn($value) => strlen($value) > 5
+        // No message provided - should use default
+    );
+
+    expect($validator->validate('long enough'))->toBe('long enough');
+
+    $validator->validate('short');
+})->throws(Lemmon\ValidationException::class, 'Custom validation failed');
+
+it('should maintain backward compatibility with addValidation()', function () {
+    $validator = Validator::isString()->addValidation(
+        fn($value) => strlen($value) > 5,
+        'Old method still works'
+    );
+
+    expect($validator->validate('long enough'))->toBe('long enough');
+
+    $validator->validate('short');
+})->throws(Lemmon\ValidationException::class, 'Old method still works');
+
+it('should support context-aware validation with satisfies()', function () {
+    $validator = Validator::isString()->satisfies(
+        function ($value, $key, $input) {
+            return isset($input['password']) && $value === $input['password'];
+        },
+        'Password confirmation must match password'
+    );
+
+    $input = ['password' => 'secret123', 'password_confirm' => 'secret123'];
+    expect($validator->validate('secret123', 'password_confirm', $input))->toBe('secret123');
+
+    $input = ['password' => 'secret123', 'password_confirm' => 'different'];
+    $validator->validate('different', 'password_confirm', $input);
+})->throws(Lemmon\ValidationException::class, 'Password confirmation must match password');

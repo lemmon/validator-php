@@ -86,16 +86,27 @@ abstract class FieldValidator
     }
 
     /**
-     * Adds a custom validation rule.
+     * Adds a custom validation rule with an optional error message.
      *
-     * @param callable $validation The validation function that receives (value, key, input).
-     * @param string $message The error message if validation fails.
-     * @return $this
+     * @param callable $validation The validation function that receives (value, key, input) parameters.
+     * @param ?string $message Optional custom error message. If not provided, a generic message is used.
+     * @return static
+     */
+    public function satisfies(callable $validation, ?string $message = null): self
+    {
+        $this->validations[] = [
+            'rule' => $validation,
+            'message' => $message ?? 'Custom validation failed'
+        ];
+        return $this;
+    }
+
+    /**
+     * @deprecated Use satisfies() instead. Will be removed in v1.0.0.
      */
     public function addValidation(callable $validation, string $message): self
     {
-        $this->validations[] = ['rule' => $validation, 'message' => $message];
-        return $this;
+        return $this->satisfies($validation, $message);
     }
 
     /**
