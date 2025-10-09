@@ -16,6 +16,30 @@ This roadmap outlines the strategic development plan for future releases, priori
 - [x] ✅ **Comprehensive Documentation** - Complete API reference and practical examples
 - [x] ✅ **Comprehensive Test Suite** - 19 new tests (76 total) with 54 new assertions (208 total)
 
+## 📋 Immediate Tasks (Documentation Gaps from Real-World Testing)
+
+### Critical Documentation Updates
+- [ ] **Document `nullifyEmpty()` method** - Add to README, API reference, string/form guides (currently only in array guide)
+- [ ] **Add form handling examples** - Show `nullifyEmpty()` in real-world form validation scenarios
+- [ ] **Update getting started guides** - Include `nullifyEmpty()` in basic usage patterns
+
+### Critical API Improvements
+- [ ] **Rename `addValidation()` to `validate()`** - Shorter, cleaner method name consistent with `transform()` pattern
+- [ ] **Make error message optional in `validate()`** - Add generic fallback message for better developer experience
+- [ ] **Update all documentation** - Replace `addValidation()` with `validate()` across all guides and examples
+
+### Critical Bug Fixes
+- [ ] **Fix ObjectValidator null property handling** - `isset($validatedFieldValue)` excludes null properties from result object
+  - Should return object with null properties, not empty object
+  - AssociativeValidator works correctly, ObjectValidator has the bug
+- [ ] **Fix dangerous empty string coercion across all validators** - Make `coerce()` convert `''` → `null` (not 0/false) for form safety
+  - IntValidator: `''` → `null` (not 0) - prevents dangerous zero defaults in forms
+  - FloatValidator: `''` → `null` (not 0.0) - prevents dangerous zero defaults in forms
+  - BoolValidator: `''` → `null` (not false) - empty query params should be null
+  - This is a **BREAKING CHANGE** but critical for real-world form/API safety
+- [ ] **Add comprehensive tests for empty string handling** - Ensure all validators treat empty strings as "no value provided"
+- [ ] **Update documentation** - Explain the form-safety rationale behind empty string → null coercion
+
 ## 📋 Next Release (v0.5.0) - Utility Features
 
 ### String Enhancements
@@ -150,6 +174,7 @@ $stringValidator = Validator::isString()
 - [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
 - [x] ✅ **`nullifyEmpty()`** - Convert empty arrays to null (already implemented!)
 - [x] ✅ **`filterEmpty()`** - Remove empty/null values and reindex automatically (already implemented!)
+- [ ] **Enhanced `filterEmpty(bool $filter = true)`** - Add boolean parameter for conditional filtering
 
 ### Removed from Scope
 - ~~`unique()`~~ - Use `array_unique()` or Laravel Collections (complex deduplication logic)
@@ -171,6 +196,9 @@ $stringValidator = Validator::isString()
 - ~~`round(precision)`~~ - Use `->pipe(fn($v) => round($v, $precision))` for clarity
 
 ### Universal Validators
+- [ ] **Enhanced `required(bool $required = true)`** - Add boolean parameter to override required state (validator reusability)
+- [ ] **Enhanced `coerce(bool $coerce = true)`** - Add boolean parameter to override coercion state (library flexibility)
+- [ ] **Enhanced `nullifyEmpty(bool $nullify = true)`** - Add boolean parameter to override nullification (form vs API patterns)
 - [ ] **`enum()`** - Validates value is one of predefined options (available on all validators)
 - [ ] **`const()`** - Validates value equals specific constant
 
@@ -183,6 +211,18 @@ $stringValidator = Validator::isString()
 ### Enhanced Error Handling
 - [ ] **Structured error codes** - Programmatic error identification
 - [ ] **Error path enhancement** - Full field paths for nested validation errors
+
+### Real-World Validation Gaps (For Consideration)
+- [ ] **`notEmpty()` method** - Explicit validation that value is not empty string/array (clearer than custom validation)
+- [ ] **`in()` alias for `oneOf()`** - More intuitive method name (`->in(['active', 'inactive'])`)
+- [ ] **`between(min, max)` for strings** - Length validation shorthand (`->between(3, 50)` instead of `->minLength(3)->maxLength(50)`)
+- [ ] **`between(min, max)` for numerics** - Range validation shorthand (`->between(1, 100)` instead of `->min(1)->max(100)`)
+- [ ] **`filled()` method** - Requires non-null AND non-empty (stricter than required())
+- [ ] **`when()` conditional validation** - Apply validation only when condition is met (`->when($userRole === 'admin', fn($v) => $v->required())`)
+
+### Probably Redundant (Default Behavior)
+- [ ] ~~`optional()` method~~ - Redundant since everything is optional by default
+- [ ] ~~`nullable()` method~~ - Redundant since everything accepts null by default (unless required)
 
 ## 🏗️ Future Release (v0.6.0) - Advanced Schema Features
 
