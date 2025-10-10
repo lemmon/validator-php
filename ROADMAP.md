@@ -19,9 +19,23 @@ This roadmap outlines the strategic development plan for future releases, priori
 ## 📋 Immediate Tasks (Documentation Gaps from Real-World Testing)
 
 ### Critical Documentation Updates
-- [ ] **Document `nullifyEmpty()` method** - Add to README, API reference, string/form guides (currently only in array guide)
-- [ ] **Add form handling examples** - Show `nullifyEmpty()` in real-world form validation scenarios
-- [ ] **Update getting started guides** - Include `nullifyEmpty()` in basic usage patterns
+- [x] ✅ **Document `nullifyEmpty()` method** - Add to README, API reference, string/form guides (currently only in array guide)
+  - Added comprehensive "Universal Methods" section to API Reference with detailed `nullifyEmpty()` documentation
+  - Added "Form-Safe String Handling" section to String Validation Guide with practical examples
+  - Added "Explicit Empty String Nullification" section to Numeric Validation Guide
+  - Updated README.md Quick Start example to showcase `nullifyEmpty()` usage
+- [x] ✅ **Add form handling examples** - Show `nullifyEmpty()` in real-world form validation scenarios
+  - Added comprehensive "Form-Safe Validation with nullifyEmpty()" section to Form Validation Examples
+  - Included real-world ProductFormValidator example demonstrating form-safe patterns
+  - Added contact form example updates showing proper `nullifyEmpty()` usage
+- [x] ✅ **Update getting started guides** - Include `nullifyEmpty()` in basic usage patterns
+  - Added "Empty String Nullification" section to Basic Usage Guide with fundamental patterns
+  - Included practical examples combining `nullifyEmpty()` with `default()` for optional fields
+  - Added guidelines on when to use `nullifyEmpty()` for different scenarios
+- [x] ✅ **Fix all dead links in documentation** - Replace missing API references with existing guides
+  - Fixed 15 dead links across all documentation files
+  - Replaced missing API reference links with existing comprehensive guides
+  - Ensured all internal navigation works properly
 
 ### Critical API Improvements
 - [x] ✅ **Rename `addValidation()` to `satisfies()`** - Intuitive, descriptive method name that clearly indicates validation intent
@@ -190,7 +204,6 @@ $stringValidator = Validator::isString()
 - [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
 - [x] ✅ **`nullifyEmpty()`** - Convert empty arrays to null (already implemented!)
 - [x] ✅ **`filterEmpty()`** - Remove empty/null values and reindex automatically (already implemented!)
-- [ ] **Enhanced `filterEmpty(bool $filter = true)`** - Add boolean parameter for conditional filtering
 
 ### Removed from Scope
 - ~~`unique()`~~ - Use `array_unique()` or Laravel Collections (complex deduplication logic)
@@ -212,9 +225,6 @@ $stringValidator = Validator::isString()
 - ~~`round(precision)`~~ - Use `->pipe(fn($v) => round($v, $precision))` for clarity
 
 ### Universal Validators
-- [ ] **Enhanced `required(bool $required = true)`** - Add boolean parameter to override required state (validator reusability)
-- [ ] **Enhanced `coerce(bool $coerce = true)`** - Add boolean parameter to override coercion state (library flexibility)
-- [ ] **Enhanced `nullifyEmpty(bool $nullify = true)`** - Add boolean parameter to override nullification (form vs API patterns)
 - [ ] **`enum()`** - Validates value is one of predefined options (available on all validators)
 - [ ] **`const()`** - Validates value equals specific constant
 
@@ -281,11 +291,14 @@ $stringValidator = Validator::isString()
 - [x] ✅ Comprehensive guide restructure
 - [x] ✅ API reference documentation
 - [x] ✅ Real-world examples
+- [x] ✅ Complete `nullifyEmpty()` documentation across all guides
+- [x] ✅ Form-safe validation examples and rationale
+- [x] ✅ Fixed all dead links in documentation
 - [ ] **Video tutorials** - Getting started screencasts
 - [ ] **Interactive documentation** - Runnable examples
 
 ### Testing & Quality
-- [x] ✅ Organized test suite (9 focused test files, 103 tests, 250 assertions)
+- [x] ✅ Organized test suite (10 focused test files, 114 tests, 290 assertions)
 - [x] ✅ 100% PHPStan compliance
 - [x] ✅ PHP-CS-Fixer standards
 - [x] ✅ Static logical combinators test coverage

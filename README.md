@@ -4,65 +4,12 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/lemmon/validator.svg)](https://packagist.org/packages/lemmon/validator)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A comprehensive, fluent validation library for PHP, inspired by Valibot and Zod. Build type-safe, readable validation schemas with chainable methods and intelligent error handling.
+> [!NOTE]
+> This library is in active development. The API may change in future versions as we refine and improve the developer experience based on real-world usage and feedback.
 
-## ✨ Features
+Lemmon Validator is a comprehensive, fluent validation and data processing library for PHP that prioritizes developer experience, type safety, and real-world practicality. Inspired by modern validation libraries like Valibot and Zod, it brings a chainable, readable API to PHP for validation, transformation, and sanitization with intelligent error handling and form-safe defaults.
 
-- 🔒 **Type-safe validation** for strings, integers, floats, arrays, and objects
-- 🔗 **Fluent, chainable API** for readable and maintainable validation rules
-- 📋 **Comprehensive error collection** with detailed, structured feedback
-- ⚙️ **Intuitive custom validation** with `satisfies()` method and optional error messages
-- 🧩 **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
-- 🔄 **Form-safe coercion** - empty strings become `null` (not dangerous `0`/`false`) for real-world safety
-- 🎯 **Schema validation** for nested data structures
-- ⚡ **Universal transformations** (`transform()`, `pipe()`) for post-validation data processing
-
-## 🚀 Quick Start
-
-```php
-use Lemmon\Validator;
-
-// Simple validation
-$email = Validator::isString()
-    ->email()
-    ->validate('user@example.com');
-
-// Schema validation
-$userSchema = Validator::isAssociative([
-    'name' => Validator::isString()->required(),
-    'age' => Validator::isInt()->min(18),
-    'email' => Validator::isString()->email(),
-    'preferences' => Validator::isObject([
-        'theme' => Validator::isString()->oneOf(['light', 'dark'])->default('light'),
-        'notifications' => Validator::isBool()->default(true)
-    ])
-]);
-
-[$valid, $user, $errors] = $userSchema->tryValidate($input);
-```
-
-## 📚 Documentation
-
-### Getting Started
-- 📖 [Installation & Setup](docs/getting-started/installation.md)
-- 🎯 [Basic Usage](docs/getting-started/basic-usage.md)
-- 💡 [Core Concepts](docs/getting-started/core-concepts.md)
-
-### Validation Guides
-- 🔤 [String Validation](docs/guides/string-validation.md) - Email, URL, patterns, length constraints
-- 🔢 [Numeric Validation](docs/guides/numeric-validation.md) - Integers, floats, ranges, constraints
-- 📋 [Array Validation](docs/guides/array-validation.md) - Indexed arrays and item validation
-- 🏗️ [Object & Schema Validation](docs/guides/object-validation.md) - Complex nested structures
-- ⚙️ [Custom Validation](docs/guides/custom-validation.md) - User-defined functions and business logic
-- ❌ [Error Handling](docs/guides/error-handling.md) - Working with validation errors
-
-### API Reference
-- 🏭 [Validator Factory](docs/api-reference/validator-factory.md)
-
-### Examples
-- 📝 [Form Validation](docs/examples/form-validation.md)
-
-## 📦 Installation
+## Installation
 
 ```bash
 composer require lemmon/validator
@@ -70,126 +17,88 @@ composer require lemmon/validator
 
 **Requirements:** PHP 8.1 or higher
 
-## 🏃‍♂️ Quick Examples
+## About
 
-### String Validation with Formats
+**Philosophy: "Simple and Minimal with Extensibility Over Reinvention"**
+
+Rather than reimplementing every possible transformation or validation rule, Lemmon Validator provides a solid foundation with generic `transform()` and `pipe()` methods that integrate seamlessly with PHP's ecosystem. Need complex string transformations? Plug in Laravel's `Str` class through our transformation system. Need advanced array operations? Connect Laravel Collections via our fluent API. The library focuses on what it does best: type-safe validation with excellent developer experience, while enabling you to leverage the entire PHP ecosystem.
+
+**Key Design Principles:**
+
+- **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
+- **Fluent API**: Validation rules read like natural language - `Validator::isString()->email()->required()`
+- **Comprehensive Error Collection**: All validation errors are collected, not just the first failure
+- **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically
+- **Extensible Architecture**: Generic transformation methods work with any PHP callable or external library
+
+## Features
+
+- **Type-safe validation** for strings, integers, floats, arrays, and objects
+- **Fluent, chainable API** for readable and maintainable validation rules
+- **Comprehensive error collection** with detailed, structured feedback
+- **Intuitive custom validation** with `satisfies()` method and optional error messages
+- **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
+- **Form-safe coercion** - empty strings become `null` (not dangerous `0`/`false`) for real-world safety
+- **Schema validation** for nested data structures
+- **Universal transformations** (`transform()`, `pipe()`) for post-validation data processing
+- **Null-safe operations** with `nullifyEmpty()` method for consistent empty value handling
+
+## Quick Start
+
 ```php
-// Email validation
-$email = Validator::isString()->email()->validate('user@example.com');
+use Lemmon\Validator;
 
-// URL with custom message
-$url = Validator::isString()
-    ->url('Please provide a valid URL')
-    ->validate('https://example.com');
+// Simple validation with form-safe coercion
+$email = Validator::isString()
+    ->email()
+    ->nullifyEmpty() // Empty strings become null (form-safe)
+    ->validate('user@example.com');
 
-// Pattern matching
-$code = Validator::isString()
-    ->pattern('/^[A-Z]{2}\d{4}$/', 'Code must be 2 letters + 4 digits')
-    ->validate('AB1234');
-```
-
-### Numeric Validation
-```php
-// Integer with constraints
-$age = Validator::isInt()
-    ->min(18)
-    ->max(120)
-    ->validate(25);
-
-// Form-safe coercion (BREAKING CHANGE in latest version)
-$quantity = Validator::isInt()
-    ->coerce() // Empty strings become null (not dangerous 0)
-    ->validate(''); // Returns: null
-
-// Float with precision
-$price = Validator::isFloat()
-    ->positive()
-    ->multipleOf(0.01) // Cents precision
-    ->coerce() // Empty strings become null (not dangerous 0.0)
-    ->validate(19.99);
-```
-
-### Array Validation
-```php
-// Array filtering with auto-reindexing
-$tags = Validator::isArray()
-    ->filterEmpty() // Removes '', null but keeps 0, false, []
-    ->validate(['php', '', 'javascript', null, 'react']);
-// Returns: ['php', 'javascript', 'react'] (properly indexed)
-
-// With item validation
-$numbers = Validator::isArray()
-    ->items(Validator::isInt()->positive())
-    ->filterEmpty()
-    ->validate([1, '', 2, null, 3]);
-// Returns: [1, 2, 3]
-```
-
-### Data Transformations
-```php
-// Type-preserving transformations with pipe()
-$name = Validator::isString()
-    ->pipe('trim', 'strtoupper') // Maintains string type
-    ->validate('  john doe  '); // Returns: "JOHN DOE"
-
-// Type-changing transformations with transform()
-$count = Validator::isString()
-    ->transform(fn($v) => explode(',', $v)) // String → Array
-    ->pipe('array_unique')                  // Array operations (auto-reindexed)
-    ->transform('count')                    // Array → Int
-    ->validate('a,b,a,c'); // Returns: 3
-
-// Complex multi-type chains
-$result = Validator::isArray()
-    ->pipe('array_unique', 'array_reverse') // Array operations
-    ->transform(fn($v) => implode(',', $v)) // Array → String
-    ->pipe('trim', 'strtoupper')            // String operations
-    ->transform('strlen')                   // String → Int
-    ->validate(['a', 'b', 'a']); // Returns: 3
-```
-
-### Custom Validation
-```php
-// Context-aware validation with optional error message
-$passwordConfirm = Validator::isString()->satisfies(
-    function ($value, $key, $input) {
-        return isset($input['password']) && $value === $input['password'];
-    },
-    'Password confirmation must match password'
-);
-
-// Shorter syntax with default error message
-$positiveNumber = Validator::isInt()->satisfies(fn($v) => $v > 0);
-```
-
-### Advanced Logic
-```php
-// Logical combinators
-$flexibleId = Validator::anyOf([
-    Validator::isInt()->positive(),
-    Validator::isString()->uuid()
+// Schema validation with custom logic
+$userSchema = Validator::isAssociative([
+    'name' => Validator::isString()->required(),
+    'age' => Validator::isInt()->min(18)->coerce(),
+    'email' => Validator::isString()->email()->nullifyEmpty(),
+    'password' => Validator::isString()->satisfies(fn($v) => strlen($v) >= 8, 'Password too short')
 ]);
 
-$strictUser = Validator::allOf([
-    Validator::isAssociative(['name' => Validator::isString()]),
-    Validator::isAssociative(['email' => Validator::isString()->email()])
-]);
+// Tuple-based validation (no exceptions)
+[$valid, $user, $errors] = $userSchema->tryValidate($input);
 
-$notBanned = Validator::not(
-    Validator::isString()->oneOf(['banned', 'suspended']),
-    'User cannot be banned or suspended'
-);
+// Exception-based validation
+$user = $userSchema->validate($input); // Throws ValidationException on failure
 ```
 
-## 🤝 Contributing
+## Documentation
+
+### Getting Started
+- [Installation & Setup](docs/getting-started/installation.md)
+- [Basic Usage](docs/getting-started/basic-usage.md)
+- [Core Concepts](docs/getting-started/core-concepts.md)
+
+### Validation Guides
+- [String Validation](docs/guides/string-validation.md) - Email, URL, patterns, length constraints
+- [Numeric Validation](docs/guides/numeric-validation.md) - Integers, floats, ranges, constraints
+- [Array Validation](docs/guides/array-validation.md) - Indexed arrays and item validation
+- [Object & Schema Validation](docs/guides/object-validation.md) - Complex nested structures
+- [Custom Validation](docs/guides/custom-validation.md) - User-defined functions and business logic
+- [Error Handling](docs/guides/error-handling.md) - Working with validation errors
+
+### API Reference
+- [Validator Factory](docs/api-reference/validator-factory.md)
+
+### Examples
+- [Form Validation](docs/examples/form-validation.md)
+
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Links
+## Links
 
 - [Packagist](https://packagist.org/packages/lemmon/validator)
 - [GitHub Repository](https://github.com/lemmon/validator-php)

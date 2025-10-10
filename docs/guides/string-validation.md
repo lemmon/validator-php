@@ -141,6 +141,92 @@ $code = $codeValidator->validate('AB1234'); // ✅ Valid
 // $codeValidator->validate('ABC123'); // ❌ ValidationException (wrong format)
 ```
 
+## Form-Safe String Handling
+
+### Empty String Nullification
+
+The `nullifyEmpty()` method converts empty strings to `null`, which is crucial for form safety and preventing unintended empty string storage:
+
+```php
+// Basic nullification
+$nameValidator = Validator::isString()->nullifyEmpty();
+$result = $nameValidator->validate(''); // Returns: null (not '')
+$result = $nameValidator->validate('John'); // Returns: 'John'
+
+// Form-safe optional fields
+$middleNameValidator = Validator::isString()
+    ->nullifyEmpty() // Empty strings become null
+    ->default('N/A'); // Use default for null values
+
+$result = $middleNameValidator->validate(''); // Returns: 'N/A'
+$result = $middleNameValidator->validate('James'); // Returns: 'James'
+```
+
+### Why This Matters for Forms
+
+HTML forms often submit empty strings for unfilled fields. Without `nullifyEmpty()`, these become stored as empty strings in your database:
+
+```php
+// ❌ Dangerous: Empty strings stored as ''
+$badValidator = Validator::isString();
+$result = $badValidator->validate(''); // Returns: '' (empty string)
+
+// ✅ Safe: Empty strings become null
+$safeValidator = Validator::isString()->nullifyEmpty();
+$result = $safeValidator->validate(''); // Returns: null
+
+// ✅ Even better: With meaningful defaults
+$defaultValidator = Validator::isString()
+    ->nullifyEmpty()
+    ->default('Not provided');
+$result = $defaultValidator->validate(''); // Returns: 'Not provided'
+```
+
+### Form Validation Example
+
+```php
+$contactFormValidator = Validator::isAssociative([
+    'name' => Validator::isString()
+        ->required('Name is required')
+        ->minLength(2, 'Name must be at least 2 characters'),
+
+    'email' => Validator::isString()
+        ->required('Email is required')
+        ->email('Please provide a valid email address'),
+
+    'company' => Validator::isString()
+        ->nullifyEmpty() // Optional field: empty → null
+        ->maxLength(100, 'Company name too long'),
+
+    'phone' => Validator::isString()
+        ->nullifyEmpty() // Optional field: empty → null
+        ->pattern('/^\+?[1-9]\d{1,14}$/', 'Invalid phone number format'),
+
+    'message' => Validator::isString()
+        ->required('Message is required')
+        ->minLength(10, 'Message must be at least 10 characters')
+]);
+
+// Form data with empty optional fields
+$formData = [
+    'name' => 'John Doe',
+    'email' => 'john@example.com',
+    'company' => '', // Empty string from form
+    'phone' => '',   // Empty string from form
+    'message' => 'Hello, I would like more information.'
+];
+
+$result = $contactFormValidator->validate($formData);
+// Result:
+// [
+//     'name' => 'John Doe',
+//     'email' => 'john@example.com',
+//     'company' => null,  // ✅ Converted from empty string
+//     'phone' => null,    // ✅ Converted from empty string
+//     'message' => 'Hello, I would like more information.'
+// ]
+```
+
 ## Combining Validators
 
 Chain multiple validation rules for comprehensive string validation:
@@ -285,4 +371,4 @@ $efficientValidator = Validator::isString()
 - 🔢 [Numeric Validation Guide](numeric-validation.md) - Learn about integer and float validation
 - 🏗️ [Object & Schema Validation](object-validation.md) - Handle complex nested structures
 - ⚙️ [Custom Validation Guide](custom-validation.md) - Create custom validation rules
-- 📚 [API Reference - StringValidator](../api-reference/string-validator.md) - Complete method reference
+- 📚 [API Reference - Validator Factory](../api-reference/validator-factory.md) - Complete method reference

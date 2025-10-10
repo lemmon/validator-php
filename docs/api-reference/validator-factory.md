@@ -37,7 +37,7 @@ $urlValidator = Validator::isString()->url()->minLength(10);
 
 **Returns:** `StringValidator` instance with string-specific validation methods.
 
-**See Also:** [StringValidator API Reference](string-validator.md)
+**See Also:** [String Validation Guide](../guides/string-validation.md)
 
 ---
 
@@ -56,7 +56,7 @@ $idValidator = Validator::isInt()->positive();
 
 **Returns:** `IntValidator` instance with integer-specific validation methods.
 
-**See Also:** [Numeric Validators API Reference](numeric-validators.md)
+**See Also:** [Numeric Validation Guide](../guides/numeric-validation.md)
 
 ---
 
@@ -75,7 +75,7 @@ $percentageValidator = Validator::isFloat()->min(0.0)->max(100.0);
 
 **Returns:** `FloatValidator` instance with float-specific validation methods.
 
-**See Also:** [Numeric Validators API Reference](numeric-validators.md)
+**See Also:** [Numeric Validation Guide](../guides/numeric-validation.md)
 
 ---
 
@@ -137,7 +137,7 @@ $user = $userValidator->validate([
 
 **Returns:** `AssociativeValidator` instance with schema validation capabilities.
 
-**See Also:** [Structure Validators API Reference](structure-validators.md)
+**See Also:** [Object & Schema Validation Guide](../guides/object-validation.md)
 
 ---
 
@@ -171,7 +171,7 @@ $validConfig = $configValidator->validate($config);
 
 **Returns:** `ObjectValidator` instance with schema validation capabilities.
 
-**See Also:** [Structure Validators API Reference](structure-validators.md)
+**See Also:** [Object & Schema Validation Guide](../guides/object-validation.md)
 
 ---
 
@@ -467,10 +467,164 @@ $result4 = $validStatus->validate('pending'); // ✅ Valid
 
 **Returns:** `FieldValidator` instance that passes when the provided validator fails.
 
+---
+
+## Type-Specific Methods
+
+### Array Methods
+
+#### `items(FieldValidator $validator): ArrayValidator`
+
+Sets validation rules for each item in the array.
+
+```php
+// Array of strings
+$stringArray = Validator::isArray()->items(Validator::isString());
+$result = $stringArray->validate(['hello', 'world']); // ✅ Valid
+
+// Array of validated emails
+$emailArray = Validator::isArray()->items(
+    Validator::isString()->email()
+);
+$emails = $emailArray->validate(['user@example.com', 'admin@site.org']);
+
+// Complex item validation
+$userArray = Validator::isArray()->items(
+    Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+        'age' => Validator::isInt()->min(0)->max(120)
+    ])
+);
+```
+
+**Parameters:**
+- `$validator`: `FieldValidator` instance to apply to each array item
+
+**Returns:** `ArrayValidator` instance with item validation configured.
+
+---
+
+#### `filterEmpty(): ArrayValidator`
+
+Removes empty values (empty strings and `null`) from arrays and automatically reindexes them to maintain the indexed array structure.
+
+```php
+// Basic filtering
+$validator = Validator::isArray()->filterEmpty();
+$result = $validator->validate(['apple', '', 'banana', null, 'cherry']);
+// Result: ['apple', 'banana', 'cherry'] (reindexed as [0, 1, 2])
+
+// Combined with item validation
+$emailValidator = Validator::isArray()
+    ->filterEmpty()                    // Remove empty values first
+    ->items(Validator::isString()->email()); // Then validate remaining items
+
+// Form data processing
+$tagsValidator = Validator::isArray()
+    ->filterEmpty()                           // Remove empty form inputs
+    ->items(Validator::isString()->minLength(2)); // Validate remaining tags
+
+$formTags = ['php', '', 'javascript', null, 'css'];
+$result = $tagsValidator->validate($formTags); // Result: ['php', 'javascript', 'css']
+```
+
+**Returns:** `ArrayValidator` instance with empty value filtering enabled.
+
+**Note:** Only removes empty strings (`''`) and `null` values. Other falsy values like `0`, `false`, or `'0'` are preserved.
+
+---
+
+## Universal Methods
+
+All validators created by the factory methods inherit these universal methods from `FieldValidator`:
+
+### `nullifyEmpty(): self`
+
+Converts empty strings to `null` for form-safe validation. This is crucial for preventing dangerous zero defaults in real-world applications.
+
+```php
+// Form-safe string validation
+$name = Validator::isString()
+    ->nullifyEmpty() // Empty strings become null
+    ->validate(''); // Returns: null (not '')
+
+// Form-safe numeric validation
+$age = Validator::isInt()
+    ->coerce()
+    ->nullifyEmpty() // Empty strings become null (not dangerous 0)
+    ->validate(''); // Returns: null
+
+// Combined with defaults
+$validator = Validator::isString()
+    ->nullifyEmpty()           // Empty strings → null
+    ->default('Not provided'); // Use default for null values
+```
+
+**Why This Matters:**
+- **Form Safety**: Prevents empty form fields from becoming dangerous defaults (0, false)
+- **Database Integrity**: NULL values are often more appropriate than empty strings
+- **Business Logic**: Distinguishes between "no value provided" (null) and "empty value provided" ('')
+
+**Returns:** Same validator instance for method chaining.
+
+---
+
+### `required(): self`
+
+Marks the field as required, meaning it cannot be `null` or missing.
+
+```php
+// Required string validation
+$validator = Validator::isString()->required();
+
+// Required with other constraints
+$emailValidator = Validator::isString()
+    ->required()
+    ->email();
+
+// All fields are optional by default
+$optionalString = Validator::isString(); // No required() call
+```
+
+---
+
+### `coerce(): self`
+
+Enables automatic type coercion. When combined with `nullifyEmpty()`, provides form-safe coercion.
+
+```php
+// Form-safe integer coercion
+$quantity = Validator::isInt()
+    ->coerce()
+    ->nullifyEmpty() // Empty strings → null (not 0)
+    ->validate(''); // Returns: null
+
+// String coercion
+$stringValidator = Validator::isString()->coerce();
+$result = $stringValidator->validate(123); // Returns: '123' (string)
+
+// Coercion is disabled by default
+$strictString = Validator::isString(); // No coerce() call
+```
+
+---
+
+### `default(mixed $value): self`
+
+Sets a default value when validation passes but the value is null.
+
+```php
+$validator = Validator::isString()
+    ->nullifyEmpty() // Empty strings become null
+    ->default('N/A'); // Use default for null values
+
+$result = $validator->validate(''); // Returns: 'N/A'
+```
+
 ## See Also
 
-- [FieldValidator API Reference](field-validator.md) - Base validator methods
-- [StringValidator API Reference](string-validator.md) - String-specific methods
-- [Numeric Validators API Reference](numeric-validators.md) - Integer and float methods
-- [Structure Validators API Reference](structure-validators.md) - Array and object methods
+- [String Validation Guide](../guides/string-validation.md) - String-specific methods and examples
+- [Numeric Validation Guide](../guides/numeric-validation.md) - Integer and float methods and examples
+- [Array Validation Guide](../guides/array-validation.md) - Array validation methods and examples
+- [Object & Schema Validation Guide](../guides/object-validation.md) - Object and schema validation methods
 - [Getting Started Guide](../getting-started/basic-usage.md) - Basic usage patterns

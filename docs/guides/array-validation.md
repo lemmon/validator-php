@@ -118,6 +118,61 @@ $result = $intArray->validate(['1', '2', '3']);
 // Result: [1, 2, 3] (strings converted to integers)
 ```
 
+## Array Filtering
+
+### Removing Empty Values with `filterEmpty()`
+
+The `filterEmpty()` method removes empty values (empty strings and `null`) from arrays and automatically reindexes them to maintain the indexed array structure:
+
+```php
+$validator = Validator::isArray()->filterEmpty();
+
+// Remove empty values and reindex
+$result = $validator->validate(['apple', '', 'banana', null, 'cherry']);
+// Result: ['apple', 'banana', 'cherry'] (properly reindexed: [0, 1, 2])
+
+// Works with mixed data types
+$mixedValidator = Validator::isArray()->filterEmpty();
+$result = $mixedValidator->validate([1, '', 2, null, 3, 0, false]);
+// Result: [1, 2, 3, 0, false] (only empty strings and null removed)
+```
+
+### Combining with Item Validation
+
+```php
+// Filter empty values then validate remaining items
+$emailValidator = Validator::isArray()
+    ->filterEmpty()                    // Remove empty values first
+    ->items(Validator::isString()->email()); // Then validate emails
+
+$emails = ['john@example.com', '', 'jane@example.com', null, 'invalid-email'];
+[$valid, $result, $errors] = $emailValidator->tryValidate($emails);
+// $result would be ['john@example.com', 'jane@example.com'] (filtered)
+// $errors would contain validation error for 'invalid-email'
+```
+
+### Real-World Use Cases
+
+```php
+// Form data with optional fields
+$tagsValidator = Validator::isArray()
+    ->filterEmpty()                           // Remove empty tag inputs
+    ->items(Validator::isString()->minLength(2)); // Validate remaining tags
+
+$formTags = ['php', '', 'javascript', null, 'css', ''];
+$result = $tagsValidator->validate($formTags);
+// Result: ['php', 'javascript', 'css']
+
+// CSV-like data processing
+$csvRowValidator = Validator::isArray()
+    ->filterEmpty()                     // Remove empty CSV cells
+    ->items(Validator::isString()->trim()); // Clean remaining values
+
+$csvRow = ['John', '', 'Doe', null, '30', ''];
+$result = $csvRowValidator->validate($csvRow);
+// Result: ['John', 'Doe', '30']
+```
+
 ## Type Coercion
 
 The `ArrayValidator` supports several coercion strategies when `coerce()` is enabled:
@@ -325,6 +380,6 @@ $result = $configValidator->validate($config);
 ## Next Steps
 
 - Learn about [Object & Schema Validation](object-validation.md) for structured data
-- Explore [Custom Validation](custom-validation.md) for business logic
+- Explore [Custom Validation](custom-validation.md) for business logic and complex validation scenarios
 - Check out [Error Handling](error-handling.md) for advanced error management
-- See [Advanced Patterns](advanced-patterns.md) for complex validation scenarios
+- See [Form Validation Examples](../examples/form-validation.md) for practical examples

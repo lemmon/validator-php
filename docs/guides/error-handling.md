@@ -466,6 +466,6 @@ function displayErrors(array $errors, string $prefix = ''): void
 
 ## Next Steps
 
-- 🧩 [Advanced Patterns Guide](advanced-patterns.md) - Complex validation scenarios
-- 💡 [Real-world Examples](../examples/real-world-schemas.md) - See error handling in action
-- 📚 [API Reference - ValidationException](../api-reference/validation-exception.md) - Complete exception reference
+- 🧩 [Custom Validation Guide](custom-validation.md) - Complex validation scenarios
+- 💡 [Form Validation Examples](../examples/form-validation.md) - See error handling in action
+- 📚 [API Reference - Validator Factory](../api-reference/validator-factory.md) - Complete method reference

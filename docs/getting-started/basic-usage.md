@@ -113,6 +113,41 @@ $result = $coercing->validate('');    // Returns: null (form-safe!)
 
 > **Form Safety Note**: Empty strings convert to `null` (not `0`/`0.0`/`false`) to prevent dangerous defaults in form handling. See [Core Concepts - Form-Safe Empty String Handling](core-concepts.md#form-safe-empty-string-handling) for details.
 
+### Empty String Nullification
+
+For explicit control over empty string handling, use `nullifyEmpty()`:
+
+```php
+// Convert empty strings to null
+$nullifying = Validator::isString()->nullifyEmpty();
+
+$result = $nullifying->validate('');      // Returns: null
+$result = $nullifying->validate('hello'); // Returns: 'hello'
+
+// Combined with defaults for form-safe optional fields
+$optional = Validator::isString()
+    ->nullifyEmpty()           // Empty strings → null
+    ->default('Not provided'); // Use default for null
+
+$result = $optional->validate('');        // Returns: 'Not provided'
+$result = $optional->validate('John');    // Returns: 'John'
+
+// Form-safe numeric validation
+$safeQuantity = Validator::isInt()
+    ->coerce()
+    ->nullifyEmpty()     // Empty strings → null (not dangerous 0)
+    ->min(1, 'Quantity must be at least 1');
+
+$result = $safeQuantity->validate(''); // Validation fails (safe!)
+$result = $safeQuantity->validate('5'); // Returns: 5
+```
+
+**When to use `nullifyEmpty()`:**
+- **Form validation** where empty fields should be `null`
+- **Optional fields** with meaningful defaults
+- **Database schemas** preferring `NULL` over empty strings
+- **API endpoints** normalizing empty strings to `null`
+
 ### Allowed Values
 
 ```php
@@ -203,6 +238,39 @@ $complexValidator = Validator::isString()
         fn($value) => !in_array(strtolower($value), ['password', '123456']),
         'Password cannot be a common weak password'
     );
+```
+
+## Data Transformations
+
+Transform and process data after successful validation using the type-aware transformation system.
+
+### Basic Transformations
+
+```php
+// Type-preserving transformations with pipe()
+$name = Validator::isString()
+    ->pipe('trim', 'strtoupper')  // Multiple string operations
+    ->validate('  john doe  '); // Returns: "JOHN DOE"
+
+// Type-changing transformations with transform()
+$count = Validator::isString()
+    ->transform(fn($v) => explode(',', $v)) // String → Array
+    ->transform('count')                    // Array → Int
+    ->validate('a,b,c'); // Returns: 3
+```
+
+### When to Use Each Method
+
+- **Use `pipe()`** for same-type operations (string → string, array → array)
+- **Use `transform()`** for type changes (string → array, array → int)
+
+```php
+// ✅ Correct usage
+$result = Validator::isArray()
+    ->pipe('array_unique', 'array_reverse')    // Array operations (same type)
+    ->transform(fn($v) => implode(',', $v))    // Array → String (type change)
+    ->pipe('trim', 'strtoupper')               // String operations (same type)
+    ->validate(['a', 'b', 'a']); // Returns: "A,B"
 ```
 
 ## Next Steps

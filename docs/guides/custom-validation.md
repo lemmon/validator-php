@@ -404,7 +404,7 @@ $badValidator = Validator::isString()->satisfies(
 
 ## Next Steps
 
-- 🧩 [Advanced Patterns Guide](advanced-patterns.md) - Logical combinators and complex rules
+- 🧩 [Array Validation Guide](array-validation.md) - Logical combinators and complex rules
 - ❌ [Error Handling Guide](error-handling.md) - Working with validation errors
-- 📚 [API Reference - FieldValidator](../api-reference/field-validator.md) - Complete `satisfies()` reference
-- 💡 [Real-world Examples](../examples/real-world-schemas.md) - See custom validation in action
+- 📚 [API Reference - Validator Factory](../api-reference/validator-factory.md) - Complete `satisfies()` reference
+- 💡 [Form Validation Examples](../examples/form-validation.md) - See custom validation in action

@@ -465,6 +465,6 @@ $productSchema = Validator::isAssociative([
 ## Next Steps
 
 - Learn about [Custom Validation](custom-validation.md) for business logic
-- Explore [Advanced Patterns](advanced-patterns.md) for complex validation scenarios
+- Explore [Array Validation](array-validation.md) for complex array validation scenarios
 - Check out [Error Handling](error-handling.md) for comprehensive error management
-- See [Real-world Schemas](../examples/real-world-schemas.md) for practical examples
+- See [Form Validation Examples](../examples/form-validation.md) for practical examples

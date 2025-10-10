@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation
+- **Complete type-aware transformation system documentation** - Added comprehensive coverage for `transform()` and `pipe()` methods
+  - Added "Data Transformations" section to Core Concepts guide with detailed type context switching explanation
+  - Added transformation examples to Basic Usage guide with clear usage guidelines
+  - Documented `filterEmpty()` method for ArrayValidator with practical examples and real-world use cases
+  - Added "Type-Specific Methods" section to API Reference with complete array method documentation
+  - Fixed API reference to match actual implementation (removed unimplemented boolean parameter methods)
+  - Updated ROADMAP to remove unimplemented enhanced methods and focus on existing features
+- **Complete `nullifyEmpty()` documentation** - Added comprehensive coverage across all guides and API reference
+  - Added "Universal Methods" section to API Reference with detailed `nullifyEmpty()` documentation
+  - Added "Form-Safe String Handling" section to String Validation Guide with practical examples
+  - Added "Explicit Empty String Nullification" section to Numeric Validation Guide
+  - Added "Form-Safe Validation with nullifyEmpty()" section to Form Validation Examples
+  - Added "Empty String Nullification" section to Basic Usage Guide with fundamental patterns
+  - Updated README.md Quick Start example to showcase `nullifyEmpty()` usage
+- **Fixed all dead links in documentation** - Replaced 15 dead links with existing comprehensive guides
+  - Fixed missing API reference links across all documentation files
+  - Ensured all internal navigation works properly for seamless user experience
+- **Added development notice** - Clear indication that the library is in active development with potential API changes
+
 ## [0.6.0] - 2025-10-09
 
 ### Fixed

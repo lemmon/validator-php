@@ -27,6 +27,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for real-world form safety
 - **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
 - **Type-Aware Transformations** - Revolutionary `transform()` and `pipe()` system with intelligent type context switching
+- **Custom Validation** - `satisfies()` method for business logic integration with optional error messages
 - **Context-Aware Validation** - Custom validators receive `(value, key, input)` parameters
 - **Comprehensive Error Collection** - All validation errors collected, not just the first failure
 - **Smart Type Coercion** - Configurable automatic type conversion with form-friendly defaults
@@ -34,8 +35,8 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 
 ### Developer Experience
 - **Dual Validation Methods** - `validate()` (exception-based) and `tryValidate()` (tuple-based)
-- **Custom Validation** - `satisfies()` method for business logic integration with optional error messages
 - **Schema Validation** - Nested structure validation with hierarchical error reporting
+- **Comprehensive Documentation** - Complete guides, API reference, and real-world examples
 
 ## 📚 Documentation Structure
 
@@ -47,6 +48,8 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ### Focused Guides
 - **String Validation** - Complete format validation suite with practical examples
 - **Numeric Validation** - Integer and float validation with shared constraints
+- **Array Validation** - Indexed array validation with filtering and item validation
+- **Object Validation** - Schema-based validation for complex structures
 - **Custom Validation** - Business logic integration and context-aware validation
 - **Error Handling** - Exception vs tuple patterns, structured error reporting
 
@@ -89,22 +92,28 @@ tests/
 
 ## 🎯 Project Status
 
-### Current Version: 0.4.0
-- ✅ Complete string validation suite
+### Current Version: 0.6.0
+- ✅ Complete string validation suite with form-safe handling
 - ✅ Dedicated float validator with numeric constraints
 - ✅ Static logical combinators for advanced validation logic
 - ✅ Instance logical combinators for chaining validation rules
 - ✅ Enhanced mixed-type validation support
+- ✅ Type-aware transformation system with `transform()` and `pipe()` methods
+- ✅ Form-safe coercion - empty strings convert to `null` (not dangerous `0`/`false`)
+- ✅ Intuitive custom validation with `satisfies()` method
 - ✅ Comprehensive error collection and context-aware validation
+- ✅ Complete documentation with `nullifyEmpty()` coverage across all guides
 - ✅ Organized test suite and enterprise documentation
 - ✅ 100% PHPStan compliance and PHP-CS-Fixer standards
 
 ### Key Metrics
 - **8 validator types** covering all PHP data types
-- **33+ built-in validation methods** including static logical combinators, array filtering, type-aware transformations, and custom validation
-- **4,000+ lines of documentation** with practical examples
+- **35+ built-in validation methods** including static logical combinators, array filtering, type-aware transformations, form-safe coercion, and intuitive custom validation
+- **5,000+ lines of documentation** with practical examples and comprehensive coverage
 - **114 unit tests** with comprehensive coverage (290 assertions)
 - **Zero technical debt** with modern PHP 8.1+ codebase
+- **Zero dead links** in documentation with seamless navigation
+- **Complete API documentation** with accurate method signatures and examples
 
 ## 🔮 Vision & Roadmap
 

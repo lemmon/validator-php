@@ -115,7 +115,103 @@ Understanding the validation flow helps debug and optimize your validators:
 5. **Type Validation** - Check if value matches expected type
 6. **Built-in Rules** - Apply validator-specific rules (email, min, etc.)
 7. **Custom Rules** - Apply user-defined validation functions
-8. **Return Result** - Return validated/coerced value or errors
+8. **Transformations** - Apply data transformations after successful validation
+9. **Return Result** - Return validated/coerced/transformed value or errors
+
+## Data Transformations
+
+One of the library's most powerful features is the **type-aware transformation system** that allows you to process and transform data after validation.
+
+### Two Types of Transformations
+
+#### `transform()` - Type-Changing Transformations
+
+The `transform()` method allows you to change the data type and updates the type context for subsequent operations:
+
+```php
+$result = Validator::isString()
+    ->transform(fn($v) => explode(',', $v)) // String → Array (type changes)
+    ->validate('a,b,c'); // Returns: ['a', 'b', 'c']
+```
+
+**Key Characteristics:**
+- **Changes type context** - Updates internal type tracking
+- **No type coercion** - Returns exactly what the transformer produces
+- **Enables type switching** - Subsequent `pipe()` operations work with the new type
+
+#### `pipe()` - Type-Preserving Transformations
+
+The `pipe()` method applies multiple transformations while maintaining the current type context:
+
+```php
+$result = Validator::isString()
+    ->pipe('trim', 'strtoupper', fn($v) => str_replace(' ', '-', $v))
+    ->validate('  hello world  '); // Returns: "HELLO-WORLD"
+```
+
+**Key Characteristics:**
+- **Preserves type context** - Maintains current type for consistency
+- **Type-specific coercion** - Applies intelligent coercion based on current type
+- **Multiple operations** - Accepts variadic arguments for clean chaining
+
+### Type-Aware Transformation Chains
+
+The revolutionary aspect is how these methods work together to create intelligent transformation chains:
+
+```php
+$result = Validator::isArray()
+    ->pipe('array_unique', 'array_reverse')        // Array operations (maintains array type)
+    ->transform(fn($v) => implode(',', $v))        // Array → String (type switches)
+    ->pipe('trim', 'strtoupper')                   // String operations (works with string)
+    ->transform('strlen')                          // String → Int (type switches again)
+    ->validate(['a', 'b', 'a']); // Returns: 3
+```
+
+**What happens internally:**
+1. **Initial type**: `indexed_array` (from `Validator::isArray()`)
+2. **After `pipe()`**: Still `indexed_array`, but array is processed and reindexed
+3. **After first `transform()`**: Type context switches to `string`
+4. **After second `pipe()`**: Still `string`, string operations applied
+5. **After final `transform()`**: Type context switches to `int`
+
+### Smart Type Coercion
+
+The `pipe()` method applies intelligent coercion based on the current type context:
+
+```php
+// Array pipe operations automatically reindex when needed
+$result = Validator::isArray()
+    ->pipe('array_filter', 'array_unique') // These might break indexing
+    ->validate([1, '', 2, 1, 3]); // Returns: [1, 2, 3] (properly reindexed)
+
+// Associative arrays preserve keys
+$result = Validator::isAssociative()
+    ->pipe(fn($v) => array_map('strtoupper', $v)) // Keys preserved
+    ->validate(['name' => 'john', 'city' => 'paris']);
+    // Returns: ['name' => 'JOHN', 'city' => 'PARIS']
+```
+
+### Integration with External Libraries
+
+The transformation system seamlessly integrates with PHP's ecosystem:
+
+```php
+use Illuminate\Support\Str;
+
+$slug = Validator::isString()
+    ->pipe('trim', fn($v) => Str::lower($v))      // Laravel Str integration
+    ->transform(fn($v) => Str::slug($v))          // Create URL slug
+    ->validate('  Hello World  '); // Returns: "hello-world"
+
+// Or with Laravel Collections
+use Illuminate\Support\Collection;
+
+$processed = Validator::isArray()
+    ->transform(fn($v) => collect($v))            // Array → Collection
+    ->transform(fn($c) => $c->unique()->values()) // Collection operations
+    ->transform(fn($c) => $c->toArray())          // Collection → Array
+    ->validate([1, 2, 2, 3]); // Returns: [1, 2, 3]
+```
 
 ## Error Collection Strategy
 

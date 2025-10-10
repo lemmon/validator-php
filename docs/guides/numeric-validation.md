@@ -216,6 +216,43 @@ $quantity = Validator::isInt()->coerce()->validate($input['quantity']);
 $finalQuantity = $quantity ?? 1; // Default to 1 if empty, not 0
 ```
 
+#### Explicit Empty String Nullification
+
+For even more control over empty string handling, use the `nullifyEmpty()` method:
+
+```php
+// Explicit nullification (same as coerce() behavior for empty strings)
+$explicitValidator = Validator::isInt()
+    ->nullifyEmpty() // Empty strings → null
+    ->min(1);        // Validation will fail for null (safe!)
+
+$result = $explicitValidator->validate(''); // Returns: null, then fails min(1)
+
+// Combined with defaults for optional numeric fields
+$optionalQuantity = Validator::isInt()
+    ->nullifyEmpty() // Empty strings → null
+    ->default(1);    // Use 1 for null values
+
+$result = $optionalQuantity->validate(''); // Returns: 1
+$result = $optionalQuantity->validate('5'); // Returns: 5
+
+// Form-safe optional pricing
+$discountValidator = Validator::isFloat()
+    ->nullifyEmpty() // Empty strings → null
+    ->min(0.0)       // Must be non-negative if provided
+    ->default(0.0);  // No discount if empty
+
+// Form data handling
+$formData = ['discount' => '']; // Empty discount field
+$discount = $discountValidator->validate($formData['discount']); // Returns: 0.0
+```
+
+**When to use `nullifyEmpty()`:**
+- **Optional numeric fields** where empty should have a default
+- **Explicit control** over empty string handling
+- **Database schemas** where NULL is preferred over empty strings
+- **API endpoints** where empty strings should be normalized to null
+
 ## Real-World Examples
 
 ### Age Validation
@@ -411,4 +448,4 @@ $scoreValidator = Validator::isFloat()
 - 📋 [Array Validation Guide](array-validation.md) - Learn about array and list validation
 - 🏗️ [Object & Schema Validation](object-validation.md) - Handle complex nested structures
 - ⚙️ [Custom Validation Guide](custom-validation.md) - Create custom numeric rules
-- 📚 [API Reference - Numeric Validators](../api-reference/numeric-validators.md) - Complete method reference
+- 📚 [API Reference - Validator Factory](../api-reference/validator-factory.md) - Complete method reference

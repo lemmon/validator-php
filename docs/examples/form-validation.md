@@ -56,8 +56,9 @@ class ContactFormValidator
                 ->email('Please enter a valid email address'),
 
             'subject' => Validator::isString()
+                ->nullifyEmpty() // Empty strings become null (form-safe)
                 ->maxLength(200, 'Subject cannot exceed 200 characters')
-                ->default('General Inquiry'),
+                ->default('General Inquiry'), // Use default for null values
 
             'message' => Validator::isString()
                 ->required('Message is required')
@@ -110,6 +111,153 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 <?php endif; ?>
 ```
+
+## Form-Safe Validation with nullifyEmpty()
+
+### The Problem with Empty Form Fields
+
+HTML forms often submit empty strings for unfilled fields, which can create dangerous scenarios:
+
+```php
+// ❌ DANGEROUS: Without nullifyEmpty()
+$orderValidator = Validator::isAssociative([
+    'quantity' => Validator::isInt()->coerce(), // Empty string → 0 (dangerous!)
+    'price' => Validator::isFloat()->coerce(),  // Empty string → 0.0 (dangerous!)
+    'discount' => Validator::isFloat()->coerce()->default(5.0), // Empty → 0.0, not 5.0!
+]);
+
+// Form data with empty fields
+$formData = [
+    'quantity' => '', // Empty field from form
+    'price' => '',    // Empty field from form
+    'discount' => '', // Empty field from form
+];
+
+$result = $orderValidator->validate($formData);
+// Result: ['quantity' => 0, 'price' => 0.0, 'discount' => 0.0]
+// ❌ All dangerous zero values!
+```
+
+### The Solution: Form-Safe Validation
+
+Use `nullifyEmpty()` to convert empty strings to `null`, then handle them appropriately:
+
+```php
+// ✅ SAFE: With nullifyEmpty()
+$safeOrderValidator = Validator::isAssociative([
+    'quantity' => Validator::isInt()
+        ->coerce()
+        ->nullifyEmpty() // Empty strings → null
+        ->min(1, 'Quantity must be at least 1'), // Validation fails for null (safe!)
+
+    'price' => Validator::isFloat()
+        ->coerce()
+        ->nullifyEmpty() // Empty strings → null
+        ->positive('Price must be positive'), // Validation fails for null (safe!)
+
+    'discount' => Validator::isFloat()
+        ->coerce()
+        ->nullifyEmpty() // Empty strings → null
+        ->min(0.0)
+        ->default(5.0), // Use default for null values (explicit!)
+]);
+
+$result = $safeOrderValidator->validate($formData);
+// quantity and price validation will fail (safe!)
+// discount will use the 5.0 default (explicit choice)
+```
+
+### Real-World Form Example
+
+```php
+<?php
+class ProductFormValidator
+{
+    private $validator;
+
+    public function __construct()
+    {
+        $this->validator = Validator::isAssociative([
+            // Required fields
+            'name' => Validator::isString()
+                ->required('Product name is required')
+                ->minLength(2, 'Name must be at least 2 characters'),
+
+            'category' => Validator::isString()
+                ->required('Category is required')
+                ->oneOf(['electronics', 'clothing', 'books', 'home'], 'Invalid category'),
+
+            // Optional fields with form-safe handling
+            'description' => Validator::isString()
+                ->nullifyEmpty() // Empty → null
+                ->maxLength(1000, 'Description too long')
+                ->default('No description provided'), // Explicit default
+
+            'price' => Validator::isFloat()
+                ->coerce()
+                ->nullifyEmpty() // Empty → null (prevents $0.00 prices!)
+                ->positive('Price must be greater than 0'),
+
+            'weight' => Validator::isFloat()
+                ->coerce()
+                ->nullifyEmpty() // Empty → null
+                ->positive('Weight must be positive'),
+
+            'stock_quantity' => Validator::isInt()
+                ->coerce()
+                ->nullifyEmpty() // Empty → null
+                ->min(0, 'Stock cannot be negative')
+                ->default(0), // Explicit zero default for stock
+
+            'discount_percentage' => Validator::isFloat()
+                ->coerce()
+                ->nullifyEmpty() // Empty → null
+                ->min(0.0, 'Discount cannot be negative')
+                ->max(100.0, 'Discount cannot exceed 100%')
+                ->default(0.0), // No discount by default
+        ]);
+    }
+
+    public function validate(array $formData): array
+    {
+        [$valid, $data, $errors] = $this->validator->tryValidate($formData);
+
+        return [
+            'valid' => $valid,
+            'data' => $data,
+            'errors' => $errors
+        ];
+    }
+}
+
+// Usage with form data containing empty fields
+$formData = [
+    'name' => 'Wireless Headphones',
+    'category' => 'electronics',
+    'description' => '', // Empty field
+    'price' => '',       // Empty field - will fail validation (safe!)
+    'weight' => '0.5',
+    'stock_quantity' => '', // Empty field - will use default 0
+    'discount_percentage' => '', // Empty field - will use default 0.0
+];
+
+$validator = new ProductFormValidator();
+$result = $validator->validate($formData);
+
+if (!$result['valid']) {
+    // Price validation will fail because empty string → null → fails positive()
+    // This prevents creating products with $0.00 price (safe!)
+    echo "Validation errors: " . json_encode($result['errors']);
+}
+?>
+```
+
+### Key Benefits
+
+1. **Prevents Dangerous Defaults**: Empty form fields don't become `0`, `0.0`, or `false`
+2. **Explicit Control**: You choose what happens with empty fields via `default()`
+3. **Database Consistency**: `NULL` values are often more appropriate than empty strings
+4. **Business Logic Safety**: Distinguishes between "no value" and "zero value"
 
 ## User Registration Form
 
@@ -738,7 +886,7 @@ class FileUploadValidator
 
 ## Next Steps
 
-- 🌐 [API Validation Examples](api-validation.md) - REST API validation patterns
-- ⚙️ [Configuration Validation Examples](configuration-validation.md) - Config file validation
-- 🏢 [Real-world Schemas](real-world-schemas.md) - Complex business logic examples
+- 🔤 [String Validation Guide](../guides/string-validation.md) - Advanced string validation patterns
+- 🔢 [Numeric Validation Guide](../guides/numeric-validation.md) - Numeric validation techniques
+- 🏗️ [Object & Schema Validation](../guides/object-validation.md) - Complex nested structure validation
 - ❌ [Error Handling Guide](../guides/error-handling.md) - Advanced error handling techniques
