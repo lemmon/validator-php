@@ -169,3 +169,34 @@ it('should still validate required fields even when not provided', function () {
     expect(fn() => $schema->validate($input))
         ->toThrow(Lemmon\ValidationException::class, 'Value is required');
 });
+
+it('should coerce empty string to empty object when coerce is enabled', function () {
+    $schema = Validator::isObject()->coerce();
+
+    $result = $schema->validate('');
+
+    expect($result)->toBeInstanceOf(stdClass::class);
+    expect(get_object_vars($result))->toHaveCount(0);
+});
+
+it('should coerce empty string to object with defaults when schema has defaults', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString(),
+        'status' => Validator::isString()->default('active'),
+        'role' => Validator::isString()->default('user')
+    ])->coerce();
+
+    $result = $schema->validate('');
+
+    expect($result)->toBeInstanceOf(stdClass::class);
+    expect($result)->toHaveProperty('status', 'active');
+    expect($result)->toHaveProperty('role', 'user');
+    expect($result)->not->toHaveProperty('name'); // Not provided, no default
+});
+
+it('should reject non-empty strings even with coerce enabled', function () {
+    $schema = Validator::isObject()->coerce();
+
+    expect(fn() => $schema->validate('not-empty'))
+        ->toThrow(Lemmon\ValidationException::class, 'Input must be an object');
+});

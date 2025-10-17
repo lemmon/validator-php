@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Form-Safe Empty String Coercion**: Enhanced ObjectValidator and AssociativeValidator coercion for better form handling
+  - `ObjectValidator::coerce()`: Empty strings (`''`) now coerce to empty `stdClass` objects
+  - `AssociativeValidator::coerce()`: Empty strings (`''`) now coerce to empty arrays `[]`
+  - **Real-World Benefit**: Form parameters like `?settings=` now create empty structures instead of failing validation
+  - **Type Safety Maintained**: Non-empty strings still fail validation as expected
+  - Added comprehensive test coverage (6 new tests, 23 new assertions)
+
 ### Fixed
 - **CRITICAL BUG**: Fixed schema validation field inclusion behavior in ObjectValidator and AssociativeValidator
   - **Issue**: Validators were incorrectly including ALL schema fields in results, even when not provided in input

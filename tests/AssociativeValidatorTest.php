@@ -196,3 +196,36 @@ it('should still validate required fields even when not provided', function () {
     expect(fn() => $schema->validate($input))
         ->toThrow(Lemmon\ValidationException::class, 'Value is required');
 });
+
+it('should coerce empty string to empty array when coerce is enabled', function () {
+    $schema = Validator::isAssociative()->coerce();
+
+    $result = $schema->validate('');
+
+    expect($result)->toBeArray();
+    expect($result)->toHaveCount(0);
+});
+
+it('should coerce empty string to array with defaults when schema has defaults', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString(),
+        'status' => Validator::isString()->default('active'),
+        'role' => Validator::isString()->default('user')
+    ])->coerce();
+
+    $result = $schema->validate('');
+
+    expect($result)->toBeArray();
+    expect($result)->toHaveKey('status');
+    expect($result)->toHaveKey('role');
+    expect($result['status'])->toBe('active');
+    expect($result['role'])->toBe('user');
+    expect($result)->not->toHaveKey('name'); // Not provided, no default
+});
+
+it('should reject non-empty strings even with coerce enabled', function () {
+    $schema = Validator::isAssociative()->coerce();
+
+    expect(fn() => $schema->validate('not-empty'))
+        ->toThrow(Lemmon\ValidationException::class, 'Input must be an associative array');
+});

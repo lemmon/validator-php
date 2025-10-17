@@ -24,7 +24,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ### Validation Capabilities
 - **Static Logical Combinators** - `Validator::allOf()`, `Validator::anyOf()`, `Validator::not()` for complex rule composition and mixed-type validation
 - **Instance Logical Combinators** - `allOf()`, `anyOf()`, `not()` instance methods for chaining validation rules
-- **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for real-world form safety
+- **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for primitives, empty structures for objects/arrays
 - **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
 - **Type-Aware Transformations** - Revolutionary `transform()` and `pipe()` system with intelligent type context switching
 - **Custom Validation** - `satisfies()` method for business logic integration with optional error messages
@@ -65,7 +65,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ## 🔧 Development Workflow
 
 ### Code Quality
-- **Testing** - Pest PHP with organized test suite (10 focused test files, 120 tests, 335 assertions)
+- **Testing** - Pest PHP with organized test suite (10 focused test files, 126 tests, 358 assertions)
 - **Static Analysis** - PHPStan at maximum level for type safety
 - **Code Style** - PHP-CS-Fixer for consistent formatting
 - **Performance** - Optimized validation logic with eliminated code duplication
@@ -110,7 +110,7 @@ tests/
 - **8 validator types** covering all PHP data types
 - **35+ built-in validation methods** including static logical combinators, array filtering, type-aware transformations, form-safe coercion, and intuitive custom validation
 - **5,000+ lines of documentation** with practical examples and comprehensive coverage
-- **120 unit tests** with comprehensive coverage (335 assertions)
+- **126 unit tests** with comprehensive coverage (358 assertions)
 - **Zero technical debt** with modern PHP 8.1+ codebase
 - **Zero dead links** in documentation with seamless navigation
 - **Complete API documentation** with accurate method signatures and examples

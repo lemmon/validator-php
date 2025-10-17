@@ -37,6 +37,11 @@ class AssociativeValidator extends FieldValidator
             return (array) $value;
         }
 
+        // Form-safe: empty string becomes empty array
+        if ($value === '') {
+            return [];
+        }
+
         // For other types (including arrays), return as-is.
         // The subsequent validateType method will handle non-array errors.
         return $value;

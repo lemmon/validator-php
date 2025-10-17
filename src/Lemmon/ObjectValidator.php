@@ -37,6 +37,11 @@ class ObjectValidator extends FieldValidator
             return (object) $value;
         }
 
+        // Form-safe: empty string becomes empty object
+        if ($value === '') {
+            return new \stdClass();
+        }
+
         // For other types (including objects), return as-is.
         // The subsequent validateType method will handle non-object errors.
         return $value;
