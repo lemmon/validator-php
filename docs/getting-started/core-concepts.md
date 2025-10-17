@@ -213,6 +213,84 @@ $processed = Validator::isArray()
     ->validate([1, 2, 2, 3]); // Returns: [1, 2, 3]
 ```
 
+## Execution Order and Fluent API Contract
+
+**Critical Concept**: The fluent API executes methods **in the exact order they are written**. This is fundamental to understanding how validation and transformation work together.
+
+### Transformation Pipeline Order
+
+All transformation-related methods (`pipe()`, `transform()`, `nullifyEmpty()`, `required()`) execute in their written order:
+
+```php
+// Execution order: trim → nullifyEmpty → required
+$validator = Validator::isString()
+    ->pipe('trim')        // 1. Trim whitespace
+    ->nullifyEmpty()      // 2. Convert empty strings to null
+    ->required();         // 3. Check if value is null (fails if so)
+
+// Input: '    ' (spaces only)
+$validator->validate('    '); // ❌ Throws "Value is required"
+// Flow: '    ' → '' → null → ValidationException
+```
+
+### Order Matters - Different Results
+
+The same methods in different orders produce different results:
+
+```php
+// Case 1: required() BEFORE nullifyEmpty()
+$validator1 = Validator::isString()
+    ->required()          // 1. Check if empty string is null (passes)
+    ->nullifyEmpty();     // 2. Convert empty string to null
+
+$result1 = $validator1->validate(''); // ✅ Returns: null
+
+// Case 2: nullifyEmpty() BEFORE required()
+$validator2 = Validator::isString()
+    ->nullifyEmpty()      // 1. Convert empty string to null
+    ->required();         // 2. Check if null value is null (fails)
+
+$validator2->validate(''); // ❌ Throws "Value is required"
+```
+
+### Real-World Form Validation Example
+
+This execution order is crucial for form validation:
+
+```php
+// Common form scenario: trim whitespace, handle empty fields, require non-empty
+$nameValidator = Validator::isString()
+    ->pipe('trim')                    // Remove leading/trailing spaces
+    ->nullifyEmpty()                  // Empty strings become null
+    ->required('Name is required');   // Reject null values
+
+// Test cases:
+$nameValidator->validate('John');     // ✅ Returns: "John"
+$nameValidator->validate('  John  '); // ✅ Returns: "John" (trimmed)
+$nameValidator->validate('');         // ❌ "Name is required"
+$nameValidator->validate('    ');     // ❌ "Name is required" (trimmed to empty)
+```
+
+### Why This Design?
+
+**Principle of Least Surprise**: The fluent API should work exactly as written. When you write:
+
+```php
+->pipe('trim')->nullifyEmpty()->required()
+```
+
+You expect: trim → nullify → require, and that's exactly what happens.
+
+**Flexibility**: Different orders enable different behaviors for different use cases:
+
+```php
+// Scenario A: Allow empty after trimming (optional field)
+->pipe('trim')->required()->nullifyEmpty()
+
+// Scenario B: Require non-empty after trimming (required field)
+->pipe('trim')->nullifyEmpty()->required()
+```
+
 ## Error Collection Strategy
 
 The library uses **comprehensive error collection** rather than fail-fast:

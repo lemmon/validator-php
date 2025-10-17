@@ -47,21 +47,28 @@ class ContactFormValidator
     {
         $this->validator = Validator::isAssociative([
             'name' => Validator::isString()
-                ->required('Name is required')
+                ->pipe('trim')                    // Clean whitespace first
+                ->nullifyEmpty()                  // Handle empty fields
+                ->required('Name is required')    // Then check requirements
                 ->minLength(2, 'Name must be at least 2 characters')
                 ->maxLength(100, 'Name cannot exceed 100 characters'),
 
             'email' => Validator::isString()
-                ->required('Email is required')
+                ->pipe('trim', 'strtolower')      // Clean and normalize
+                ->nullifyEmpty()                  // Handle empty fields
+                ->required('Email is required')   // Then check requirements
                 ->email('Please enter a valid email address'),
 
             'subject' => Validator::isString()
-                ->nullifyEmpty() // Empty strings become null (form-safe)
+                ->pipe('trim')                    // Clean whitespace
+                ->nullifyEmpty()                  // Empty strings become null (form-safe)
                 ->maxLength(200, 'Subject cannot exceed 200 characters')
-                ->default('General Inquiry'), // Use default for null values
+                ->default('General Inquiry'),     // Use default for null values
 
             'message' => Validator::isString()
-                ->required('Message is required')
+                ->pipe('trim')                    // Clean whitespace first
+                ->nullifyEmpty()                  // Handle empty fields
+                ->required('Message is required') // Then check requirements
                 ->minLength(10, 'Message must be at least 10 characters')
                 ->maxLength(2000, 'Message cannot exceed 2000 characters')
         ]);

@@ -302,3 +302,37 @@ it('should support context-aware validation with satisfies()', function () {
     $input = ['password' => 'secret123', 'password_confirm' => 'different'];
     $validator->validate('different', 'password_confirm', $input);
 })->throws(Lemmon\ValidationException::class, 'Password confirmation must match password');
+
+it('should use custom error message for required() method', function () {
+    $validator = Validator::isString()->required('Name is mandatory');
+
+    expect($validator->validate('John'))->toBe('John');
+
+    $validator->validate(null);
+})->throws(Lemmon\ValidationException::class, 'Name is mandatory');
+
+it('should use default error message for required() method when no custom message provided', function () {
+    $validator = Validator::isString()->required();
+
+    expect($validator->validate('John'))->toBe('John');
+
+    $validator->validate(null);
+})->throws(Lemmon\ValidationException::class, 'Value is required');
+
+it('should use custom required message with coercion', function () {
+    $validator = Validator::isInt()->coerce()->required('Please provide a valid number');
+
+    expect($validator->validate('123'))->toBe(123);
+
+    // Empty string coerces to null, then fails required validation
+    $validator->validate('');
+})->throws(Lemmon\ValidationException::class, 'Please provide a valid number');
+
+it('should use custom required message with nullifyEmpty', function () {
+    $validator = Validator::isString()->nullifyEmpty()->required('Field cannot be empty');
+
+    expect($validator->validate('John'))->toBe('John');
+
+    // Empty string nullified, then fails required validation
+    $validator->validate('');
+})->throws(Lemmon\ValidationException::class, 'Field cannot be empty');

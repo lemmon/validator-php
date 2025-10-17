@@ -48,7 +48,7 @@ $formatted = Validator::isString()
 - ✅ Smart array coercion (indexed arrays auto-reindex, associative keys preserved)
 - ✅ Clean variadic syntax with `pipe(...$transformers)`
 - ✅ Perfect integration with external libraries (Laravel, Symfony)
-- ✅ Comprehensive test coverage (127 tests, 363 assertions)
+- ✅ Comprehensive test coverage (131 tests, 375 assertions)
 - ✅ Complete documentation overhaul with comprehensive coverage across all guides
 - ✅ Fixed all dead links in documentation for seamless navigation
 - ✅ Added type-aware transformation system documentation with detailed examples
@@ -57,6 +57,7 @@ $formatted = Validator::isString()
 - ✅ Fixed critical schema validation bug - only include provided fields or fields with defaults in results
 - ✅ Enhanced form-safe coercion - empty strings coerce to empty objects/arrays for better form handling
 - ✅ Fixed floating-point precision bug in multipleOf validation for accurate decimal calculations
+- ✅ Fixed execution order for required() and nullifyEmpty() methods to respect fluent API contract
 
 ### Intuitive Custom Validation (v0.6.0)
 **Status**: ✅ **IMPLEMENTED**

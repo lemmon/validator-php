@@ -148,6 +148,50 @@ $result = $safeQuantity->validate('5'); // Returns: 5
 - **Database schemas** preferring `NULL` over empty strings
 - **API endpoints** normalizing empty strings to `null`
 
+### Execution Order Matters
+
+**Critical**: Methods execute in the **exact order written**. This is especially important when combining transformations with `required()`:
+
+```php
+// ✅ CORRECT: Trim → nullify → require (fails on empty input)
+$requiredName = Validator::isString()
+    ->pipe('trim')        // 1. Remove whitespace
+    ->nullifyEmpty()      // 2. Empty strings → null
+    ->required('Name is required'); // 3. Reject null values
+
+$requiredName->validate('    '); // ❌ "Name is required" (correct!)
+
+// ❌ DIFFERENT BEHAVIOR: Require → nullify (allows empty input)
+$differentBehavior = Validator::isString()
+    ->required('Name is required') // 1. Check if empty string is null (passes)
+    ->nullifyEmpty();              // 2. Convert to null
+
+$differentBehavior->validate(''); // ✅ Returns: null (different result!)
+```
+
+**Real-world form validation pattern:**
+
+```php
+// Common pattern: clean input → handle empty → validate requirements
+$formValidator = Validator::isAssociative([
+    'name' => Validator::isString()
+        ->pipe('trim')                    // Clean whitespace
+        ->nullifyEmpty()                  // Handle empty fields
+        ->required('Name is required'),   // Enforce requirements
+
+    'email' => Validator::isString()
+        ->pipe('trim', 'strtolower')      // Clean and normalize
+        ->nullifyEmpty()                  // Handle empty fields
+        ->email('Invalid email format')   // Validate format
+        ->required('Email is required'),  // Enforce requirements
+
+    'age' => Validator::isInt()
+        ->coerce()                        // Convert strings to int
+        ->nullifyEmpty()                  // Handle empty fields (form-safe)
+        ->min(18, 'Must be 18 or older'), // Optional field with constraints
+]);
+```
+
 ### Allowed Values
 
 ```php

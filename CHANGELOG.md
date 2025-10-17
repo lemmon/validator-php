@@ -11,8 +11,20 @@ All notable changes to this project will be documented in this file.
   - **Real-World Benefit**: Form parameters like `?settings=` now create empty structures instead of failing validation
   - **Type Safety Maintained**: Non-empty strings still fail validation as expected
   - Added comprehensive test coverage (6 new tests, 23 new assertions)
+- **Enhanced `required()` Method**: Added optional custom error message parameter for consistency with other validation methods
+  - `required(?string $message = null)` - Custom error messages for required field validation
+  - **API Consistency**: All validation methods now support optional custom error messages
+  - **Better UX**: Context-specific error messages for different forms and use cases
+  - Maintains backward compatibility with existing code
 
 ### Fixed
+- **CRITICAL BUG**: Fixed execution order for `required()` and `nullifyEmpty()` methods to respect fluent API contract
+  - **Issue**: `Validator::isString()->pipe('trim')->nullifyEmpty()->required()->validate('    ')` incorrectly passed validation
+  - **Root Cause**: `required()` and `nullifyEmpty()` executed before transformations, violating principle of least surprise
+  - **Fix**: Moved both methods to transformation pipeline to respect their position in the fluent chain
+  - **Impact**: Fluent API now works exactly as written - transformations execute in the order they appear
+  - **Breaking Change**: Execution order now matches developer expectations (trim → nullifyEmpty → required)
+  - **Real-World Benefit**: Form validation with trimming and empty string handling now works correctly
 - **CRITICAL BUG**: Fixed floating-point precision issue in `multipleOf()` validation
   - **Issue**: `Validator::isFloat()->multipleOf(0.01)->validate(500.01)` failed due to floating-point arithmetic precision
   - **Root Cause**: `fmod(500.01, 0.01)` returned `0.009999999999980497` instead of `0.0`

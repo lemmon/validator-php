@@ -569,17 +569,25 @@ $validator = Validator::isString()
 
 ---
 
-### `required(): self`
+### `required(?string $message = null): self`
 
 Marks the field as required, meaning it cannot be `null` or missing.
 
+**Parameters:**
+- `$message` (optional): Custom error message for required validation
+
 ```php
-// Required string validation
+// Required string validation with default message
 $validator = Validator::isString()->required();
+// Error: "Value is required"
+
+// Required with custom error message
+$nameValidator = Validator::isString()->required('Name is mandatory');
+// Error: "Name is mandatory"
 
 // Required with other constraints
 $emailValidator = Validator::isString()
-    ->required()
+    ->required('Email address is required')
     ->email();
 
 // All fields are optional by default

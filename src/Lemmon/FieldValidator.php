@@ -4,11 +4,9 @@ namespace Lemmon;
 
 abstract class FieldValidator
 {
-    protected bool $required = false;
     protected mixed $default = null;
     protected bool $hasDefault = false;
     protected bool $coerce = false;
-    protected bool $nullifyEmpty = false;
     /**
      * @var array<mixed>|null
      */
@@ -30,11 +28,17 @@ abstract class FieldValidator
     /**
      * Marks the field as required.
      *
+     * @param string|null $message Custom error message for required validation
      * @return $this
      */
-    public function required(): self
+    public function required(?string $message = null): self
     {
-        $this->required = true;
+        $this->transformations[] = function ($value) use ($message) {
+            if (is_null($value)) {
+                throw new ValidationException([$message ?? 'Value is required']);
+            }
+            return $value;
+        };
         return $this;
     }
 
@@ -69,7 +73,9 @@ abstract class FieldValidator
      */
     public function nullifyEmpty(): self
     {
-        $this->nullifyEmpty = true;
+        $this->transformations[] = function ($value) {
+            return (($value === '') || (is_array($value) && empty($value))) ? null : $value;
+        };
         return $this;
     }
 
@@ -244,19 +250,17 @@ abstract class FieldValidator
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
-        if ($this->nullifyEmpty && (($value === '') || (is_array($value) && empty($value)))) {
-            $value = null;
-        }
 
-        if (is_null($value)) {
-            return $this->hasDefault ? [true, $this->default, null] : ($this->required ? [false, $value, ['Value is required']] : [true, null, null]);
+        // Handle initial null values - only return early if no transformations and no default
+        if (is_null($value) && empty($this->transformations)) {
+            return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
         $value = $this->coerce ? $this->coerceValue($value) : $value;
 
-        // Handle null values after coercion (e.g., empty strings coerced to null)
-        if (is_null($value)) {
-            return $this->hasDefault ? [true, $this->default, null] : ($this->required ? [false, $value, ['Value is required']] : [true, null, null]);
+        // Handle null values after coercion - only return early if no transformations and no default
+        if (is_null($value) && empty($this->transformations)) {
+            return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
         if ($this->oneOf && !in_array($value, $this->oneOf, true)) {
@@ -264,13 +268,16 @@ abstract class FieldValidator
         }
 
         try {
-            $validatedValue = $this->validateType($value, $key);
+            // Skip type validation for null values if we have transformations (let transformations handle it)
+            $validatedValue = is_null($value) && !empty($this->transformations) ? $value : $this->validateType($value, $key);
 
-            // Collect all validation errors
+            // Collect all validation errors (skip for null values that will be handled by transformations)
             $validationErrors = [];
-            foreach ($this->validations as $validation) {
-                if (!$validation['rule']($validatedValue, $key, $input)) {
-                    $validationErrors[] = $validation['message'];
+            if (!is_null($validatedValue) || empty($this->transformations)) {
+                foreach ($this->validations as $validation) {
+                    if (!$validation['rule']($validatedValue, $key, $input)) {
+                        $validationErrors[] = $validation['message'];
+                    }
                 }
             }
 
