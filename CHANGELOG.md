@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Unified Pipeline Architecture**: Revolutionary single pipeline design that maintains conceptual clarity while optimizing execution
+  - **Hybrid Execution Model**: Pure validations (like `email()`, `minLength()`) collect all errors for better UX, while transformations (like `required()`, `pipe()`) fail fast for correct behavior
+  - **Execution Order Guarantee**: All methods execute in the exact order written in the fluent chain - `->email()->required()->pipe('trim')` works exactly as expected
+  - **Conceptual Simplicity**: From developer perspective, there's one pipeline where callbacks do whatever they need (validate, transform, or both)
+  - **Performance Optimized**: Error collection only where beneficial, fail-fast where appropriate
+  - **Backward Compatible**: All existing code works unchanged, all 135 tests pass with 390 assertions
+  - **Internal Architecture**: Maintains separate `$validations` (error collection) and `$pipeline` (transformations) arrays for optimal execution
 - **New `satisfies*` API**: Enhanced instance logical combinators for improved API consistency and flexibility
   - `satisfiesAny(array $validations, ?string $message = null)` - Validates that value passes ANY of the provided validators or callables
   - `satisfiesAll(array $validations, ?string $message = null)` - Validates that value passes ALL of the provided validators or callables

@@ -8,13 +8,13 @@ abstract class FieldValidator
     protected bool $hasDefault = false;
     protected bool $coerce = false;
     /**
+     * @var array<callable>
+     */
+    protected array $pipeline = [];
+    /**
      * @var array<array{rule: callable, message: string}>
      */
     protected array $validations = [];
-    /**
-     * @var array<callable>
-     */
-    protected array $transformations = [];
     /**
      * Current type context for transformations (null = original validator type)
      */
@@ -29,7 +29,7 @@ abstract class FieldValidator
      */
     public function required(?string $message = null): self
     {
-        $this->transformations[] = function ($value) use ($message) {
+        $this->pipeline[] = function ($value) use ($message) {
             if (is_null($value)) {
                 throw new ValidationException([$message ?? 'Value is required']);
             }
@@ -69,7 +69,7 @@ abstract class FieldValidator
      */
     public function nullifyEmpty(): self
     {
-        $this->transformations[] = function ($value) {
+        $this->pipeline[] = function ($value) {
             return (($value === '') || (is_array($value) && empty($value))) ? null : $value;
         };
         return $this;
@@ -230,7 +230,7 @@ abstract class FieldValidator
      */
     public function transform(callable $transformer): self
     {
-        $this->transformations[] = function ($value) use ($transformer) {
+        $this->pipeline[] = function ($value) use ($transformer) {
             $result = $transformer($value);
 
             // Update current type context based on result
@@ -251,7 +251,7 @@ abstract class FieldValidator
     public function pipe(callable ...$transformers): self
     {
         foreach ($transformers as $transformer) {
-            $this->transformations[] = function ($value) use ($transformer) {
+            $this->pipeline[] = function ($value) use ($transformer) {
                 $result = $transformer($value);
 
                 // Apply type-specific coercion based on current type context
@@ -292,27 +292,25 @@ abstract class FieldValidator
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
-
-        // Handle initial null values - only return early if no transformations and no default
-        if (is_null($value) && empty($this->transformations)) {
+        // Handle initial null values - only return early if no pipeline and no default
+        if (is_null($value) && empty($this->pipeline)) {
             return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
         $value = $this->coerce ? $this->coerceValue($value) : $value;
 
-        // Handle null values after coercion - only return early if no transformations and no default
-        if (is_null($value) && empty($this->transformations)) {
+        // Handle null values after coercion - only return early if no pipeline and no default
+        if (is_null($value) && empty($this->pipeline)) {
             return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
-
         try {
-            // Skip type validation for null values if we have transformations (let transformations handle it)
-            $validatedValue = is_null($value) && !empty($this->transformations) ? $value : $this->validateType($value, $key);
+            // Skip type validation for null values if we have pipeline (let pipeline handle it)
+            $validatedValue = is_null($value) && !empty($this->pipeline) ? $value : $this->validateType($value, $key);
 
-            // Collect all validation errors (skip for null values that will be handled by transformations)
+            // Collect all validation errors (skip for null values that will be handled by pipeline)
             $validationErrors = [];
-            if (!is_null($validatedValue) || empty($this->transformations)) {
+            if (!is_null($validatedValue) || empty($this->pipeline)) {
                 foreach ($this->validations as $validation) {
                     if (!$validation['rule']($validatedValue, $key, $input)) {
                         $validationErrors[] = $validation['message'];
@@ -324,13 +322,13 @@ abstract class FieldValidator
                 return [false, $validatedValue, $validationErrors];
             }
 
-            // Apply transformations after successful validation
-            $transformedValue = $validatedValue;
-            foreach ($this->transformations as $transformation) {
-                $transformedValue = $transformation($transformedValue);
+            // Execute the pipeline (transformations and validation-transformations)
+            $processedValue = $validatedValue;
+            foreach ($this->pipeline as $operation) {
+                $processedValue = $operation($processedValue, $key, $input);
             }
 
-            return [true, $transformedValue, null];
+            return [true, $processedValue, null];
         } catch (ValidationException $e) {
             return [false, $value, $e->getErrors()];
         }

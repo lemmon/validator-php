@@ -17,7 +17,7 @@ trait OneOfTrait
 {
     /**
      * Restricts the field's value to a specific set of allowed values.
-     * Executes in the transformation pipeline, respecting the fluent API execution order.
+     * Executes in the unified pipeline, respecting the fluent API execution order.
      *
      * @param array<mixed> $values An array of allowed values.
      * @param ?string $message Optional custom error message.
@@ -25,7 +25,7 @@ trait OneOfTrait
      */
     public function oneOf(array $values, ?string $message = null): self
     {
-        $this->transformations[] = function ($value) use ($values, $message) {
+        $this->pipeline[] = function ($value) use ($values, $message) {
             if (!in_array($value, $values, true)) {
                 throw new ValidationException([$message ?? 'Value must be one of: ' . json_encode($values)]);
             }

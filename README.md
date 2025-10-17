@@ -34,7 +34,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 ## Features
 
 - **Type-safe validation** for strings, integers, floats, arrays, and objects
-- **Fluent, chainable API** with guaranteed execution order for readable and maintainable validation rules
+- **Fluent, chainable API** with guaranteed execution order - methods execute exactly as written in the chain
 - **Comprehensive error collection** with detailed, structured feedback
 - **Intuitive custom validation** with `satisfies()` method and optional error messages
 - **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic

@@ -27,6 +27,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for primitives, empty structures for objects/arrays
 - **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
 - **Type-Aware Transformations** - Revolutionary `transform()` and `pipe()` system with intelligent type context switching
+- **Unified Pipeline Architecture** - Single conceptual pipeline with hybrid execution (error collection for validations, fail-fast for transformations)
 - **Custom Validation** - Enhanced `satisfies()` method accepting `FieldValidator` instances or callables with optional error messages (all internal validators migrated from deprecated `addValidation()`)
 - **Context-Aware Validation** - Custom validators receive `(value, key, input)` parameters
 - **Comprehensive Error Collection** - All validation errors collected, not just the first failure

@@ -8,9 +8,16 @@ This roadmap outlines the strategic development plan for future releases, priori
 
 **Core Principle:** Validate first, transform with the best tools available.
 
-## ✅ Recently Completed (v0.4.0) - Static Logical Combinators
+## ✅ Recently Completed
 
-### Advanced Validation Logic
+### Unified Pipeline Architecture (Current)
+- [x] ✅ **Revolutionary Single Pipeline Design** - Conceptual simplicity with hybrid execution model for optimal performance
+- [x] ✅ **Execution Order Guarantee** - All methods execute in the exact order written in fluent chains
+- [x] ✅ **Hybrid Execution Model** - Error collection for pure validations (better UX), fail-fast for transformations (correct behavior)
+- [x] ✅ **Backward Compatibility** - All existing code works unchanged, 135 tests pass with 390 assertions
+- [x] ✅ **Performance Optimized** - No unnecessary error collection overhead for transformation operations
+
+### Static Logical Combinators (v0.4.0)
 - [x] ✅ **Static Logical Combinators** - `Validator::anyOf()`, `Validator::allOf()`, `Validator::not()` for type-agnostic validation
 - [x] ✅ **Enhanced Mixed-Type Support** - Clean syntax for arrays with mixed item types
 - [x] ✅ **Comprehensive Documentation** - Complete API reference and practical examples

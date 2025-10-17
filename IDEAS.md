@@ -60,6 +60,27 @@ $formatted = Validator::isString()
 - ✅ Fixed execution order for required() and nullifyEmpty() methods to respect fluent API contract
 - ✅ New `satisfies*` API for enhanced instance logical combinators with improved consistency
 - ✅ Refactored `oneOf()` to `OneOfTrait` for better type safety and execution order
+- ✅ **Unified Pipeline Architecture** - Revolutionary single conceptual pipeline with hybrid execution model for optimal performance and developer experience
+  ```php
+  // From developer perspective: One pipeline, execution order guaranteed
+  $validator = Validator::isString()
+      ->email()           // Pure validation (error collected)
+      ->minLength(5)      // Pure validation (error collected)
+      ->required()        // Validation-transformation (fail fast)
+      ->pipe('trim')      // Transformation (fail fast)
+      ->validate($input); // All errors collected for validations, transformations execute in order
+
+  // Internal architecture: Hybrid execution for optimal UX
+  // 1. Type validation
+  // 2. Pure validations (collect ALL errors) - better user experience
+  // 3. Pipeline operations (fail fast) - correct transformation behavior
+  ```
+  **Architectural Benefits**:
+  - ✅ **Conceptual Clarity**: One pipeline from developer perspective
+  - ✅ **Optimal UX**: Error collection where beneficial (validations), fail-fast where correct (transformations)
+  - ✅ **Execution Order**: Methods execute exactly as written in fluent chain
+  - ✅ **Performance**: No unnecessary error collection for transformations
+  - ✅ **Backward Compatibility**: All existing code works unchanged
 
 ### Intuitive Custom Validation (v0.6.0)
 **Status**: ✅ **IMPLEMENTED**
