@@ -100,7 +100,7 @@ class Validator
             {
                 return 'mixed'; // Mixed type validator
             }
-        })->anyOf($validators, $message);
+        })->satisfiesAny($validators, $message);
     }
 
     /**
@@ -127,7 +127,7 @@ class Validator
             {
                 return 'mixed'; // Mixed type validator
             }
-        })->allOf($validators, $message);
+        })->satisfiesAll($validators, $message);
     }
 
     /**
@@ -154,6 +154,6 @@ class Validator
             {
                 return 'mixed'; // Mixed type validator
             }
-        })->not($validator, $message);
+        })->satisfiesNone([$validator], $message ?? 'Value must not satisfy the validation rule');
     }
 }

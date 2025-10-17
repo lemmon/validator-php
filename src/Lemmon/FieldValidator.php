@@ -8,10 +8,6 @@ abstract class FieldValidator
     protected bool $hasDefault = false;
     protected bool $coerce = false;
     /**
-     * @var array<mixed>|null
-     */
-    protected $oneOf = null;
-    /**
      * @var array<array{rule: callable, message: string}>
      */
     protected array $validations = [];
@@ -79,29 +75,28 @@ abstract class FieldValidator
         return $this;
     }
 
-    /**
-     * Restricts the field's value to a specific set of allowed values.
-     *
-     * @param array<mixed> $values An array of allowed values.
-     * @return $this
-     */
-    public function oneOf(array $values): self
-    {
-        $this->oneOf = $values;
-        return $this;
-    }
 
     /**
      * Adds a custom validation rule with an optional error message.
      *
-     * @param callable $validation The validation function that receives (value, key, input) parameters.
+     * @param callable|FieldValidator $validation The validation function or validator instance.
      * @param ?string $message Optional custom error message. If not provided, a generic message is used.
      * @return static
      */
-    public function satisfies(callable $validation, ?string $message = null): self
+    public function satisfies(callable|FieldValidator $validation, ?string $message = null): self
     {
+        if ($validation instanceof FieldValidator) {
+            // Convert FieldValidator to callable
+            $rule = function ($value, $key = null, $input = null) use ($validation) {
+                [$valid, , ] = $validation->tryValidate($value, $key, $input);
+                return $valid;
+            };
+        } else {
+            $rule = $validation;
+        }
+
         $this->validations[] = [
-            'rule' => $validation,
+            'rule' => $rule,
             'message' => $message ?? 'Custom validation failed'
         ];
         return $this;
@@ -116,20 +111,26 @@ abstract class FieldValidator
     }
 
     /**
-     * Validates that the value passes ALL of the provided validators.
+     * Validates that the value satisfies ALL of the provided validators or callables.
      *
-     * @param array<FieldValidator> $validators Array of validators that must all pass.
+     * @param array<FieldValidator|callable> $validations Array of validators/callables that must all pass.
      * @param ?string $message Custom error message.
      * @return $this
      */
-    public function allOf(array $validators, ?string $message = null): self
+    public function satisfiesAll(array $validations, ?string $message = null): self
     {
-        return $this->addValidation(
-            function ($value, $key = null, $input = null) use ($validators) {
-                foreach ($validators as $validator) {
-                    [$valid, , ] = $validator->tryValidate($value, $key, $input);
-                    if (!$valid) {
-                        return false;
+        return $this->satisfies(
+            function ($value, $key = null, $input = null) use ($validations) {
+                foreach ($validations as $validation) {
+                    if ($validation instanceof FieldValidator) {
+                        [$valid, , ] = $validation->tryValidate($value, $key, $input);
+                        if (!$valid) {
+                            return false;
+                        }
+                    } else {
+                        if (!$validation($value, $key, $input)) {
+                            return false;
+                        }
                     }
                 }
                 return true;
@@ -139,20 +140,34 @@ abstract class FieldValidator
     }
 
     /**
-     * Validates that the value passes ANY of the provided validators.
+     * @deprecated Use satisfiesAll() instead. Will be removed in v1.0.0.
+     */
+    public function allOf(array $validators, ?string $message = null): self
+    {
+        return $this->satisfiesAll($validators, $message);
+    }
+
+    /**
+     * Validates that the value satisfies ANY of the provided validators or callables.
      *
-     * @param array<FieldValidator> $validators Array of validators, at least one must pass.
+     * @param array<FieldValidator|callable> $validations Array of validators/callables, at least one must pass.
      * @param ?string $message Custom error message.
      * @return $this
      */
-    public function anyOf(array $validators, ?string $message = null): self
+    public function satisfiesAny(array $validations, ?string $message = null): self
     {
-        return $this->addValidation(
-            function ($value, $key = null, $input = null) use ($validators) {
-                foreach ($validators as $validator) {
-                    [$valid, , ] = $validator->tryValidate($value, $key, $input);
-                    if ($valid) {
-                        return true;
+        return $this->satisfies(
+            function ($value, $key = null, $input = null) use ($validations) {
+                foreach ($validations as $validation) {
+                    if ($validation instanceof FieldValidator) {
+                        [$valid, , ] = $validation->tryValidate($value, $key, $input);
+                        if ($valid) {
+                            return true;
+                        }
+                    } else {
+                        if ($validation($value, $key, $input)) {
+                            return true;
+                        }
                     }
                 }
                 return false;
@@ -162,21 +177,48 @@ abstract class FieldValidator
     }
 
     /**
-     * Validates that the value does NOT pass the provided validator.
+     * @deprecated Use satisfiesAny() instead. Will be removed in v1.0.0.
+     */
+    public function anyOf(array $validators, ?string $message = null): self
+    {
+        return $this->satisfiesAny($validators, $message);
+    }
+
+    /**
+     * Validates that the value satisfies NONE of the provided validators or callables.
      *
-     * @param FieldValidator $validator The validator that must fail.
+     * @param array<FieldValidator|callable> $validations Array of validators/callables that must all fail.
      * @param ?string $message Custom error message.
      * @return $this
      */
+    public function satisfiesNone(array $validations, ?string $message = null): self
+    {
+        return $this->satisfies(
+            function ($value, $key = null, $input = null) use ($validations) {
+                foreach ($validations as $validation) {
+                    if ($validation instanceof FieldValidator) {
+                        [$valid, , ] = $validation->tryValidate($value, $key, $input);
+                        if ($valid) {
+                            return false; // If any validation passes, satisfiesNone fails
+                        }
+                    } else {
+                        if ($validation($value, $key, $input)) {
+                            return false; // If any validation passes, satisfiesNone fails
+                        }
+                    }
+                }
+                return true; // All validations failed, so satisfiesNone passes
+            },
+            $message ?? 'Value must not satisfy any of the validation rules'
+        );
+    }
+
+    /**
+     * @deprecated Use satisfiesNone() instead. Will be removed in v1.0.0.
+     */
     public function not(FieldValidator $validator, ?string $message = null): self
     {
-        return $this->addValidation(
-            function ($value, $key = null, $input = null) use ($validator) {
-                [$valid, , ] = $validator->tryValidate($value, $key, $input);
-                return !$valid;
-            },
-            $message ?? 'Value must not satisfy the validation rule'
-        );
+        return $this->satisfiesNone([$validator], $message ?? 'Value must not satisfy the validation rule');
     }
 
     /**
@@ -263,9 +305,6 @@ abstract class FieldValidator
             return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
-        if ($this->oneOf && !in_array($value, $this->oneOf, true)) {
-            return [false, $value, ['Value must be one of: ' . json_encode($this->oneOf)]];
-        }
 
         try {
             // Skip type validation for null values if we have transformations (let transformations handle it)

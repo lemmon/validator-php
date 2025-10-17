@@ -23,15 +23,15 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 
 ### Validation Capabilities
 - **Static Logical Combinators** - `Validator::allOf()`, `Validator::anyOf()`, `Validator::not()` for complex rule composition and mixed-type validation
-- **Instance Logical Combinators** - `allOf()`, `anyOf()`, `not()` instance methods for chaining validation rules
+- **New `satisfies*` API** - Enhanced instance logical combinators (`satisfiesAny()`, `satisfiesAll()`, `satisfiesNone()`) with support for mixed validators/callables
 - **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for primitives, empty structures for objects/arrays
 - **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
 - **Type-Aware Transformations** - Revolutionary `transform()` and `pipe()` system with intelligent type context switching
-- **Custom Validation** - `satisfies()` method for business logic integration with optional error messages
+- **Custom Validation** - Enhanced `satisfies()` method accepting `FieldValidator` instances or callables with optional error messages (all internal validators migrated from deprecated `addValidation()`)
 - **Context-Aware Validation** - Custom validators receive `(value, key, input)` parameters
 - **Comprehensive Error Collection** - All validation errors collected, not just the first failure
 - **Smart Type Coercion** - Configurable automatic type conversion with form-friendly defaults
-- **Fluent API** - Chainable method calls for readable validation code
+- **Fluent API with guaranteed execution order** - Chainable method calls that execute in the exact order written
 
 ### Developer Experience
 - **Dual Validation Methods** - `validate()` (exception-based) and `tryValidate()` (tuple-based)
@@ -65,7 +65,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ## 🔧 Development Workflow
 
 ### Code Quality
-- **Testing** - Pest PHP with organized test suite (10 focused test files, 131 tests, 375 assertions)
+- **Testing** - Pest PHP with organized test suite (10 focused test files, 135 tests, 390 assertions)
 - **Static Analysis** - PHPStan at maximum level for type safety
 - **Code Style** - PHP-CS-Fixer for consistent formatting
 - **Performance** - Optimized validation logic with eliminated code duplication
@@ -108,9 +108,9 @@ tests/
 
 ### Key Metrics
 - **8 validator types** covering all PHP data types
-- **35+ built-in validation methods** including static logical combinators, array filtering, type-aware transformations, form-safe coercion, and intuitive custom validation
+- **35+ built-in validation methods** including static logical combinators, array filtering, type-aware transformations, form-safe coercion, and intuitive custom validation (all using modern `satisfies()` API internally)
 - **5,000+ lines of documentation** with practical examples and comprehensive coverage
-- **131 unit tests** with comprehensive coverage (375 assertions)
+- **135 unit tests** with comprehensive coverage (390 assertions)
 - **Zero technical debt** with modern PHP 8.1+ codebase
 - **Zero dead links** in documentation with seamless navigation
 - **Complete API documentation** with accurate method signatures and examples

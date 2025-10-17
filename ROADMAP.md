@@ -50,6 +50,11 @@ This roadmap outlines the strategic development plan for future releases, priori
   - Updated Core Concepts, Basic Usage, and API Reference guides
   - Updated Error Handling, Numeric, String, and Object Validation guides
   - Maintained backward compatibility with deprecated `addValidation()` method
+- [x] ✅ **Complete internal API modernization** - Migrate all internal code from `addValidation()` to `satisfies()`
+  - Migrated all StringValidator methods (10 methods) to use `satisfies()` internally
+  - Migrated all NumericConstraintsTrait methods (5 methods) to use `satisfies()` internally
+  - Updated static logical combinators to use new `satisfies*` API internally
+  - Codebase now fully consistent with modern API while maintaining backward compatibility
 
 ### Critical Bug Fixes
 - [x] ✅ **Fix ObjectValidator null property handling** - `isset($validatedFieldValue)` excluded null properties from result object
@@ -152,10 +157,10 @@ use Ramsey\Uuid\Uuid;
 use Hidehalo\Nanoid\Client as NanoidClient;
 
 $uuidValidator = Validator::isString()
-    ->addValidation(fn($v) => Uuid::isValid($v), 'Must be valid UUID');
+    ->satisfies(fn($v) => Uuid::isValid($v), 'Must be valid UUID');
 
 $nanoidValidator = Validator::isString()
-    ->addValidation(fn($v) => (new NanoidClient())->isValid($v), 'Must be valid Nano ID');
+    ->satisfies(fn($v) => (new NanoidClient())->isValid($v), 'Must be valid Nano ID');
 
 // Real-world form data normalization (with dedicated methods):
 $formValidator = Validator::isAssociative([
@@ -304,7 +309,7 @@ $stringValidator = Validator::isString()
 - [ ] **Interactive documentation** - Runnable examples
 
 ### Testing & Quality
-- [x] ✅ Organized test suite (10 focused test files, 127 tests, 363 assertions)
+- [x] ✅ Organized test suite (10 focused test files, 135 tests, 390 assertions)
 - [x] ✅ 100% PHPStan compliance
 - [x] ✅ PHP-CS-Fixer standards
 - [x] ✅ Static logical combinators test coverage

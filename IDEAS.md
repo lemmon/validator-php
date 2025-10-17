@@ -48,7 +48,7 @@ $formatted = Validator::isString()
 - ✅ Smart array coercion (indexed arrays auto-reindex, associative keys preserved)
 - ✅ Clean variadic syntax with `pipe(...$transformers)`
 - ✅ Perfect integration with external libraries (Laravel, Symfony)
-- ✅ Comprehensive test coverage (131 tests, 375 assertions)
+- ✅ Comprehensive test coverage (135 tests, 390 assertions)
 - ✅ Complete documentation overhaul with comprehensive coverage across all guides
 - ✅ Fixed all dead links in documentation for seamless navigation
 - ✅ Added type-aware transformation system documentation with detailed examples
@@ -58,6 +58,8 @@ $formatted = Validator::isString()
 - ✅ Enhanced form-safe coercion - empty strings coerce to empty objects/arrays for better form handling
 - ✅ Fixed floating-point precision bug in multipleOf validation for accurate decimal calculations
 - ✅ Fixed execution order for required() and nullifyEmpty() methods to respect fluent API contract
+- ✅ New `satisfies*` API for enhanced instance logical combinators with improved consistency
+- ✅ Refactored `oneOf()` to `OneOfTrait` for better type safety and execution order
 
 ### Intuitive Custom Validation (v0.6.0)
 **Status**: ✅ **IMPLEMENTED**
@@ -303,7 +305,7 @@ $validator = Validator::conditional(
 **Concept**: Cache validation results for expensive operations.
 ```php
 $validator = Validator::isString()
-    ->addValidation($expensiveValidation)
+    ->satisfies($expensiveValidation)
     ->withCache($cacheAdapter, ttl: 3600);
 ```
 **Benefits**:

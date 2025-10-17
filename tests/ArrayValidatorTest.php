@@ -127,14 +127,8 @@ it('should work with required and default values', function () {
     $validator->validate(null, 'test', []);
 })->throws(Lemmon\ValidationException::class);
 
-it('should work with oneOf constraint', function () {
-    $validator = Validator::isArray()->oneOf([[1, 2], [3, 4]]);
-
-    $data = $validator->validate([1, 2]);
-    expect($data)->toBe([1, 2]);
-
-    $validator->validate([1, 2, 3]);
-})->throws(Lemmon\ValidationException::class);
+// Note: oneOf() is not available on ArrayValidator as array comparison doesn't make logical sense.
+// Use satisfies() for custom array validation logic if needed.
 
 it('should handle null correctly with coercion', function () {
     // Without required - null should stay null

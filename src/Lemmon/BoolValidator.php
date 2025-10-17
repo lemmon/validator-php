@@ -4,6 +4,7 @@ namespace Lemmon;
 
 class BoolValidator extends FieldValidator
 {
+    use OneOfTrait;
     /**
      * @inheritDoc
      */

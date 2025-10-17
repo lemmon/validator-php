@@ -233,10 +233,15 @@ $validator->validate(null); // Throws ValidationException
 ### Array Length Constraints
 
 ```php
-// Using oneOf for specific arrays
-$validator = Validator::isArray()->oneOf([[1, 2], [3, 4]]);
+// For specific array validation, use custom validation
+$validator = Validator::isArray()->satisfies(
+    fn($value) => in_array($value, [[1, 2], [3, 4]], true),
+    'Array must be exactly [1, 2] or [3, 4]'
+);
 $result = $validator->validate([1, 2]); // Valid
 $validator->validate([1, 2, 3]); // Throws ValidationException
+
+// Note: oneOf() is not available on ArrayValidator as it doesn't make semantic sense for complex types
 ```
 
 ### Empty Array Handling

@@ -205,7 +205,7 @@ it('should collect all validation errors', function () {
 });
 
 it('should pass context to custom validators', function () {
-    $validator = Validator::isString()->addValidation(
+    $validator = Validator::isString()->satisfies(
         function ($value, $key, $input) {
             return $key === 'test' && is_array($input) && isset($input['other']);
         },
@@ -220,8 +220,8 @@ it('should pass context to custom validators', function () {
     expect($errors)->toContain('Custom validation failed');
 });
 
-it('should validate allOf combinator', function () {
-    $validator = Validator::isString()->allOf([
+it('should validate satisfiesAll combinator', function () {
+    $validator = Validator::isString()->satisfiesAll([
         Validator::isString()->minLength(3),
         Validator::isString()->maxLength(10),
         Validator::isString()->pattern('/^[a-z]+$/')
@@ -232,8 +232,8 @@ it('should validate allOf combinator', function () {
     $validator->validate('hi'); // Too short
 })->throws(Lemmon\ValidationException::class, 'Value must satisfy all validation rules');
 
-it('should validate anyOf combinator', function () {
-    $validator = Validator::isString()->anyOf([
+it('should validate satisfiesAny combinator', function () {
+    $validator = Validator::isString()->satisfiesAny([
         Validator::isString()->email(),
         Validator::isString()->url(),
         Validator::isString()->uuid()
@@ -246,14 +246,14 @@ it('should validate anyOf combinator', function () {
     $validator->validate('invalid-value');
 })->throws(Lemmon\ValidationException::class, 'Value must satisfy at least one validation rule');
 
-it('should validate not combinator', function () {
-    $validator = Validator::isString()->not(Validator::isString()->email());
+it('should validate satisfiesNone combinator', function () {
+    $validator = Validator::isString()->satisfiesNone([Validator::isString()->email()]);
 
     expect($validator->validate('not-an-email'))->toBe('not-an-email');
     expect($validator->validate('hello world'))->toBe('hello world');
 
     $validator->validate('test@example.com');
-})->throws(Lemmon\ValidationException::class, 'Value must not satisfy the validation rule');
+})->throws(Lemmon\ValidationException::class, 'Value must not satisfy any of the validation rules');
 
 it('should add custom validation with satisfies() method and custom message', function () {
     $validator = Validator::isString()->satisfies(
@@ -302,6 +302,77 @@ it('should support context-aware validation with satisfies()', function () {
     $input = ['password' => 'secret123', 'password_confirm' => 'different'];
     $validator->validate('different', 'password_confirm', $input);
 })->throws(Lemmon\ValidationException::class, 'Password confirmation must match password');
+
+it('should support satisfies() with FieldValidator instances', function () {
+    $validator = Validator::isString()->satisfies(
+        Validator::isString()->minLength(5),
+        'Must be at least 5 characters'
+    );
+
+    expect($validator->validate('hello world'))->toBe('hello world');
+
+    $validator->validate('hi');
+})->throws(Lemmon\ValidationException::class, 'Must be at least 5 characters');
+
+it('should support satisfiesAny() with mixed validators and callables', function () {
+    $validator = Validator::isString()->satisfiesAny([
+        Validator::isString()->minLength(10),           // FieldValidator
+        fn($v) => str_contains($v, '@'),                // Callable
+        Validator::isString()->pattern('/^\d+$/')       // FieldValidator
+    ], 'Must be long, contain @, or be numeric');
+
+    // Should pass - contains @
+    expect($validator->validate('short@email.com'))->toBe('short@email.com');
+
+    // Should pass - is numeric
+    expect($validator->validate('12345'))->toBe('12345');
+
+    // Should pass - is long
+    expect($validator->validate('this is very long string'))->toBe('this is very long string');
+
+    // Should fail - none of the conditions
+    $validator->validate('short');
+})->throws(Lemmon\ValidationException::class, 'Must be long, contain @, or be numeric');
+
+it('should support satisfiesAll() with mixed validators and callables', function () {
+    $validator = Validator::isString()->satisfiesAll([
+        Validator::isString()->minLength(5),            // FieldValidator
+        fn($v) => !str_contains($v, 'bad'),             // Callable
+        Validator::isString()->maxLength(20)            // FieldValidator
+    ], 'Must be 5-20 chars and not contain "bad"');
+
+    // Should pass - meets all conditions
+    expect($validator->validate('good string'))->toBe('good string');
+
+    // Should fail - contains 'bad'
+    $validator->validate('bad string');
+})->throws(Lemmon\ValidationException::class, 'Must be 5-20 chars and not contain \"bad\"');
+
+it('should support satisfiesNone() with array of validators and callables', function () {
+    $validator = Validator::isString()->satisfiesNone([
+        Validator::isString()->pattern('/\d/'),              // FieldValidator - no numbers
+        fn($v) => str_contains($v, 'forbidden'),             // Callable - no forbidden word
+        Validator::isString()->minLength(50)                 // FieldValidator - not too long
+    ], 'Must not contain numbers, forbidden words, or be too long');
+
+    // Should pass - meets none of the forbidden conditions
+    expect($validator->validate('hello world'))->toBe('hello world');
+
+    // Should fail - contains numbers
+    $validator->validate('hello123');
+})->throws(Lemmon\ValidationException::class, 'Must not contain numbers, forbidden words, or be too long');
+
+it('should support satisfiesNone() with single forbidden condition', function () {
+    $validator = Validator::isString()->satisfiesNone([
+        fn($v) => str_contains($v, 'spam')
+    ], 'Must not contain spam');
+
+    // Should pass - no spam
+    expect($validator->validate('clean content'))->toBe('clean content');
+
+    // Should fail - contains spam
+    $validator->validate('this is spam content');
+})->throws(Lemmon\ValidationException::class, 'Must not contain spam');
 
 it('should use custom error message for required() method', function () {
     $validator = Validator::isString()->required('Name is mandatory');

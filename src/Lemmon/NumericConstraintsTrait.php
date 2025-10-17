@@ -19,7 +19,7 @@ trait NumericConstraintsTrait
      */
     public function min(int|float $min, ?string $message = null): static
     {
-        return $this->addValidation(
+        return $this->satisfies(
             fn ($value, $key = null, $input = null) => $value >= $min,
             $message ?? "Value must be at least {$min}"
         );
@@ -34,7 +34,7 @@ trait NumericConstraintsTrait
      */
     public function max(int|float $max, ?string $message = null): static
     {
-        return $this->addValidation(
+        return $this->satisfies(
             fn ($value, $key = null, $input = null) => $value <= $max,
             $message ?? "Value must be at most {$max}"
         );
@@ -49,7 +49,7 @@ trait NumericConstraintsTrait
      */
     public function multipleOf(int|float $divisor, ?string $message = null): static
     {
-        return $this->addValidation(
+        return $this->satisfies(
             function ($value, $key = null, $input = null) use ($divisor) {
                 if (is_int($divisor) && is_int($value)) {
                     return $value % $divisor === 0;
@@ -72,7 +72,7 @@ trait NumericConstraintsTrait
      */
     public function positive(?string $message = null): static
     {
-        return $this->addValidation(
+        return $this->satisfies(
             fn ($value, $key = null, $input = null) => $value > 0,
             $message ?? 'Value must be positive'
         );
@@ -86,7 +86,7 @@ trait NumericConstraintsTrait
      */
     public function negative(?string $message = null): static
     {
-        return $this->addValidation(
+        return $this->satisfies(
             fn ($value, $key = null, $input = null) => $value < 0,
             $message ?? 'Value must be negative'
         );

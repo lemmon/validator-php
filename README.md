@@ -26,7 +26,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 **Key Design Principles:**
 
 - **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
-- **Fluent API**: Validation rules read like natural language and execute in the order written - `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
+- **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written - `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
 - **Comprehensive Error Collection**: All validation errors are collected, not just the first failure
 - **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically
 - **Extensible Architecture**: Generic transformation methods work with any PHP callable or external library
@@ -34,7 +34,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 ## Features
 
 - **Type-safe validation** for strings, integers, floats, arrays, and objects
-- **Fluent, chainable API** for readable and maintainable validation rules
+- **Fluent, chainable API** with guaranteed execution order for readable and maintainable validation rules
 - **Comprehensive error collection** with detailed, structured feedback
 - **Intuitive custom validation** with `satisfies()` method and optional error messages
 - **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic

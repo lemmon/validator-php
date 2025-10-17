@@ -629,6 +629,126 @@ $validator = Validator::isString()
 $result = $validator->validate(''); // Returns: 'N/A'
 ```
 
+---
+
+### `oneOf(array $values, ?string $message = null): self`
+
+**Available on:** `StringValidator`, `IntValidator`, `FloatValidator`, `BoolValidator` only
+
+Restricts the value to one of the specified allowed values. This method is implemented as a transformation and respects the fluent API execution order.
+
+```php
+// String with allowed values
+$status = Validator::isString()
+    ->oneOf(['active', 'inactive', 'pending'], 'Invalid status')
+    ->validate('active'); // ✅ Valid
+
+// Integer with allowed values
+$priority = Validator::isInt()
+    ->oneOf([1, 2, 3, 4, 5], 'Priority must be 1-5')
+    ->validate(3); // ✅ Valid
+
+// Execution order matters
+$validator = Validator::isString()
+    ->pipe('trim', 'strtolower')  // Transform first
+    ->oneOf(['yes', 'no'])        // Then validate allowed values
+    ->validate('  YES  '); // ✅ Valid (becomes 'yes' after transformation)
+```
+
+**Parameters:**
+- `$values`: Array of allowed values (compared using strict equality)
+- `$message` (optional): Custom error message for invalid values
+
+**Note:** This method is not available on `ArrayValidator` or `ObjectValidator` as it doesn't make semantic sense for complex types.
+
+---
+
+## Instance Logical Combinators
+
+All validators support enhanced logical combinators for complex validation scenarios:
+
+### `satisfiesAny(array $validations, ?string $message = null): self`
+
+Validates that the value passes ANY of the provided validators or callables.
+
+```php
+// Mixed validation - accepts multiple validator types
+$flexibleValidator = Validator::isString()
+    ->satisfiesAny([
+        Validator::isString()->email(),
+        Validator::isString()->url(),
+        fn($v) => filter_var($v, FILTER_VALIDATE_IP) !== false
+    ], 'Must be email, URL, or IP address');
+
+$result1 = $flexibleValidator->validate('user@example.com'); // ✅ Valid (email)
+$result2 = $flexibleValidator->validate('https://example.com'); // ✅ Valid (URL)
+$result3 = $flexibleValidator->validate('192.168.1.1'); // ✅ Valid (IP)
+```
+
+---
+
+### `satisfiesAll(array $validations, ?string $message = null): self`
+
+Validates that the value passes ALL of the provided validators or callables.
+
+```php
+// Complex validation combining multiple rules
+$strongPassword = Validator::isString()
+    ->minLength(8)
+    ->satisfiesAll([
+        fn($v) => preg_match('/[A-Z]/', $v), // Has uppercase
+        fn($v) => preg_match('/[a-z]/', $v), // Has lowercase
+        fn($v) => preg_match('/[0-9]/', $v), // Has number
+        fn($v) => preg_match('/[!@#$%^&*]/', $v) // Has special char
+    ], 'Password must contain uppercase, lowercase, number, and special character');
+```
+
+---
+
+### `satisfiesNone(array $validations, ?string $message = null): self`
+
+Validates that the value satisfies NONE of the provided validators or callables.
+
+```php
+// Exclusion validation - value must not match any pattern
+$safeUsername = Validator::isString()
+    ->satisfiesNone([
+        fn($v) => in_array(strtolower($v), ['admin', 'root', 'user']),
+        fn($v) => preg_match('/^\d+$/', $v), // Not all numbers
+        Validator::isString()->email() // Not an email format
+    ], 'Username cannot be reserved word, all numbers, or email format');
+```
+
+---
+
+### `satisfies(callable|FieldValidator $validation, ?string $message = null): self`
+
+Enhanced custom validation accepting both callables and `FieldValidator` instances.
+
+```php
+// Using callable
+$positiveNumber = Validator::isInt()
+    ->satisfies(fn($v) => $v > 0, 'Must be positive');
+
+// Using FieldValidator instance
+$emailOrPhone = Validator::isString()
+    ->satisfies(
+        Validator::isString()->email(),
+        'Must be valid email format'
+    );
+
+// Context-aware validation
+$passwordConfirm = Validator::isString()
+    ->satisfies(
+        function ($value, $key, $input) {
+            return isset($input['password']) && $value === $input['password'];
+        },
+        'Password confirmation must match'
+    );
+```
+
+**Note:** The old `anyOf()`, `allOf()`, and `not()` instance methods are deprecated but maintained for backward compatibility.
+
 ## See Also
 
 - [String Validation Guide](../guides/string-validation.md) - String-specific methods and examples

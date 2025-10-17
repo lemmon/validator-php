@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **New `satisfies*` API**: Enhanced instance logical combinators for improved API consistency and flexibility
+  - `satisfiesAny(array $validations, ?string $message = null)` - Validates that value passes ANY of the provided validators or callables
+  - `satisfiesAll(array $validations, ?string $message = null)` - Validates that value passes ALL of the provided validators or callables
+  - `satisfiesNone(array $validations, ?string $message = null)` - Validates that value satisfies NONE of the provided validators or callables
+  - **Enhanced `satisfies()` Method**: Now accepts `callable|FieldValidator` instances for maximum flexibility
+  - **Backward Compatibility**: Deprecated `anyOf()`, `allOf()`, `not()` instance methods maintained as aliases
+  - **API Clarity**: Eliminates confusion between static `Validator::anyOf()` and instance `$validator->anyOf()` methods
+  - Updated test metrics: 135 tests, 390 assertions
+- **Refactored `oneOf()` to `OneOfTrait`**: Improved type safety and execution order consistency
+  - **Type Safety**: `oneOf()` now only available on primitive validators (`StringValidator`, `IntValidator`, `FloatValidator`, `BoolValidator`)
+  - **Execution Order**: `oneOf()` now implemented as transformation, respecting fluent API chain position
+  - **Logical Consistency**: Removed from complex types (`ArrayValidator`, `ObjectValidator`) where it doesn't make semantic sense
+  - **Breaking Change**: `ArrayValidator` and `ObjectValidator` no longer have `oneOf()` method
+  - Added comprehensive test coverage and removed invalid test cases
 - **Form-Safe Empty String Coercion**: Enhanced ObjectValidator and AssociativeValidator coercion for better form handling
   - `ObjectValidator::coerce()`: Empty strings (`''`) now coerce to empty `stdClass` objects
   - `AssociativeValidator::coerce()`: Empty strings (`''`) now coerce to empty arrays `[]`
@@ -16,6 +30,13 @@ All notable changes to this project will be documented in this file.
   - **API Consistency**: All validation methods now support optional custom error messages
   - **Better UX**: Context-specific error messages for different forms and use cases
   - Maintains backward compatibility with existing code
+- **Internal API Modernization**: Complete migration from deprecated `addValidation()` to `satisfies()` throughout codebase
+  - **StringValidator**: All 10 validation methods (`email()`, `url()`, `uuid()`, `ip()`, `minLength()`, `maxLength()`, `length()`, `pattern()`, `datetime()`, `date()`) now use `satisfies()` internally
+  - **NumericConstraintsTrait**: All 5 constraint methods (`min()`, `max()`, `multipleOf()`, `positive()`, `negative()`) now use `satisfies()` internally
+  - **Static Methods**: `Validator::anyOf()`, `Validator::allOf()`, `Validator::not()` now use new `satisfies*` API internally
+  - **Future-Proofing**: All internal code ready for `addValidation()` removal in v1.0.0
+  - **Consistency**: Single source of truth for custom validation logic across entire codebase
+  - Maintains perfect backward compatibility for users still using deprecated methods
 
 ### Fixed
 - **CRITICAL BUG**: Fixed execution order for `required()` and `nullifyEmpty()` methods to respect fluent API contract

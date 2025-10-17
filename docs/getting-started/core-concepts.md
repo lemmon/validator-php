@@ -45,15 +45,17 @@ All validators extend `FieldValidator`, which provides:
 - `required(): static` - Makes the field mandatory
 - `default(mixed $value): static` - Sets default value for null inputs
 - `coerce(): static` - Enables automatic type conversion
-- `oneOf(array $values): static` - Restricts to specific values
+- `oneOf(array $values): static` - Restricts to specific values (primitive validators only)
 
 ### Custom Validation
-- `satisfies(callable $rule, ?string $message = null): static` - Adds custom rules with optional error message
+- `satisfies(callable|FieldValidator $rule, ?string $message = null): static` - Enhanced custom validation accepting validators or callables
 
-### Logical Combinators
-- `allOf(array $validators): static` - Must pass all validators (instance method)
-- `anyOf(array $validators): static` - Must pass at least one validator (instance method)
-- `not(FieldValidator $validator): static` - Must NOT pass the validator (instance method)
+### Instance Logical Combinators
+- `satisfiesAll(array $validations): static` - Must pass all validators/callables (replaces `allOf()`)
+- `satisfiesAny(array $validations): static` - Must pass at least one validator/callable (replaces `anyOf()`)
+- `satisfiesNone(array $validations): static` - Must NOT pass any validator/callable (replaces `not()`)
+
+**Note:** The old `allOf()`, `anyOf()`, and `not()` instance methods are deprecated but maintained for backward compatibility.
 
 ### Static Logical Combinators
 - `Validator::allOf(array $validators)` - Creates validator that must pass all validators
