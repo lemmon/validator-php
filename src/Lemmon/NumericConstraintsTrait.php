@@ -54,7 +54,11 @@ trait NumericConstraintsTrait
                 if (is_int($divisor) && is_int($value)) {
                     return $value % $divisor === 0;
                 }
-                return fmod((float) $value, (float) $divisor) === 0.0;
+
+                // Use epsilon comparison for floating-point precision
+                $remainder = fmod((float) $value, (float) $divisor);
+                $epsilon = 1e-9; // Tolerance for floating-point comparison
+                return abs($remainder) < $epsilon || abs($remainder - $divisor) < $epsilon;
             },
             $message ?? "Value must be a multiple of {$divisor}"
         );

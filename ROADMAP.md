@@ -304,11 +304,12 @@ $stringValidator = Validator::isString()
 - [ ] **Interactive documentation** - Runnable examples
 
 ### Testing & Quality
-- [x] ✅ Organized test suite (10 focused test files, 120 tests, 335 assertions)
+- [x] ✅ Organized test suite (10 focused test files, 127 tests, 363 assertions)
 - [x] ✅ 100% PHPStan compliance
 - [x] ✅ PHP-CS-Fixer standards
 - [x] ✅ Static logical combinators test coverage
 - [x] ✅ Comprehensive schema validation test coverage
+- [x] ✅ Floating-point precision bug fixes with comprehensive edge case testing
 - [ ] **Mutation testing** - Enhanced test quality verification
 - [ ] **Property-based testing** - Randomized validation testing
 - [ ] **Performance benchmarking** - Continuous performance monitoring

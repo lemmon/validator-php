@@ -60,3 +60,17 @@ it('should validate positive floats', function () {
 
     $positiveValidator->validate(-1);
 })->throws(Lemmon\ValidationException::class, 'Value must be positive');
+
+it('should handle floating-point precision in multipleOf validation', function () {
+    // Test cases that previously failed due to floating-point precision
+    $validator = Validator::isFloat()->multipleOf(0.01);
+
+    expect($validator->validate(500.01))->toBe(500.01); // Original bug case
+    expect($validator->validate(19.99))->toBe(19.99);   // Another precision case
+    expect($validator->validate(1234.56))->toBe(1234.56); // Larger number
+
+    // Test with smaller precision
+    $smallValidator = Validator::isFloat()->multipleOf(0.001);
+    expect($smallValidator->validate(0.999))->toBe(0.999);
+    expect($smallValidator->validate(1.001))->toBe(1.001);
+});

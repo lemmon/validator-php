@@ -65,7 +65,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ## 🔧 Development Workflow
 
 ### Code Quality
-- **Testing** - Pest PHP with organized test suite (10 focused test files, 126 tests, 358 assertions)
+- **Testing** - Pest PHP with organized test suite (10 focused test files, 127 tests, 363 assertions)
 - **Static Analysis** - PHPStan at maximum level for type safety
 - **Code Style** - PHP-CS-Fixer for consistent formatting
 - **Performance** - Optimized validation logic with eliminated code duplication
@@ -110,7 +110,7 @@ tests/
 - **8 validator types** covering all PHP data types
 - **35+ built-in validation methods** including static logical combinators, array filtering, type-aware transformations, form-safe coercion, and intuitive custom validation
 - **5,000+ lines of documentation** with practical examples and comprehensive coverage
-- **126 unit tests** with comprehensive coverage (358 assertions)
+- **127 unit tests** with comprehensive coverage (363 assertions)
 - **Zero technical debt** with modern PHP 8.1+ codebase
 - **Zero dead links** in documentation with seamless navigation
 - **Complete API documentation** with accurate method signatures and examples

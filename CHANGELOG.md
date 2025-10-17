@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
   - Added comprehensive test coverage (6 new tests, 23 new assertions)
 
 ### Fixed
+- **CRITICAL BUG**: Fixed floating-point precision issue in `multipleOf()` validation
+  - **Issue**: `Validator::isFloat()->multipleOf(0.01)->validate(500.01)` failed due to floating-point arithmetic precision
+  - **Root Cause**: `fmod(500.01, 0.01)` returned `0.009999999999980497` instead of `0.0`
+  - **Fix**: Implemented epsilon comparison (`1e-9` tolerance) for floating-point remainder validation
+  - **Impact**: Decimal multiples (currency, measurements) now validate correctly
+  - Added comprehensive test coverage for floating-point precision edge cases
 - **CRITICAL BUG**: Fixed schema validation field inclusion behavior in ObjectValidator and AssociativeValidator
   - **Issue**: Validators were incorrectly including ALL schema fields in results, even when not provided in input
   - **Fix**: Now only includes fields that were actually provided in input OR have default values applied
