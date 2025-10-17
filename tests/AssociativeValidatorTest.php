@@ -20,7 +20,6 @@ it('should validate a correct payload', function () {
 
     expect($data)->toBe([
         'required' => 'test',
-        'optional' => null,
         'forced'   => 'Hello!',
         'level'    => 5,
         'override' => false,
@@ -117,3 +116,83 @@ it('should fail to validate stdClass object when coerce is not enabled', functio
 
     $schema->validate($object);
 })->throws(Lemmon\ValidationException::class, 'Input must be an associative array');
+
+it('should only include provided fields in result (not all schema fields)', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString(),
+        'email' => Validator::isString()->email(),
+        'age' => Validator::isInt()->coerce(),
+        'city' => Validator::isString(),
+        'country' => Validator::isString(),
+    ]);
+
+    // Only provide 2 out of 5 schema fields
+    $input = [
+        'name' => 'John Doe',
+        'age' => '30',
+    ];
+
+    $data = $schema->validate($input);
+
+    // Result should only contain the 2 provided fields
+    expect($data)->toBe([
+        'name' => 'John Doe',
+        'age' => 30,
+    ]);
+
+    // Verify no extra keys
+    expect($data)->toHaveCount(2);
+    expect($data)->toHaveKey('name');
+    expect($data)->toHaveKey('age');
+    expect($data)->not->toHaveKey('email');
+    expect($data)->not->toHaveKey('city');
+    expect($data)->not->toHaveKey('country');
+});
+
+it('should include fields with default values even when not provided', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+        'email' => Validator::isString()->email(),
+        'age' => Validator::isInt()->default(25),
+        'active' => Validator::isBool()->default(true),
+        'city' => Validator::isString(), // No default
+    ]);
+
+    // Only provide required field
+    $input = [
+        'name' => 'John Doe',
+    ];
+
+    $data = $schema->validate($input);
+
+    // Should include provided field + fields with defaults
+    expect($data)->toBe([
+        'name' => 'John Doe',
+        'age' => 25,      // Default applied
+        'active' => true, // Default applied
+    ]);
+
+    // Verify correct keys
+    expect($data)->toHaveCount(3);
+    expect($data)->toHaveKey('name');
+    expect($data)->toHaveKey('age');
+    expect($data)->toHaveKey('active');
+    expect($data)->not->toHaveKey('email'); // Not provided, no default
+    expect($data)->not->toHaveKey('city');  // Not provided, no default
+});
+
+it('should still validate required fields even when not provided', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+        'email' => Validator::isString()->email()->required(),
+        'age' => Validator::isInt(),
+    ]);
+
+    // Missing required email field
+    $input = [
+        'name' => 'John Doe',
+    ];
+
+    expect(fn() => $schema->validate($input))
+        ->toThrow(Lemmon\ValidationException::class, 'Value is required');
+});

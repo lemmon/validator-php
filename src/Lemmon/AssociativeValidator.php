@@ -59,11 +59,22 @@ class AssociativeValidator extends FieldValidator
                 $validator->coerce();
             }
 
-            $fieldValue = $value[$fieldKey] ?? null;
+            // Get field value (null if not present)
+            $fieldValue = array_key_exists($fieldKey, $value) ? $value[$fieldKey] : null;
 
             [$valid, $validatedFieldValue, $fieldErrors] = $validator->tryValidate($fieldValue, $fieldKey, $value);
 
-            (!$valid) ? $errors[$fieldKey] = $fieldErrors : $data[$fieldKey] = $validatedFieldValue;
+            if (!$valid) {
+                $errors[$fieldKey] = $fieldErrors;
+            } else {
+                // Include fields that were provided in input OR have default values applied
+                $wasProvided = array_key_exists($fieldKey, $value);
+                $hasDefault = $validator->hasDefault ?? false;
+
+                if ($wasProvided || $hasDefault) {
+                    $data[$fieldKey] = $validatedFieldValue;
+                }
+            }
         }
 
         if (!empty($errors)) {

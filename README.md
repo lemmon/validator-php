@@ -39,7 +39,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 - **Intuitive custom validation** with `satisfies()` method and optional error messages
 - **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
 - **Form-safe coercion** - empty strings become `null` (not dangerous `0`/`false`) for real-world safety
-- **Schema validation** for nested data structures
+- **Accurate schema validation** - results only include provided fields and fields with defaults (no unexpected properties)
 - **Universal transformations** (`transform()`, `pipe()`) for post-validation data processing
 - **Null-safe operations** with `nullifyEmpty()` method for consistent empty value handling
 

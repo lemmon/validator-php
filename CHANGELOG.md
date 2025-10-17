@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **CRITICAL BUG**: Fixed schema validation field inclusion behavior in ObjectValidator and AssociativeValidator
+  - **Issue**: Validators were incorrectly including ALL schema fields in results, even when not provided in input
+  - **Fix**: Now only includes fields that were actually provided in input OR have default values applied
+  - **Impact**: Results now accurately reflect validated data without unexpected properties
+  - **Behavior**: Required field validation still works correctly (missing required fields still fail)
+  - Added comprehensive test coverage (6 new tests, 45 new assertions) to prevent regression
+  - **Documentation**: Added "Field Inclusion Behavior" section to Object Validation guide with clear examples
+
 ### Documentation
 - **Complete type-aware transformation system documentation** - Added comprehensive coverage for `transform()` and `pipe()` methods
   - Added "Data Transformations" section to Core Concepts guide with detailed type context switching explanation

@@ -121,6 +121,44 @@ $result = $schema->validate($input);
 // Result: ['name' => 'John', 'status' => 'active', 'priority' => 1]
 ```
 
+### Field Inclusion Behavior
+
+Schema validators only include fields in the result that were either:
+1. **Provided in the input data**, or
+2. **Have default values applied**
+
+Fields that are not provided and don't have defaults are **not included** in the result:
+
+```php
+$schema = Validator::isAssociative([
+    'name' => Validator::isString()->required(),
+    'email' => Validator::isString()->email(),           // Optional, no default
+    'status' => Validator::isString()->default('active'), // Has default
+    'age' => Validator::isInt(),                         // Optional, no default
+    'role' => Validator::isString()->default('user')     // Has default
+]);
+
+// Only provide name and email
+$input = [
+    'name' => 'John Doe',
+    'email' => 'john@example.com'
+];
+
+$result = $schema->validate($input);
+// Result: [
+//     'name' => 'John Doe',      // ✅ Provided in input
+//     'email' => 'john@example.com', // ✅ Provided in input
+//     'status' => 'active',      // ✅ Default value applied
+//     'role' => 'user'           // ✅ Default value applied
+// ]
+// Note: 'age' is NOT included (not provided, no default)
+```
+
+This behavior ensures that:
+- **Results accurately reflect the validated data** without unexpected properties
+- **Default values are consistently applied** when fields are missing
+- **Required field validation still works** (missing required fields cause validation to fail)
+
 ### Nested Schemas
 
 ```php

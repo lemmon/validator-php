@@ -57,7 +57,7 @@ $validator = Validator::isArray();
 $validator->validate(['key' => 'value']);
 ```
 
-For associative arrays, use `Validator::isAssociative()` instead.
+For associative arrays, use `Validator::isAssociative()` instead. See the [Object & Schema Validation](object-validation.md#associative-array-validation) guide for complete documentation on associative array validation.
 
 ## Item Validation
 

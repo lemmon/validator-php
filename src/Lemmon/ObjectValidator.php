@@ -59,14 +59,21 @@ class ObjectValidator extends FieldValidator
                 $validator->coerce();
             }
 
-            $fieldValue = $value->{$fieldKey} ?? null;
+            // Get field value (null if not present)
+            $fieldValue = property_exists($value, $fieldKey) ? $value->{$fieldKey} : null;
 
             [$valid, $validatedFieldValue, $fieldErrors] = $validator->tryValidate($fieldValue, $fieldKey, $value);
 
             if (!$valid) {
                 $errors[$fieldKey] = $fieldErrors;
             } else {
-                $data->{$fieldKey} = $validatedFieldValue; // Always set if valid, even if null
+                // Include fields that were provided in input OR have default values applied
+                $wasProvided = property_exists($value, $fieldKey);
+                $hasDefault = $validator->hasDefault ?? false;
+
+                if ($wasProvided || $hasDefault) {
+                    $data->{$fieldKey} = $validatedFieldValue;
+                }
             }
         }
 

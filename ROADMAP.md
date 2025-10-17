@@ -56,6 +56,12 @@ This roadmap outlines the strategic development plan for future releases, priori
   - Fixed: ObjectValidator now correctly includes all validated properties, even when null
   - Maintains consistency with AssociativeValidator behavior
   - Added comprehensive test coverage to prevent regression
+- [x] ✅ **Fix schema validation field inclusion behavior** - ObjectValidator and AssociativeValidator were including ALL schema fields in results
+  - **Issue**: Validators incorrectly added all schema properties to results, even when not provided in input
+  - **Fix**: Now only includes fields that were actually provided in input OR have default values applied
+  - **Impact**: Results accurately reflect validated data without unexpected properties
+  - **Behavior**: Required field validation still works correctly (missing required fields still fail)
+  - Added comprehensive test coverage (6 new tests, 45 new assertions) to prevent regression
 - [x] ✅ **Fix dangerous empty string coercion across all validators** - **BREAKING CHANGE**: `coerce()` now converts `''` → `null` for form safety
   - IntValidator: `''` → `null` (not 0) - prevents dangerous zero defaults in forms
   - FloatValidator: `''` → `null` (not 0.0) - prevents dangerous zero defaults in forms
@@ -298,10 +304,11 @@ $stringValidator = Validator::isString()
 - [ ] **Interactive documentation** - Runnable examples
 
 ### Testing & Quality
-- [x] ✅ Organized test suite (10 focused test files, 114 tests, 290 assertions)
+- [x] ✅ Organized test suite (10 focused test files, 120 tests, 335 assertions)
 - [x] ✅ 100% PHPStan compliance
 - [x] ✅ PHP-CS-Fixer standards
 - [x] ✅ Static logical combinators test coverage
+- [x] ✅ Comprehensive schema validation test coverage
 - [ ] **Mutation testing** - Enhanced test quality verification
 - [ ] **Property-based testing** - Randomized validation testing
 - [ ] **Performance benchmarking** - Continuous performance monitoring
