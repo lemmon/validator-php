@@ -60,6 +60,45 @@ $formatted = Validator::isString()
 - ✅ Fixed execution order for required() and nullifyEmpty() methods to respect fluent API contract
 - ✅ New `satisfies*` API for enhanced instance logical combinators with improved consistency
 - ✅ Refactored `oneOf()` to `OneOfTrait` for better type safety and execution order
+- ✅ **Type-Safe Pipeline Architecture** - Enhanced internal architecture with `PipelineType` enum for improved developer experience
+  ```php
+  // Before: Magic strings, typo-prone, no IDE support
+  $this->pipeline[] = ['type' => 'validaton', 'operation' => $fn]; // ❌ Runtime bug
+  if ($type === 'validation') { /* logic */ }
+
+  // After: Type-safe, IDE autocomplete, refactor-safe
+  $this->pipeline[] = ['type' => PipelineType::VALIDATION, 'operation' => $fn]; // ✅ Autocomplete
+  if ($type === PipelineType::VALIDATION) { /* logic */ } // ✅ Refactor-safe
+  ```
+  **Developer Experience Benefits**:
+  - ✅ **IDE Autocomplete**: Full IntelliSense support for `PipelineType::VALIDATION` and `PipelineType::TRANSFORMATION`
+  - ✅ **Typo Prevention**: Compile-time errors instead of runtime bugs from misspelled strings
+  - ✅ **Refactoring Safety**: IDE automatically updates all references when enum values change
+  - ✅ **Self-Documenting**: Enum cases include comprehensive documentation explaining their purpose
+  - ✅ **Future-Proof**: Easy to extend with new types (`CONDITIONAL`, `ASYNC`) while maintaining type safety
+  - ✅ **Zero Performance Cost**: Enums compile to identical string values with no runtime overhead
+- ✅ **Smart Null Handling** - Revolutionary null handling system that makes validation intuitive and order-independent
+  ```php
+  // Order independence: both work identically
+  Validator::isString()->email()->required()->validate(null); // ❌ "Value is required"
+  Validator::isString()->required()->email()->validate(null); // ❌ "Value is required"
+
+  // Validations skip null unless required
+  Validator::isString()->email()->validate(null);             // ✅ null (validation skipped)
+  Validator::isString()->email()->required()->validate(null); // ❌ "Value is required"
+
+  // Transformations always execute
+  Validator::isString()->transform(fn($v) => $v ?? 'default')->validate(null); // ✅ "default"
+
+  // Smart defaults applied after pipeline
+  Validator::anyOf([...])->default('fallback')->validate(null); // ✅ "fallback"
+  ```
+  **Architectural Benefits**:
+  - ✅ **Order Independence**: Write validation chains naturally without worrying about method order
+  - ✅ **Intuitive Behavior**: Validations skip `null` (unless required), transformations always execute
+  - ✅ **Global Required**: `required()` works as a flag, not a pipeline step
+  - ✅ **Smart Defaults**: Applied after all validation/transformation logic completes
+  - ✅ **Real-World Safety**: Prevents confusing execution order bugs in production
 - ✅ **Unified Pipeline Architecture** - Revolutionary single conceptual pipeline with hybrid execution model for optimal performance and developer experience
   ```php
   // From developer perspective: One pipeline, execution order guaranteed

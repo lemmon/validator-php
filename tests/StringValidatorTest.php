@@ -24,7 +24,7 @@ it('should handle required and optional email fields', function () {
     $data = $optionalValidator->validate(null);
     expect($data)->toBeNull();
 
-    // Required: null should fail
+    // Required: null should fail (order independent with smart null handling)
     $requiredValidator = Validator::isString()->email()->required();
     $requiredValidator->validate(null);
 })->throws(Lemmon\ValidationException::class, 'Value is required');

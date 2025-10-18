@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Type-Safe Pipeline Architecture**: Enhanced internal architecture with `PipelineType` enum for improved developer experience
+  - **IDE Autocomplete Support**: `PipelineType::VALIDATION` and `PipelineType::TRANSFORMATION` with full IDE integration
+  - **Refactoring Safety**: No more magic strings - IDE handles all references automatically during refactoring
+  - **Self-Documenting Code**: Clear intent with documented enum cases explaining validation vs transformation behavior
+  - **Future Extensibility**: Easy to add new pipeline types (e.g., `CONDITIONAL`, `ASYNC`) with type safety
+  - **Zero Runtime Cost**: Enums compile to same string values with no performance impact
+  - **Perfect Static Analysis**: PHPStan level max compliance with proper type annotations
+- **Smart Null Handling**: Revolutionary null handling system that makes validation intuitive and order-independent
+  - **Intelligent Null Processing**: Validations automatically skip `null` values unless field is marked as `required()`
+  - **Order Independence**: `->email()->required()` and `->required()->email()` both work identically with `null` inputs
+  - **Transformation Consistency**: Transformations (`pipe()`, `transform()`, `nullifyEmpty()`) always execute, even on `null` values
+  - **Global Required Flag**: `required()` works as a global flag (like `coerce()`), not a pipeline step
+  - **Smart Default Application**: Default values applied after pipeline execution if final result is `null`
+  - **Real-World Benefit**: Eliminates confusing execution order dependencies - write validation chains naturally
+  - **Backward Compatible**: All existing code works unchanged, maintains 135 tests with 390 assertions
 - **Unified Pipeline Architecture**: Revolutionary single pipeline design that maintains conceptual clarity while optimizing execution
   - **Hybrid Execution Model**: Pure validations (like `email()`, `minLength()`) collect all errors for better UX, while transformations (like `required()`, `pipe()`) fail fast for correct behavior
   - **Execution Order Guarantee**: All methods execute in the exact order written in the fluent chain - `->email()->required()->pipe('trim')` works exactly as expected

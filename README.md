@@ -25,6 +25,8 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 
 **Key Design Principles:**
 
+- **Type-Safe Architecture**: Modern PHP 8.1+ enums provide IDE autocomplete, refactoring safety, and eliminate magic strings throughout the codebase
+- **Smart Null Handling**: Validations skip `null` unless `required()`, transformations always execute, and method order is independent for intuitive behavior
 - **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
 - **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written - `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
 - **Comprehensive Error Collection**: All validation errors are collected, not just the first failure
@@ -33,6 +35,8 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 
 ## Features
 
+- **Type-safe architecture** - PHP 8.1+ enums with IDE autocomplete, refactoring safety, and zero magic strings
+- **Smart null handling** - validations skip `null` unless `required()`, transformations always execute, order-independent behavior
 - **Type-safe validation** for strings, integers, floats, arrays, and objects
 - **Fluent, chainable API** with guaranteed execution order - methods execute exactly as written in the chain
 - **Comprehensive error collection** with detailed, structured feedback

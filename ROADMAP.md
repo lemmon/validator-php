@@ -10,7 +10,23 @@ This roadmap outlines the strategic development plan for future releases, priori
 
 ## ✅ Recently Completed
 
-### Unified Pipeline Architecture (Current)
+### Type-Safe Pipeline Architecture (Current)
+- [x] ✅ **PipelineType Enum Implementation** - Modern PHP 8.1+ enum for type-safe pipeline operations
+- [x] ✅ **IDE Integration** - Full autocomplete support for `PipelineType::VALIDATION` and `PipelineType::TRANSFORMATION`
+- [x] ✅ **Refactoring Safety** - No more magic strings, IDE handles all references automatically
+- [x] ✅ **Self-Documenting Code** - Enum cases include comprehensive documentation explaining validation vs transformation behavior
+- [x] ✅ **Perfect Static Analysis** - PHPStan level max compliance with proper type annotations
+- [x] ✅ **Zero Performance Cost** - Enums compile to identical string values with no runtime overhead
+
+### Smart Null Handling (v0.7.0)
+- [x] ✅ **Revolutionary Null Handling System** - Intuitive, order-independent validation behavior
+- [x] ✅ **Intelligent Null Processing** - Validations skip `null` unless `required()`, transformations always execute
+- [x] ✅ **Order Independence** - `->email()->required()` and `->required()->email()` work identically
+- [x] ✅ **Global Required Flag** - `required()` works as a flag (like `coerce()`), not a pipeline step
+- [x] ✅ **Smart Default Application** - Defaults applied after pipeline execution if final result is `null`
+- [x] ✅ **Real-World Safety** - Eliminates confusing execution order dependencies in production
+
+### Unified Pipeline Architecture (v0.6.0)
 - [x] ✅ **Revolutionary Single Pipeline Design** - Conceptual simplicity with hybrid execution model for optimal performance
 - [x] ✅ **Execution Order Guarantee** - All methods execute in the exact order written in fluent chains
 - [x] ✅ **Hybrid Execution Model** - Error collection for pure validations (better UX), fail-fast for transformations (correct behavior)

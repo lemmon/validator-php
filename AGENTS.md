@@ -18,12 +18,14 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 
 ### Shared Components
 - **`NumericConstraintsTrait`** - Common numeric validations (`min()`, `max()`, `multipleOf()`, `positive()`, `negative()`)
+- **`PipelineType`** - Type-safe enum for pipeline operations (`VALIDATION`, `TRANSFORMATION`) with IDE support and refactoring safety
 
 ## 🚀 Advanced Features
 
 ### Validation Capabilities
 - **Static Logical Combinators** - `Validator::allOf()`, `Validator::anyOf()`, `Validator::not()` for complex rule composition and mixed-type validation
 - **New `satisfies*` API** - Enhanced instance logical combinators (`satisfiesAny()`, `satisfiesAll()`, `satisfiesNone()`) with support for mixed validators/callables
+- **Smart Null Handling** - Revolutionary null handling system where validations skip `null` unless `required()`, transformations always execute, and order is independent
 - **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for primitives, empty structures for objects/arrays
 - **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
 - **Type-Aware Transformations** - Revolutionary `transform()` and `pipe()` system with intelligent type context switching

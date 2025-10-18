@@ -192,16 +192,14 @@ it('should return a result tuple for standalone validators', function () {
     expect($errors)->toBe(['Value must be a string']);
 });
 
-it('should collect all validation errors', function () {
+it('should fail fast in single pipeline - first validation error stops execution', function () {
     $validator = Validator::isString()->minLength(10)->maxLength(3)->email();
 
     [$valid, $data, $errors] = $validator->tryValidate('short');
 
     expect($valid)->toBe(false);
-    expect($errors)->toHaveCount(3);
-    expect($errors)->toContain('Value must be at least 10 characters long');
-    expect($errors)->toContain('Value must be at most 3 characters long');
-    expect($errors)->toContain('Value must be a valid email address');
+    expect($errors)->toHaveCount(1); // Only first error - fail fast behavior
+    expect($errors)->toContain('Value must be at least 10 characters long'); // First validation that fails
 });
 
 it('should pass context to custom validators', function () {

@@ -7,19 +7,17 @@ abstract class FieldValidator
     protected mixed $default = null;
     protected bool $hasDefault = false;
     protected bool $coerce = false;
+    protected bool $required = false;
+    protected ?string $requiredMessage = null;
+
     /**
-     * @var array<callable>
+     * @var array<array{type: PipelineType, operation: callable}>
      */
     protected array $pipeline = [];
-    /**
-     * @var array<array{rule: callable, message: string}>
-     */
-    protected array $validations = [];
     /**
      * Current type context for transformations (null = original validator type)
      */
     protected ?string $currentType = null;
-
 
     /**
      * Marks the field as required.
@@ -29,12 +27,8 @@ abstract class FieldValidator
      */
     public function required(?string $message = null): self
     {
-        $this->pipeline[] = function ($value) use ($message) {
-            if (is_null($value)) {
-                throw new ValidationException([$message ?? 'Value is required']);
-            }
-            return $value;
-        };
+        $this->required = true;
+        $this->requiredMessage = $message ?? 'Value is required';
         return $this;
     }
 
@@ -69,19 +63,21 @@ abstract class FieldValidator
      */
     public function nullifyEmpty(): self
     {
-        $this->pipeline[] = function ($value) {
-            return (($value === '') || (is_array($value) && empty($value))) ? null : $value;
-        };
+        $this->pipeline[] = [
+            'type' => PipelineType::TRANSFORMATION,
+            'operation' => function ($value) {
+                return (($value === '') || (is_array($value) && empty($value))) ? null : $value;
+            }
+        ];
         return $this;
     }
-
 
     /**
      * Adds a custom validation rule with an optional error message.
      *
      * @param callable|FieldValidator $validation The validation function or validator instance.
      * @param ?string $message Optional custom error message. If not provided, a generic message is used.
-     * @return static
+     * @return $this
      */
     public function satisfies(callable|FieldValidator $validation, ?string $message = null): self
     {
@@ -95,9 +91,14 @@ abstract class FieldValidator
             $rule = $validation;
         }
 
-        $this->validations[] = [
-            'rule' => $rule,
-            'message' => $message ?? 'Custom validation failed'
+        $this->pipeline[] = [
+            'type' => PipelineType::VALIDATION,
+            'operation' => function ($value, $key = null, $input = null) use ($rule, $message) {
+                if (!$rule($value, $key, $input)) {
+                    throw new ValidationException([$message ?? 'Custom validation failed']);
+                }
+                return $value;
+            }
         ];
         return $this;
     }
@@ -141,6 +142,7 @@ abstract class FieldValidator
 
     /**
      * @deprecated Use satisfiesAll() instead. Will be removed in v1.0.0.
+     * @param array<FieldValidator|callable> $validators
      */
     public function allOf(array $validators, ?string $message = null): self
     {
@@ -178,6 +180,7 @@ abstract class FieldValidator
 
     /**
      * @deprecated Use satisfiesAny() instead. Will be removed in v1.0.0.
+     * @param array<FieldValidator|callable> $validators
      */
     public function anyOf(array $validators, ?string $message = null): self
     {
@@ -230,14 +233,17 @@ abstract class FieldValidator
      */
     public function transform(callable $transformer): self
     {
-        $this->pipeline[] = function ($value) use ($transformer) {
-            $result = $transformer($value);
+        $this->pipeline[] = [
+            'type' => PipelineType::TRANSFORMATION,
+            'operation' => function ($value) use ($transformer) {
+                $result = $transformer($value);
 
-            // Update current type context based on result
-            $this->currentType = $this->detectType($result);
+                // Update current type context based on result
+                $this->currentType = $this->detectType($result);
 
-            return $result; // No coercion - transform can change type
-        };
+                return $result; // No coercion - transform can change type
+            }
+        ];
         return $this;
     }
 
@@ -251,12 +257,15 @@ abstract class FieldValidator
     public function pipe(callable ...$transformers): self
     {
         foreach ($transformers as $transformer) {
-            $this->pipeline[] = function ($value) use ($transformer) {
-                $result = $transformer($value);
+            $this->pipeline[] = [
+                'type' => PipelineType::TRANSFORMATION,
+                'operation' => function ($value) use ($transformer) {
+                    $result = $transformer($value);
 
-                // Apply type-specific coercion based on current type context
-                return $this->coerceForCurrentType($result);
-            };
+                    // Apply type-specific coercion based on current type context
+                    return $this->coerceForCurrentType($result);
+                }
+            ];
         }
         return $this;
     }
@@ -292,40 +301,48 @@ abstract class FieldValidator
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
-        // Handle initial null values - only return early if no pipeline and no default
-        if (is_null($value) && empty($this->pipeline)) {
+        // Handle initial null values - only return early if no pipeline, no default, and not required
+        if (is_null($value) && empty($this->pipeline) && !$this->required) {
             return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
         $value = $this->coerce ? $this->coerceValue($value) : $value;
 
-        // Handle null values after coercion - only return early if no pipeline and no default
-        if (is_null($value) && empty($this->pipeline)) {
+        // Handle null values after coercion - only return early if no pipeline, no default, and not required
+        if (is_null($value) && empty($this->pipeline) && !$this->required) {
             return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
         try {
-            // Skip type validation for null values if we have pipeline (let pipeline handle it)
-            $validatedValue = is_null($value) && !empty($this->pipeline) ? $value : $this->validateType($value, $key);
+            // Check required first for null values
+            if ($this->required && is_null($value)) {
+                throw new ValidationException([$this->requiredMessage]);
+            }
 
-            // Collect all validation errors (skip for null values that will be handled by pipeline)
-            $validationErrors = [];
-            if (!is_null($validatedValue) || empty($this->pipeline)) {
-                foreach ($this->validations as $validation) {
-                    if (!$validation['rule']($validatedValue, $key, $input)) {
-                        $validationErrors[] = $validation['message'];
-                    }
+            // Skip type validation for null values if we have pipeline (let pipeline handle it)
+            $processedValue = is_null($value) && !empty($this->pipeline) ? $value : $this->validateType($value, $key);
+
+            // Execute the unified pipeline with smart null handling
+            foreach ($this->pipeline as $step) {
+                $operation = $step['operation'];
+                $type = $step['type'];
+
+                // Smart null handling: validations skip null (already checked required), transformations always execute
+                if (is_null($processedValue) && $type === PipelineType::VALIDATION) {
+                    continue; // Skip validation for null values (required already checked)
+                }
+
+                $processedValue = $operation($processedValue, $key, $input);
+
+                // Check required again if value became null during transformations
+                if ($this->required && is_null($processedValue)) {
+                    throw new ValidationException([$this->requiredMessage]);
                 }
             }
 
-            if (!empty($validationErrors)) {
-                return [false, $validatedValue, $validationErrors];
-            }
-
-            // Execute the pipeline (transformations and validation-transformations)
-            $processedValue = $validatedValue;
-            foreach ($this->pipeline as $operation) {
-                $processedValue = $operation($processedValue, $key, $input);
+            // Apply default if final result is null
+            if (is_null($processedValue) && $this->hasDefault) {
+                $processedValue = $this->default;
             }
 
             return [true, $processedValue, null];

@@ -25,12 +25,9 @@ trait OneOfTrait
      */
     public function oneOf(array $values, ?string $message = null): self
     {
-        $this->pipeline[] = function ($value) use ($values, $message) {
-            if (!in_array($value, $values, true)) {
-                throw new ValidationException([$message ?? 'Value must be one of: ' . json_encode($values)]);
-            }
-            return $value;
-        };
-        return $this;
+        return $this->satisfies(
+            fn($value) => in_array($value, $values, true),
+            $message ?? 'Value must be one of: ' . json_encode($values)
+        );
     }
 }
