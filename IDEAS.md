@@ -2,194 +2,9 @@
 
 This document captures innovative ideas and suggestions for potential future enhancements to the Lemmon Validator library. These concepts represent opportunities for expanding the library's capabilities beyond the current roadmap.
 
-## ✅ Recently Implemented
+## Core Enhancement Ideas
 
-### Type-Aware Transformation System (v0.5.0)
-**Status**: ✅ **IMPLEMENTED**
-**Concept**: Revolutionary transformation system with intelligent type context switching.
-```php
-// Enhanced coercion - empty strings to null for form safety
-$age = Validator::isInt()->coerce()->validate(''); // Returns: null (not dangerous 0)
-$price = Validator::isFloat()->coerce()->validate(''); // Returns: null (not dangerous 0.0)
-
-// Array filtering with auto-reindexing
-$tags = Validator::isArray()->filterEmpty()->validate(['php', '', 'javascript', null]);
-// Returns: ['php', 'javascript'] (properly reindexed)
-
-// Universal transformations - available on ALL validators
-$name = Validator::isString()
-    ->pipe('trim', 'strtoupper')  // Multiple string operations, maintains type
-    ->validate('  john  '); // Returns: "JOHN"
-
-// Multiple transformations with pipe
-$slug = Validator::isString()
-    ->pipe('trim', 'strtolower', fn($v) => str_replace(' ', '-', $v))
-    ->validate('Hello World'); // Returns: "hello-world"
-
-// Type-aware transformation chains
-$result = Validator::isArray()
-    ->pipe('array_unique', 'array_reverse')        // Array operations (auto-reindexed)
-    ->transform(fn($v) => implode(',', $v))        // Array → String (type switch)
-    ->pipe('trim', 'strtoupper')                   // String operations
-    ->transform('strlen')                          // String → Int (type switch)
-    ->validate(['a', 'b', 'a']); // Returns: 3
-
-// Integration with external libraries
-$formatted = Validator::isString()
-    ->pipe('trim', fn($v) => Str::title($v), fn($v) => Str::limit($v, 50))
-    ->validate('hello world'); // Laravel Str integration
-```
-**Benefits**:
-- ✅ Form-safe empty string handling (prevents dangerous zero defaults)
-- ✅ Maintains validator type contracts (indexed arrays stay indexed)
-- ✅ Preserves valid falsy values (0, false, [])
-- ✅ Type-aware transformation methods with intelligent context switching
-- ✅ `pipe()` maintains type, `transform()` can change type
-- ✅ Smart array coercion (indexed arrays auto-reindex, associative keys preserved)
-- ✅ Clean variadic syntax with `pipe(...$transformers)`
-- ✅ Perfect integration with external libraries (Laravel, Symfony)
-- ✅ Comprehensive test coverage (135 tests, 390 assertions)
-- ✅ Complete documentation overhaul with comprehensive coverage across all guides
-- ✅ Fixed all dead links in documentation for seamless navigation
-- ✅ Added type-aware transformation system documentation with detailed examples
-- ✅ Documented `filterEmpty()` method with practical use cases
-- ✅ Updated API reference to match actual implementation
-- ✅ Fixed critical schema validation bug - only include provided fields or fields with defaults in results
-- ✅ Enhanced form-safe coercion - empty strings coerce to empty objects/arrays for better form handling
-- ✅ Fixed floating-point precision bug in multipleOf validation for accurate decimal calculations
-- ✅ Fixed execution order for required() and nullifyEmpty() methods to respect fluent API contract
-- ✅ New `satisfies*` API for enhanced instance logical combinators with improved consistency
-- ✅ Refactored `oneOf()` to `OneOfTrait` for better type safety and execution order
-- ✅ **Type-Safe Pipeline Architecture** - Enhanced internal architecture with `PipelineType` enum for improved developer experience
-  ```php
-  // Before: Magic strings, typo-prone, no IDE support
-  $this->pipeline[] = ['type' => 'validaton', 'operation' => $fn]; // ❌ Runtime bug
-  if ($type === 'validation') { /* logic */ }
-
-  // After: Type-safe, IDE autocomplete, refactor-safe
-  $this->pipeline[] = ['type' => PipelineType::VALIDATION, 'operation' => $fn]; // ✅ Autocomplete
-  if ($type === PipelineType::VALIDATION) { /* logic */ } // ✅ Refactor-safe
-  ```
-  **Developer Experience Benefits**:
-  - ✅ **IDE Autocomplete**: Full IntelliSense support for `PipelineType::VALIDATION` and `PipelineType::TRANSFORMATION`
-  - ✅ **Typo Prevention**: Compile-time errors instead of runtime bugs from misspelled strings
-  - ✅ **Refactoring Safety**: IDE automatically updates all references when enum values change
-  - ✅ **Self-Documenting**: Enum cases include comprehensive documentation explaining their purpose
-  - ✅ **Future-Proof**: Easy to extend with new types (`CONDITIONAL`, `ASYNC`) while maintaining type safety
-  - ✅ **Zero Performance Cost**: Enums compile to identical string values with no runtime overhead
-- ✅ **Smart Null Handling** - Revolutionary null handling system that makes validation intuitive and order-independent
-  ```php
-  // Order independence: both work identically
-  Validator::isString()->email()->required()->validate(null); // ❌ "Value is required"
-  Validator::isString()->required()->email()->validate(null); // ❌ "Value is required"
-
-  // Validations skip null unless required
-  Validator::isString()->email()->validate(null);             // ✅ null (validation skipped)
-  Validator::isString()->email()->required()->validate(null); // ❌ "Value is required"
-
-  // Transformations always execute
-  Validator::isString()->transform(fn($v) => $v ?? 'default')->validate(null); // ✅ "default"
-
-  // Smart defaults applied after pipeline
-  Validator::anyOf([...])->default('fallback')->validate(null); // ✅ "fallback"
-  ```
-  **Architectural Benefits**:
-  - ✅ **Order Independence**: Write validation chains naturally without worrying about method order
-  - ✅ **Intuitive Behavior**: Validations skip `null` (unless required), transformations always execute
-  - ✅ **Global Required**: `required()` works as a flag, not a pipeline step
-  - ✅ **Smart Defaults**: Applied after all validation/transformation logic completes
-  - ✅ **Real-World Safety**: Prevents confusing execution order bugs in production
-- ✅ **Unified Pipeline Architecture** - Revolutionary single conceptual pipeline with hybrid execution model for optimal performance and developer experience
-  ```php
-  // From developer perspective: One pipeline, execution order guaranteed
-  $validator = Validator::isString()
-      ->email()           // Pure validation (error collected)
-      ->minLength(5)      // Pure validation (error collected)
-      ->required()        // Validation-transformation (fail fast)
-      ->pipe('trim')      // Transformation (fail fast)
-      ->validate($input); // All errors collected for validations, transformations execute in order
-
-  // Internal architecture: Hybrid execution for optimal UX
-  // 1. Type validation
-  // 2. Pure validations (collect ALL errors) - better user experience
-  // 3. Pipeline operations (fail fast) - correct transformation behavior
-  ```
-  **Architectural Benefits**:
-  - ✅ **Conceptual Clarity**: One pipeline from developer perspective
-  - ✅ **Optimal UX**: Error collection where beneficial (validations), fail-fast where correct (transformations)
-  - ✅ **Execution Order**: Methods execute exactly as written in fluent chain
-  - ✅ **Performance**: No unnecessary error collection for transformations
-  - ✅ **Backward Compatibility**: All existing code works unchanged
-
-### Intuitive Custom Validation (v0.6.0)
-**Status**: ✅ **IMPLEMENTED**
-**Concept**: Natural language custom validation with optional error messages.
-```php
-// Natural, readable validation
-$positiveNumber = Validator::isInt()->satisfies(fn($v) => $v > 0);
-
-// Multiple conditions with fluent chaining
-$strongPassword = Validator::isString()
-    ->minLength(8)
-    ->satisfies(fn($v) => preg_match('/[A-Z]/', $v), 'Must contain uppercase')
-    ->satisfies(fn($v) => preg_match('/[0-9]/', $v), 'Must contain number')
-    ->satisfies(fn($v) => preg_match('/[!@#$%^&*]/', $v), 'Must contain special character');
-
-// Context-aware validation
-$passwordConfirm = Validator::isString()->satisfies(
-    function ($value, $key, $input) {
-        return isset($input['password']) && $value === $input['password'];
-    },
-    'Password confirmation must match'
-);
-
-// Business logic validation
-$workingAge = Validator::isInt()
-    ->satisfies(fn($age) => $age >= 16, 'Must be at least 16 to work')
-    ->satisfies(fn($age) => $age <= 65, 'Must be under retirement age');
-```
-**Benefits**:
-- ✅ Natural language: "value must satisfy this condition"
-- ✅ Optional error messages with sensible defaults
-- ✅ Backward compatibility with deprecated `addValidation()`
-- ✅ Comprehensive documentation updates (65+ references)
-- ✅ Enhanced developer experience and API discoverability
-- ✅ Complete API documentation with accurate method signatures
-- ✅ Fixed documentation inconsistencies and removed unimplemented features
-
-### Static Logical Combinators (v0.4.0)
-**Status**: ✅ **IMPLEMENTED**
-**Concept**: Static factory methods for advanced validation logic.
-```php
-// Mixed-type validation
-$flexibleId = Validator::anyOf([
-    Validator::isInt()->positive(),
-    Validator::isString()->uuid(),
-    Validator::isString()->pattern('/^[A-Z]{3}-\d{4}$/')
-]);
-
-// Multiple constraints
-$strictString = Validator::allOf([
-    Validator::isString()->minLength(5),
-    Validator::isString()->maxLength(20),
-    Validator::isString()->pattern('/^[A-Za-z]+$/')
-]);
-
-// Exclusion logic
-$notBanned = Validator::not(
-    Validator::isString()->oneOf(['banned', 'suspended']),
-    'User cannot be banned or suspended'
-);
-```
-**Benefits**:
-- ✅ Clean syntax for mixed-type validation
-- ✅ Type-agnostic logical operations
-- ✅ Enhanced API consistency
-- ✅ Simplified array validation with mixed item types
-
-## 💡 Core Enhancement Ideas
-
-### 1. Advanced Type Conversions
+### Advanced Type Conversions
 **Concept**: Built-in transformations for common type conversions.
 ```php
 Validator::isString()
@@ -207,7 +22,7 @@ Validator::isString()
 - Type-safe transformations with proper error handling
 - Reduced boilerplate for frequent operations
 
-### 2. Schema Manipulation Utilities
+### Schema Manipulation Utilities
 **Concept**: Advanced schema composition and manipulation methods.
 ```php
 $userSchema = Validator::isAssociative([...]);
@@ -222,7 +37,7 @@ $extendedUser = $userSchema->merge($additionalFields);
 - API versioning support
 - Reduced boilerplate for schema variations
 
-### 3. Enhanced Error Context
+### Enhanced Error Context
 **Concept**: Full path error reporting for nested structures.
 ```php
 // Instead of: ['street' => ['Value is required']]
@@ -233,7 +48,7 @@ $extendedUser = $userSchema->merge($additionalFields);
 - Better user experience in form validation
 - Easier error handling in frontend applications
 
-### 4. Programmatic Error Codes
+### Programmatic Error Codes
 **Concept**: Structured error codes for programmatic error handling.
 ```php
 try {
@@ -253,9 +68,9 @@ try {
 - Internationalization support
 - Programmatic error handling capabilities
 
-## 🔧 Developer Experience Ideas
+## Developer Experience Ideas
 
-### 5. Schema Serialization
+### Schema Serialization
 **Concept**: Export/import validation schemas for cross-platform use.
 ```php
 $schema = Validator::isAssociative([...]);
@@ -267,7 +82,7 @@ $recreated = Validator::fromJson($json); // Recreate from config
 - Configuration-driven validation
 - Schema documentation generation
 
-### 6. Performance Profiling
+### Performance Profiling
 **Concept**: Optional performance monitoring for complex validation chains.
 ```php
 $profiler = new ValidationProfiler();
@@ -279,7 +94,7 @@ $report = $profiler->getReport(); // Identify bottlenecks
 - Bottleneck identification in complex schemas
 - Production performance monitoring
 
-### 7. Validation Middleware
+### Validation Middleware
 **Concept**: Framework-agnostic validation middleware pattern.
 ```php
 $middleware = ValidationMiddleware::create($schema);
@@ -290,9 +105,9 @@ $app->use($middleware); // Auto-validate requests
 - Consistent validation across application layers
 - Reduced boilerplate in controllers
 
-## 🌐 Integration Ideas
+## Integration Ideas
 
-### 8. OpenAPI Schema Generation
+### OpenAPI Schema Generation
 **Concept**: Generate OpenAPI specifications from validation schemas.
 ```php
 $schema = Validator::isAssociative([...]);
@@ -303,7 +118,7 @@ $openApi = $schema->toOpenApiSchema(); // Generate API documentation
 - Schema-driven development
 - Frontend SDK generation
 
-### 9. Database Schema Validation
+### Database Schema Validation
 **Concept**: Validate data against database schema constraints.
 ```php
 $validator = Validator::fromDatabaseTable('users');
@@ -314,7 +129,7 @@ $user = $validator->validate($userData); // Respects DB constraints
 - Consistency between application and database layers
 - Reduced schema maintenance overhead
 
-### 10. Async Validation Support
+### Async Validation Support
 **Concept**: Support for asynchronous validation operations using PHP async libraries.
 ```php
 // Using ReactPHP or Amp for async operations
@@ -342,9 +157,9 @@ $result = yield $validator->validateAsync($email);
 - Compatible with ReactPHP/Amp async ecosystems
 - Enhanced validation capabilities for I/O operations
 
-## 🚀 Advanced Features
+## Advanced Features
 
-### 11. Conditional Schema Selection
+### Conditional Schema Selection
 **Concept**: Dynamic schema selection based on input data.
 ```php
 $validator = Validator::conditional(
@@ -361,7 +176,7 @@ $validator = Validator::conditional(
 - Reduced schema complexity
 - Dynamic validation logic
 
-### 12. Validation Caching
+### Validation Caching
 **Concept**: Cache validation results for expensive operations.
 ```php
 $validator = Validator::isString()
@@ -373,9 +188,9 @@ $validator = Validator::isString()
 - Reduced external service calls
 - Scalability improvements
 
-## 📊 Analytics Ideas
+## Analytics Ideas
 
-### 13. Validation Analytics
+### Validation Analytics
 **Concept**: Collect validation metrics for insights.
 ```php
 $analytics = new ValidationAnalytics();
@@ -387,7 +202,7 @@ $validator->withAnalytics($analytics);
 - User behavior insights
 - Quality metrics tracking
 
-### 14. A/B Testing for Validation Rules
+### A/B Testing for Validation Rules
 **Concept**: Test different validation strategies.
 ```php
 $validator = Validator::isString()
@@ -401,31 +216,31 @@ $validator = Validator::isString()
 - User experience testing
 - Data-driven decision making
 
-## 🎯 Implementation Priority
+## Implementation Priority
 
 These ideas are organized by potential impact and implementation complexity:
 
 **High Impact, Low Complexity**:
-- Data Transformation Pipeline
 - Schema Manipulation Utilities
 - Enhanced Error Context
+- Programmatic Error Codes
 
 **High Impact, Medium Complexity**:
-- Programmatic Error Codes
 - Schema Serialization
 - Performance Profiling
+- OpenAPI Schema Generation
 
 **High Impact, High Complexity**:
 - Async Validation Support
-- OpenAPI Schema Generation
 - Database Schema Validation
+- Conditional Schema Selection
 
 **Research & Exploration**:
 - Validation Analytics
 - A/B Testing for Validation Rules
-- Conditional Schema Selection
+- Validation Caching
 
-## 📝 Notes
+## Notes
 
 - Ideas are not committed features and may evolve based on community feedback
 - Implementation priority depends on user demand and project resources

@@ -379,9 +379,9 @@ $flexibleId = Validator::anyOf([
     Validator::isString()->pattern('/^[A-Z]{3}-\d{4}$/')
 ]);
 
-$result1 = $flexibleId->validate(123); // ✅ Valid (positive int)
-$result2 = $flexibleId->validate('550e8400-e29b-41d4-a716-446655440000'); // ✅ Valid (UUID)
-$result3 = $flexibleId->validate('ABC-1234'); // ✅ Valid (custom pattern)
+$result1 = $flexibleId->validate(123); // Valid (positive int)
+$result2 = $flexibleId->validate('550e8400-e29b-41d4-a716-446655440000'); // Valid (UUID)
+$result3 = $flexibleId->validate('ABC-1234'); // Valid (custom pattern)
 
 // Array of mixed types
 $mixedArray = Validator::isArray()->items(
@@ -417,7 +417,7 @@ $strictString = Validator::allOf([
     )
 ]);
 
-$result = $strictString->validate('HelloWorld'); // ✅ Valid (passes all conditions)
+$result = $strictString->validate('HelloWorld'); // Valid (passes all conditions)
 
 // Schema validation with combined constraints
 $userSchema = Validator::isAssociative([
@@ -448,8 +448,8 @@ $notEmail = Validator::not(
     'Value must not be an email address'
 );
 
-$result1 = $notEmail->validate('hello world'); // ✅ Valid (not an email)
-$result2 = $notEmail->validate(123); // ✅ Valid (not an email)
+$result1 = $notEmail->validate('hello world'); // Valid (not an email)
+$result2 = $notEmail->validate(123); // Valid (not an email)
 
 // User status that cannot be banned or suspended
 $validStatus = Validator::not(
@@ -457,8 +457,8 @@ $validStatus = Validator::not(
     'User cannot have banned or suspended status'
 );
 
-$result3 = $validStatus->validate('active'); // ✅ Valid
-$result4 = $validStatus->validate('pending'); // ✅ Valid
+$result3 = $validStatus->validate('active'); // Valid
+$result4 = $validStatus->validate('pending'); // Valid
 ```
 
 **Parameters:**
@@ -480,7 +480,7 @@ Sets validation rules for each item in the array.
 ```php
 // Array of strings
 $stringArray = Validator::isArray()->items(Validator::isString());
-$result = $stringArray->validate(['hello', 'world']); // ✅ Valid
+$result = $stringArray->validate(['hello', 'world']); // Valid
 
 // Array of validated emails
 $emailArray = Validator::isArray()->items(
@@ -641,18 +641,18 @@ Restricts the value to one of the specified allowed values. This method is imple
 // String with allowed values
 $status = Validator::isString()
     ->oneOf(['active', 'inactive', 'pending'], 'Invalid status')
-    ->validate('active'); // ✅ Valid
+    ->validate('active'); // Valid
 
 // Integer with allowed values
 $priority = Validator::isInt()
     ->oneOf([1, 2, 3, 4, 5], 'Priority must be 1-5')
-    ->validate(3); // ✅ Valid
+    ->validate(3); // Valid
 
 // Execution order matters
 $validator = Validator::isString()
     ->pipe('trim', 'strtolower')  // Transform first
     ->oneOf(['yes', 'no'])        // Then validate allowed values
-    ->validate('  YES  '); // ✅ Valid (becomes 'yes' after transformation)
+    ->validate('  YES  '); // Valid (becomes 'yes' after transformation)
 ```
 
 **Parameters:**
@@ -680,9 +680,9 @@ $flexibleValidator = Validator::isString()
         fn($v) => filter_var($v, FILTER_VALIDATE_IP) !== false
     ], 'Must be email, URL, or IP address');
 
-$result1 = $flexibleValidator->validate('user@example.com'); // ✅ Valid (email)
-$result2 = $flexibleValidator->validate('https://example.com'); // ✅ Valid (URL)
-$result3 = $flexibleValidator->validate('192.168.1.1'); // ✅ Valid (IP)
+$result1 = $flexibleValidator->validate('user@example.com'); // Valid (email)
+$result2 = $flexibleValidator->validate('https://example.com'); // Valid (URL)
+$result3 = $flexibleValidator->validate('192.168.1.1'); // Valid (IP)
 ```
 
 ---

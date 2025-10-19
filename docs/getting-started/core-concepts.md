@@ -245,7 +245,7 @@ $validator1 = Validator::isString()
     ->required()          // 1. Check if empty string is null (passes)
     ->nullifyEmpty();     // 2. Convert empty string to null
 
-$result1 = $validator1->validate(''); // ✅ Returns: null
+$result1 = $validator1->validate(''); // Returns: null
 
 // Case 2: nullifyEmpty() BEFORE required()
 $validator2 = Validator::isString()
@@ -267,8 +267,8 @@ $nameValidator = Validator::isString()
     ->required('Name is required');   // Reject null values
 
 // Test cases:
-$nameValidator->validate('John');     // ✅ Returns: "John"
-$nameValidator->validate('  John  '); // ✅ Returns: "John" (trimmed)
+$nameValidator->validate('John');     // Returns: "John"
+$nameValidator->validate('  John  '); // Returns: "John" (trimmed)
 $nameValidator->validate('');         // ❌ "Name is required"
 $nameValidator->validate('    ');     // ❌ "Name is required" (trimmed to empty)
 ```
@@ -374,7 +374,7 @@ $isActive = (bool) $_POST['active']; // Empty checkbox becomes false!
 The Lemmon Validator treats empty strings as **"no value provided"** (`null`) rather than converting to potentially dangerous defaults:
 
 ```php
-// ✅ SAFE: Lemmon Validator behavior
+// SAFE: Lemmon Validator behavior
 $validator = Validator::isInt()->coerce();
 $bankBalance = $validator->validate(''); // Returns: null (not dangerous 0)
 
@@ -464,7 +464,7 @@ $email2 = $emailValidator->validate('user2@example.com');
 
 Now that you understand the core concepts:
 
-- 🔤 [String Validation Guide](../guides/string-validation.md) - Master string validation
-- 🔢 [Numeric Validation Guide](../guides/numeric-validation.md) - Work with numbers
-- 🏗️ [Object & Schema Validation](../guides/object-validation.md) - Handle complex structures
-- ⚙️ [Custom Validation Guide](../guides/custom-validation.md) - Create custom business rules
+- [String Validation Guide](../guides/string-validation.md) -- Master string validation
+- [Numeric Validation Guide](../guides/numeric-validation.md) -- Work with numbers
+- [Object & Schema Validation](../guides/object-validation.md) -- Handle complex structures
+- [Custom Validation Guide](../guides/custom-validation.md) -- Create custom business rules

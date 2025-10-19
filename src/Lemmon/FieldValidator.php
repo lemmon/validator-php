@@ -434,7 +434,9 @@ abstract class FieldValidator
      */
     protected function coerceToIndexedArray(mixed $value): mixed
     {
-        if (!is_array($value)) return $value;
+        if (!is_array($value)) {
+            return $value;
+        }
         return array_is_list($value) ? $value : array_values($value);
     }
 
@@ -446,7 +448,9 @@ abstract class FieldValidator
      */
     protected function coerceToAssociativeArray(mixed $value): mixed
     {
-        if (!is_array($value)) return $value;
+        if (!is_array($value)) {
+            return $value;
+        }
         return $value; // Preserve keys - no reindexing!
     }
 }

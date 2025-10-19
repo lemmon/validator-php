@@ -85,7 +85,7 @@ $date = $dateValidator->validate('2023-01-01');
 ```php
 $minLengthValidator = Validator::isString()->minLength(3);
 
-$result = $minLengthValidator->validate('Hello'); // ✅ Valid (5 chars)
+$result = $minLengthValidator->validate('Hello'); // Valid (5 chars)
 // $minLengthValidator->validate('Hi'); // ❌ ValidationException (2 chars)
 
 // Custom message
@@ -97,7 +97,7 @@ $customMin = Validator::isString()->minLength(8, 'Password must be at least 8 ch
 ```php
 $maxLengthValidator = Validator::isString()->maxLength(10);
 
-$result = $maxLengthValidator->validate('Short'); // ✅ Valid (5 chars)
+$result = $maxLengthValidator->validate('Short'); // Valid (5 chars)
 // $maxLengthValidator->validate('This is too long'); // ❌ ValidationException (16 chars)
 ```
 
@@ -106,7 +106,7 @@ $result = $maxLengthValidator->validate('Short'); // ✅ Valid (5 chars)
 ```php
 $exactLengthValidator = Validator::isString()->length(5);
 
-$result = $exactLengthValidator->validate('Hello'); // ✅ Valid (exactly 5 chars)
+$result = $exactLengthValidator->validate('Hello'); // Valid (exactly 5 chars)
 // $exactLengthValidator->validate('Hi'); // ❌ ValidationException (2 chars)
 // $exactLengthValidator->validate('Too Long'); // ❌ ValidationException (8 chars)
 ```
@@ -136,7 +136,7 @@ $phoneValidator = Validator::isString()
 $codeValidator = Validator::isString()
     ->pattern('/^[A-Z]{2}\d{4}$/', 'Code must be 2 uppercase letters followed by 4 digits');
 
-$code = $codeValidator->validate('AB1234'); // ✅ Valid
+$code = $codeValidator->validate('AB1234'); // Valid
 // $codeValidator->validate('ab1234'); // ❌ ValidationException (lowercase)
 // $codeValidator->validate('ABC123'); // ❌ ValidationException (wrong format)
 ```
@@ -171,11 +171,11 @@ HTML forms often submit empty strings for unfilled fields. Without `nullifyEmpty
 $badValidator = Validator::isString();
 $result = $badValidator->validate(''); // Returns: '' (empty string)
 
-// ✅ Safe: Empty strings become null
+// Safe: Empty strings become null
 $safeValidator = Validator::isString()->nullifyEmpty();
 $result = $safeValidator->validate(''); // Returns: null
 
-// ✅ Even better: With meaningful defaults
+// Even better: With meaningful defaults
 $defaultValidator = Validator::isString()
     ->nullifyEmpty()
     ->default('Not provided');
@@ -221,8 +221,8 @@ $result = $contactFormValidator->validate($formData);
 // [
 //     'name' => 'John Doe',
 //     'email' => 'john@example.com',
-//     'company' => null,  // ✅ Converted from empty string
-//     'phone' => null,    // ✅ Converted from empty string
+//     'company' => null,  // Converted from empty string
+//     'phone' => null,    // Converted from empty string
 //     'message' => 'Hello, I would like more information.'
 // ]
 ```
@@ -368,7 +368,7 @@ $efficientValidator = Validator::isString()
 
 ## Next Steps
 
-- 🔢 [Numeric Validation Guide](numeric-validation.md) - Learn about integer and float validation
-- 🏗️ [Object & Schema Validation](object-validation.md) - Handle complex nested structures
-- ⚙️ [Custom Validation Guide](custom-validation.md) - Create custom validation rules
-- 📚 [API Reference - Validator Factory](../api-reference/validator-factory.md) - Complete method reference
+- [Numeric Validation Guide](numeric-validation.md) -- Learn about integer and float validation
+- [Object & Schema Validation](object-validation.md) -- Handle complex nested structures
+- [Custom Validation Guide](custom-validation.md) -- Create custom validation rules
+- [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete method reference

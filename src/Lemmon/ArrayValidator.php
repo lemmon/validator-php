@@ -83,7 +83,7 @@ class ArrayValidator extends FieldValidator
 
         // Apply filterEmpty transformation if enabled
         if ($this->filterEmpty) {
-            $value = array_values(array_filter($value, fn($item) => $item !== '' && $item !== null));
+            $value = array_values(array_filter($value, fn ($item) => $item !== '' && $item !== null));
         }
 
         // If item validator is set, validate each item

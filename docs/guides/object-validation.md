@@ -146,10 +146,10 @@ $input = [
 
 $result = $schema->validate($input);
 // Result: [
-//     'name' => 'John Doe',      // ✅ Provided in input
-//     'email' => 'john@example.com', // ✅ Provided in input
-//     'status' => 'active',      // ✅ Default value applied
-//     'role' => 'user'           // ✅ Default value applied
+//     'name' => 'John Doe',      // Provided in input
+//     'email' => 'john@example.com', // Provided in input
+//     'status' => 'active',      // Default value applied
+//     'role' => 'user'           // Default value applied
 // ]
 // Note: 'age' is NOT included (not provided, no default)
 ```

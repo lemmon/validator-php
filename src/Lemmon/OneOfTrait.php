@@ -26,7 +26,7 @@ trait OneOfTrait
     public function oneOf(array $values, ?string $message = null): self
     {
         return $this->satisfies(
-            fn($value) => in_array($value, $values, true),
+            fn ($value) => in_array($value, $values, true),
             $message ?? 'Value must be one of: ' . json_encode($values)
         );
     }

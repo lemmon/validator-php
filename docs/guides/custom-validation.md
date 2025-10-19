@@ -16,7 +16,7 @@ $validator = Validator::isString()->satisfies(
     'Value must contain only alphabetic characters'
 );
 
-$result = $validator->validate('Hello'); // ✅ Valid
+$result = $validator->validate('Hello'); // Valid
 // $validator->validate('Hello123'); // ❌ ValidationException
 ```
 
@@ -78,7 +78,7 @@ $registrationSchema = Validator::isAssociative([
 $validData = $registrationSchema->validate([
     'password' => 'secretpassword123',
     'password_confirm' => 'secretpassword123'
-]); // ✅ Valid
+]); // Valid
 
 // This would fail:
 // $registrationSchema->validate([
@@ -156,7 +156,7 @@ $productCodeValidator = Validator::isString()->satisfies(
     'Invalid product code format or check digit'
 );
 
-$code = $productCodeValidator->validate('ABC-12347'); // ✅ Valid (1+2+3+4=10, 10%10=0, but check digit is 7)
+$code = $productCodeValidator->validate('ABC-12347'); // Valid (1+2+3+4=10, 10%10=0, but check digit is 7)
 ```
 
 ### Database Uniqueness Check
@@ -404,7 +404,7 @@ $badValidator = Validator::isString()->satisfies(
 
 ## Next Steps
 
-- 🧩 [Array Validation Guide](array-validation.md) - Logical combinators and complex rules
-- ❌ [Error Handling Guide](error-handling.md) - Working with validation errors
-- 📚 [API Reference - Validator Factory](../api-reference/validator-factory.md) - Complete `satisfies()` reference
-- 💡 [Form Validation Examples](../examples/form-validation.md) - See custom validation in action
+- [Array Validation Guide](array-validation.md) -- Logical combinators and complex rules
+- [Error Handling Guide](error-handling.md) -- Working with validation errors
+- [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete `satisfies()` reference
+- [Form Validation Examples](../examples/form-validation.md) -- See custom validation in action

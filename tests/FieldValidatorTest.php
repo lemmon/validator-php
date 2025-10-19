@@ -20,7 +20,7 @@ it('should apply multiple transformations in sequence', function () {
 
 it('should apply transformations using pipe method', function () {
     $validator = Validator::isString()
-        ->pipe('trim', 'strtolower', fn($v) => ucfirst($v));
+        ->pipe('trim', 'strtolower', fn ($v) => ucfirst($v));
 
     $result = $validator->validate('  HELLO WORLD  ');
     expect($result)->toBe('Hello world');
@@ -29,8 +29,8 @@ it('should apply transformations using pipe method', function () {
 it('should apply transformations with custom functions', function () {
     $validator = Validator::isInt()
         ->coerce()
-        ->transform(fn($v) => $v * 2)
-        ->transform(fn($v) => $v + 10);
+        ->transform(fn ($v) => $v * 2)
+        ->transform(fn ($v) => $v + 10);
 
     $result = $validator->validate('5');
     expect($result)->toBe(20);
@@ -61,7 +61,7 @@ it('should not apply transformations when validation fails', function () {
 it('should work with array transformations', function () {
     $validator = Validator::isArray()
         ->filterEmpty()
-        ->transform(fn($v) => array_map('strtoupper', $v));
+        ->transform(fn ($v) => array_map('strtoupper', $v));
 
     $result = $validator->validate(['hello', '', 'world', null]);
     expect($result)->toBe(['HELLO', 'WORLD']);
@@ -69,11 +69,11 @@ it('should work with array transformations', function () {
 
 it('should handle transformation exceptions gracefully', function () {
     $validator = Validator::isString()
-        ->transform(function($v) {
+        ->transform(function ($v) {
             throw new Exception('Transformation failed');
         });
 
-    expect(fn() => $validator->validate('test'))
+    expect(fn () => $validator->validate('test'))
         ->toThrow(Exception::class, 'Transformation failed');
 });
 
@@ -89,7 +89,7 @@ it('should maintain indexed array structure with pipe operations', function () {
 
 it('should preserve associative array keys with pipe operations', function () {
     $validator = Validator::isAssociative(['name' => Validator::isString()])
-        ->pipe(fn($v) => array_filter($v));
+        ->pipe(fn ($v) => array_filter($v));
 
     $result = $validator->validate(['name' => 'John', 'empty' => '']);
 
@@ -99,7 +99,7 @@ it('should preserve associative array keys with pipe operations', function () {
 it('should handle type transitions from array to string', function () {
     $validator = Validator::isArray()
         ->pipe('array_unique', 'array_reverse')
-        ->transform(fn($v) => implode(',', $v))
+        ->transform(fn ($v) => implode(',', $v))
         ->pipe('trim', 'strtoupper');
 
     $result = $validator->validate(['a', 'b', 'a', 'c']);
@@ -110,7 +110,7 @@ it('should handle type transitions from array to string', function () {
 it('should handle type transitions from string to array to int', function () {
     $validator = Validator::isString()
         ->pipe('trim')
-        ->transform(fn($v) => explode(',', $v))
+        ->transform(fn ($v) => explode(',', $v))
         ->pipe('array_unique')
         ->transform('count');
 
@@ -122,10 +122,10 @@ it('should handle type transitions from string to array to int', function () {
 it('should handle complex multi-type transformation chains', function () {
     $validator = Validator::isArray()
         ->pipe('array_unique', 'array_reverse')        // Array operations
-        ->transform(fn($v) => implode(',', $v))        // Array → String
+        ->transform(fn ($v) => implode(',', $v))        // Array → String
         ->pipe('trim', 'strtoupper')                   // String operations
         ->transform('strlen')                          // String → Int
-        ->transform(fn($v) => $v * 2);                 // Int operations
+        ->transform(fn ($v) => $v * 2);                 // Int operations
 
     $result = $validator->validate(['a', 'b', 'a']);
 
@@ -136,7 +136,7 @@ it('should handle array pipe operations that break indexing', function () {
     // Test multiple array operations that would break indexing
     $validator = Validator::isArray()
         ->pipe(
-            fn($v) => array_filter($v, fn($item) => $item !== 'remove'),
+            fn ($v) => array_filter($v, fn ($item) => $item !== 'remove'),
             'array_unique',
             'array_reverse'
         );
@@ -150,9 +150,9 @@ it('should handle array pipe operations that break indexing', function () {
 it('should handle mixed pipe and transform operations', function () {
     $validator = Validator::isString()
         ->pipe('trim')                                 // String operation
-        ->transform(fn($v) => str_split($v))          // String → Array
+        ->transform(fn ($v) => str_split($v))          // String → Array
         ->pipe('array_unique', 'array_reverse')       // Array operations
-        ->transform(fn($v) => implode('', $v))        // Array → String
+        ->transform(fn ($v) => implode('', $v))        // Array → String
         ->pipe('strtoupper');                         // String operation
 
     $result = $validator->validate('  hello  ');
@@ -162,10 +162,10 @@ it('should handle mixed pipe and transform operations', function () {
 
 it('should work with numeric type transitions', function () {
     $validator = Validator::isString()
-        ->transform(fn($v) => (int)$v)                // String → Int
-        ->pipe(fn($v) => abs($v))                     // Int operation
-        ->transform(fn($v) => (float)$v)              // Int → Float
-        ->pipe(fn($v) => $v * 1.5);                   // Float operation
+        ->transform(fn ($v) => (int)$v)                // String → Int
+        ->pipe(fn ($v) => abs($v))                     // Int operation
+        ->transform(fn ($v) => (float)$v)              // Int → Float
+        ->pipe(fn ($v) => $v * 1.5);                   // Float operation
 
     $result = $validator->validate('-10');
 
@@ -255,7 +255,7 @@ it('should validate satisfiesNone combinator', function () {
 
 it('should add custom validation with satisfies() method and custom message', function () {
     $validator = Validator::isString()->satisfies(
-        fn($value) => strlen($value) > 5,
+        fn ($value) => strlen($value) > 5,
         'String must be longer than 5 characters'
     );
 
@@ -266,7 +266,7 @@ it('should add custom validation with satisfies() method and custom message', fu
 
 it('should add custom validation with satisfies() method and default message', function () {
     $validator = Validator::isString()->satisfies(
-        fn($value) => strlen($value) > 5
+        fn ($value) => strlen($value) > 5
         // No message provided - should use default
     );
 
@@ -277,7 +277,7 @@ it('should add custom validation with satisfies() method and default message', f
 
 it('should maintain backward compatibility with addValidation()', function () {
     $validator = Validator::isString()->addValidation(
-        fn($value) => strlen($value) > 5,
+        fn ($value) => strlen($value) > 5,
         'Old method still works'
     );
 
@@ -315,7 +315,7 @@ it('should support satisfies() with FieldValidator instances', function () {
 it('should support satisfiesAny() with mixed validators and callables', function () {
     $validator = Validator::isString()->satisfiesAny([
         Validator::isString()->minLength(10),           // FieldValidator
-        fn($v) => str_contains($v, '@'),                // Callable
+        fn ($v) => str_contains($v, '@'),                // Callable
         Validator::isString()->pattern('/^\d+$/')       // FieldValidator
     ], 'Must be long, contain @, or be numeric');
 
@@ -335,7 +335,7 @@ it('should support satisfiesAny() with mixed validators and callables', function
 it('should support satisfiesAll() with mixed validators and callables', function () {
     $validator = Validator::isString()->satisfiesAll([
         Validator::isString()->minLength(5),            // FieldValidator
-        fn($v) => !str_contains($v, 'bad'),             // Callable
+        fn ($v) => !str_contains($v, 'bad'),             // Callable
         Validator::isString()->maxLength(20)            // FieldValidator
     ], 'Must be 5-20 chars and not contain "bad"');
 
@@ -349,7 +349,7 @@ it('should support satisfiesAll() with mixed validators and callables', function
 it('should support satisfiesNone() with array of validators and callables', function () {
     $validator = Validator::isString()->satisfiesNone([
         Validator::isString()->pattern('/\d/'),              // FieldValidator - no numbers
-        fn($v) => str_contains($v, 'forbidden'),             // Callable - no forbidden word
+        fn ($v) => str_contains($v, 'forbidden'),             // Callable - no forbidden word
         Validator::isString()->minLength(50)                 // FieldValidator - not too long
     ], 'Must not contain numbers, forbidden words, or be too long');
 
@@ -362,7 +362,7 @@ it('should support satisfiesNone() with array of validators and callables', func
 
 it('should support satisfiesNone() with single forbidden condition', function () {
     $validator = Validator::isString()->satisfiesNone([
-        fn($v) => str_contains($v, 'spam')
+        fn ($v) => str_contains($v, 'spam')
     ], 'Must not contain spam');
 
     // Should pass - no spam

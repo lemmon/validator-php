@@ -28,7 +28,7 @@ $constrainedInt = Validator::isInt()
     ->positive()                // Must be > 0
     ->multipleOf(5);            // Must be divisible by 5
 
-$result = $constrainedInt->validate(25); // ✅ Valid (0 ≤ 25 ≤ 100, 25 > 0, 25 % 5 = 0)
+$result = $constrainedInt->validate(25); // Valid (0 ≤ 25 ≤ 100, 25 > 0, 25 % 5 = 0)
 ```
 
 ## Float Validation
@@ -56,7 +56,7 @@ $constrainedFloat = Validator::isFloat()
     ->positive()                // Must be > 0.0
     ->multipleOf(0.01);         // Precision to cents
 
-$result = $constrainedFloat->validate(19.99); // ✅ Valid price with cent precision
+$result = $constrainedFloat->validate(19.99); // Valid price with cent precision
 ```
 
 ## Shared Numeric Constraints
@@ -68,15 +68,15 @@ Both `IntValidator` and `FloatValidator` use the `NumericConstraintsTrait`, prov
 ```php
 // Minimum value
 $minValidator = Validator::isInt()->min(18);
-$age = $minValidator->validate(25); // ✅ Valid
+$age = $minValidator->validate(25); // Valid
 
 // Maximum value
 $maxValidator = Validator::isFloat()->max(100.0);
-$percentage = $maxValidator->validate(85.5); // ✅ Valid
+$percentage = $maxValidator->validate(85.5); // Valid
 
 // Combined range
 $rangeValidator = Validator::isInt()->min(1)->max(10);
-$rating = $rangeValidator->validate(8); // ✅ Valid
+$rating = $rangeValidator->validate(8); // Valid
 ```
 
 ### Sign Constraints
@@ -84,11 +84,11 @@ $rating = $rangeValidator->validate(8); // ✅ Valid
 ```php
 // Positive numbers (> 0)
 $positiveValidator = Validator::isFloat()->positive();
-$price = $positiveValidator->validate(29.99); // ✅ Valid
+$price = $positiveValidator->validate(29.99); // Valid
 
 // Negative numbers (< 0)
 $negativeValidator = Validator::isInt()->negative();
-$debt = $negativeValidator->validate(-1000); // ✅ Valid
+$debt = $negativeValidator->validate(-1000); // Valid
 
 // Note: Zero fails both positive() and negative()
 ```
@@ -98,15 +98,15 @@ $debt = $negativeValidator->validate(-1000); // ✅ Valid
 ```php
 // Integer multiples
 $evenValidator = Validator::isInt()->multipleOf(2);
-$evenNumber = $evenValidator->validate(42); // ✅ Valid
+$evenNumber = $evenValidator->validate(42); // Valid
 
 // Float multiples (useful for precision)
 $centValidator = Validator::isFloat()->multipleOf(0.01);
-$price = $centValidator->validate(19.99); // ✅ Valid (cent precision)
+$price = $centValidator->validate(19.99); // Valid (cent precision)
 
 // Custom multiples
 $quarterValidator = Validator::isFloat()->multipleOf(0.25);
-$quarters = $quarterValidator->validate(2.75); // ✅ Valid (11 quarters)
+$quarters = $quarterValidator->validate(2.75); // Valid (11 quarters)
 ```
 
 ## Type Coercion
@@ -169,7 +169,7 @@ $quantity = (int) $_POST['quantity'];  // Empty field → 0 (dangerous!)
 The Lemmon Validator now treats empty strings as "no value provided":
 
 ```php
-// ✅ SAFE: New behavior
+// SAFE: New behavior
 $intValidator = Validator::isInt()->coerce();
 $balance = $intValidator->validate(''); // Returns: null (safe!)
 
@@ -375,7 +375,7 @@ $precisionValidator = Validator::isFloat()
         'Value must have at most 2 decimal places'
     );
 
-$price = $precisionValidator->validate(19.99); // ✅ Valid
+$price = $precisionValidator->validate(19.99); // Valid
 // $precisionValidator->validate(19.999); // ❌ ValidationException
 ```
 
@@ -445,7 +445,7 @@ $scoreValidator = Validator::isFloat()
 
 ## Next Steps
 
-- 📋 [Array Validation Guide](array-validation.md) - Learn about array and list validation
-- 🏗️ [Object & Schema Validation](object-validation.md) - Handle complex nested structures
-- ⚙️ [Custom Validation Guide](custom-validation.md) - Create custom numeric rules
-- 📚 [API Reference - Validator Factory](../api-reference/validator-factory.md) - Complete method reference
+- [Array Validation Guide](array-validation.md) -- Learn about array and list validation
+- [Object & Schema Validation](object-validation.md) -- Handle complex nested structures
+- [Custom Validation Guide](custom-validation.md) -- Create custom numeric rules
+- [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete method reference

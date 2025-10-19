@@ -153,7 +153,7 @@ $result = $safeQuantity->validate('5'); // Returns: 5
 **Critical**: Methods execute in the **exact order written**. This is especially important when combining transformations with `required()`:
 
 ```php
-// ✅ CORRECT: Trim → nullify → require (fails on empty input)
+// CORRECT: Trim → nullify → require (fails on empty input)
 $requiredName = Validator::isString()
     ->pipe('trim')        // 1. Remove whitespace
     ->nullifyEmpty()      // 2. Empty strings → null
@@ -166,7 +166,7 @@ $differentBehavior = Validator::isString()
     ->required('Name is required') // 1. Check if empty string is null (passes)
     ->nullifyEmpty();              // 2. Convert to null
 
-$differentBehavior->validate(''); // ✅ Returns: null (different result!)
+$differentBehavior->validate(''); // Returns: null (different result!)
 ```
 
 **Real-world form validation pattern:**
@@ -197,7 +197,7 @@ $formValidator = Validator::isAssociative([
 ```php
 $restricted = Validator::isString()->oneOf(['red', 'green', 'blue']);
 
-$result = $restricted->validate('red'); // ✅ Valid
+$result = $restricted->validate('red'); // Valid
 $result = $restricted->validate('yellow'); // ❌ ValidationException
 ```
 
@@ -309,7 +309,7 @@ $count = Validator::isString()
 - **Use `transform()`** for type changes (string → array, array → int)
 
 ```php
-// ✅ Correct usage
+// Correct usage
 $result = Validator::isArray()
     ->pipe('array_unique', 'array_reverse')    // Array operations (same type)
     ->transform(fn($v) => implode(',', $v))    // Array → String (type change)
@@ -319,7 +319,7 @@ $result = Validator::isArray()
 
 ## Next Steps
 
-- 💡 [Core Concepts](core-concepts.md) - Understand the architecture
-- 🔤 [String Validation Guide](../guides/string-validation.md) - Detailed string validation
-- 🔢 [Numeric Validation Guide](../guides/numeric-validation.md) - Integer and float validation
-- ⚙️ [Custom Validation Guide](../guides/custom-validation.md) - Create your own validation rules
+- [Core Concepts](core-concepts.md) -- Understand the architecture
+- [String Validation Guide](../guides/string-validation.md) -- Detailed string validation
+- [Numeric Validation Guide](../guides/numeric-validation.md) -- Integer and float validation
+- [Custom Validation Guide](../guides/custom-validation.md) -- Create your own validation rules

@@ -2,7 +2,7 @@
 
 A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. This project provides type-safe validation with a symmetrical API for handling different data structures, advanced validation capabilities, and enterprise-grade documentation.
 
-## 🏗️ Architecture
+## Architecture
 
 ### Core Factory Pattern
 - **`Validator`** - Static factory creating type-specific validators (`isString()`, `isInt()`, `isFloat()`, `isArray()`, `isAssociative()`, `isObject()`, `isBool()`)
@@ -20,7 +20,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **`NumericConstraintsTrait`** - Common numeric validations (`min()`, `max()`, `multipleOf()`, `positive()`, `negative()`)
 - **`PipelineType`** - Type-safe enum for pipeline operations (`VALIDATION`, `TRANSFORMATION`) with IDE support and refactoring safety
 
-## 🚀 Advanced Features
+## Advanced Features
 
 ### Validation Capabilities
 - **Static Logical Combinators** - `Validator::allOf()`, `Validator::anyOf()`, `Validator::not()` for complex rule composition and mixed-type validation
@@ -41,7 +41,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Schema Validation** - Nested structure validation with hierarchical error reporting
 - **Comprehensive Documentation** - Complete guides, API reference, and real-world examples
 
-## 📚 Documentation Structure
+## Documentation Structure
 
 ### Getting Started
 - **Installation & Setup** - Requirements, installation, verification
@@ -65,7 +65,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Multi-Step Forms** - Complex validation workflows with session handling
 - **Real-World Schemas** - Business logic validation patterns
 
-## 🔧 Development Workflow
+## Development Workflow
 
 ### Code Quality
 - **Testing** - Pest PHP with organized test suite (10 focused test files, 135 tests, 390 assertions)
@@ -73,9 +73,18 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Code Style** - PHP-CS-Fixer for consistent formatting
 - **Performance** - Optimized validation logic with eliminated code duplication
 
+### Development Guidelines
+- **Documentation** - Add concise PHPDoc blocks where behavior is not immediately obvious, especially for helpers touching I/O streams
+- **ASCII Punctuation** - Stick to ASCII punctuation in code and docs (prefer -- over em dashes) so diffs stay predictable
+- **Emoji Usage** - Reserve emojis for rare emphasis; moderate use is fine for emphasis, but skip emoji-driven lists
+- **Task Tracking** - Use GitHub-style checkboxes (`- [ ]` for pending, `- [x]` for completed) in ROADMAP.md for clear progress tracking
+- **Commit Standards** - Follow Conventional Commits spec (e.g., `fix:`, `refactor:`, `docs:`)
+- **Commit Scope** - Each commit should address a single concern; tests and implementation can ship together, but unrelated formatting belongs elsewhere
+
 ### Development Tools
 - **Debugging** - `symfony/var-dumper` integration
 - **Error Handling** - `symfony/error-handler` for development
+- **Composer Normalization** - `ergebnis/composer-normalize` for consistent composer.json formatting
 - **Composer Scripts** - `test`, `lint`, `fix`, `analyse` commands
 
 ### Test Organization
@@ -93,38 +102,22 @@ tests/
 └── ValidatorStaticCombinatorsTest.php # Static logical combinators
 ```
 
-## 🎯 Project Status
+## Architecture Overview
 
-### Current Version: 0.6.0
-- ✅ Complete string validation suite with form-safe handling
-- ✅ Dedicated float validator with numeric constraints
-- ✅ Static logical combinators for advanced validation logic
-- ✅ Instance logical combinators for chaining validation rules
-- ✅ Enhanced mixed-type validation support
-- ✅ Type-aware transformation system with `transform()` and `pipe()` methods
-- ✅ Form-safe coercion - empty strings convert to `null` (not dangerous `0`/`false`)
-- ✅ Intuitive custom validation with `satisfies()` method
-- ✅ Comprehensive error collection and context-aware validation
-- ✅ Complete documentation with `nullifyEmpty()` coverage across all guides
-- ✅ Organized test suite and enterprise documentation
-- ✅ 100% PHPStan compliance and PHP-CS-Fixer standards
-
-### Key Metrics
+### Core Components
 - **8 validator types** covering all PHP data types
-- **35+ built-in validation methods** including static logical combinators, array filtering, type-aware transformations, form-safe coercion, and intuitive custom validation (all using modern `satisfies()` API internally)
-- **5,000+ lines of documentation** with practical examples and comprehensive coverage
-- **135 unit tests** with comprehensive coverage (390 assertions)
-- **Zero technical debt** with modern PHP 8.1+ codebase
-- **Zero dead links** in documentation with seamless navigation
-- **Complete API documentation** with accurate method signatures and examples
+- **Unified pipeline architecture** with smart null handling and execution order guarantees
+- **Type-safe internal structure** using modern PHP 8.1+ enums
+- **Comprehensive test coverage** with 135 unit tests and 390 assertions
+- **Enterprise-grade documentation** with practical examples and complete API reference
 
-## 🔮 Vision & Roadmap
+## Vision & Roadmap
 
 This library aims to be the definitive validation solution for PHP applications, providing:
-- **Developer Productivity** - Intuitive API with excellent documentation
-- **Type Safety** - Leveraging PHP's type system for robust validation
-- **Performance** - Optimized validation logic for high-throughput applications
-- **Extensibility** - Custom validation support for business-specific requirements
-- **Enterprise Ready** - Comprehensive error handling and structured feedback
+- **Developer Productivity** -- Intuitive API with excellent documentation
+- **Type Safety** -- Leveraging PHP's type system for robust validation
+- **Performance** -- Optimized validation logic for high-throughput applications
+- **Extensibility** -- Custom validation support for business-specific requirements
+- **Enterprise Ready** -- Comprehensive error handling and structured feedback
 
 The project maintains a clear separation between completed features (CHANGELOG), strategic planning (ROADMAP), and innovative ideas (IDEAS), ensuring focused development and clear project management.

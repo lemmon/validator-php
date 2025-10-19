@@ -28,7 +28,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 - **Type-Safe Architecture**: Modern PHP 8.1+ enums provide IDE autocomplete, refactoring safety, and eliminate magic strings throughout the codebase
 - **Smart Null Handling**: Validations skip `null` unless `required()`, transformations always execute, and method order is independent for intuitive behavior
 - **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
-- **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written - `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
+- **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written -- `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
 - **Comprehensive Error Collection**: All validation errors are collected, not just the first failure
 - **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically
 - **Extensible Architecture**: Generic transformation methods work with any PHP callable or external library
@@ -38,7 +38,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 - **Type-safe architecture** - PHP 8.1+ enums with IDE autocomplete, refactoring safety, and zero magic strings
 - **Smart null handling** - validations skip `null` unless `required()`, transformations always execute, order-independent behavior
 - **Type-safe validation** for strings, integers, floats, arrays, and objects
-- **Fluent, chainable API** with guaranteed execution order - methods execute exactly as written in the chain
+- **Fluent, chainable API** with guaranteed execution order -- methods execute exactly as written in the chain
 - **Comprehensive error collection** with detailed, structured feedback
 - **Intuitive custom validation** with `satisfies()` method and optional error messages
 - **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
@@ -81,12 +81,12 @@ $user = $userSchema->validate($input); // Throws ValidationException on failure
 - [Core Concepts](docs/getting-started/core-concepts.md)
 
 ### Validation Guides
-- [String Validation](docs/guides/string-validation.md) - Email, URL, patterns, length constraints
-- [Numeric Validation](docs/guides/numeric-validation.md) - Integers, floats, ranges, constraints
-- [Array Validation](docs/guides/array-validation.md) - Indexed arrays and item validation
-- [Object & Schema Validation](docs/guides/object-validation.md) - Complex nested structures
-- [Custom Validation](docs/guides/custom-validation.md) - User-defined functions and business logic
-- [Error Handling](docs/guides/error-handling.md) - Working with validation errors
+- [String Validation](docs/guides/string-validation.md) -- Email, URL, patterns, length constraints
+- [Numeric Validation](docs/guides/numeric-validation.md) -- Integers, floats, ranges, constraints
+- [Array Validation](docs/guides/array-validation.md) -- Indexed arrays and item validation
+- [Object & Schema Validation](docs/guides/object-validation.md) -- Complex nested structures
+- [Custom Validation](docs/guides/custom-validation.md) -- User-defined functions and business logic
+- [Error Handling](docs/guides/error-handling.md) -- Working with validation errors
 
 ### API Reference
 - [Validator Factory](docs/api-reference/validator-factory.md)

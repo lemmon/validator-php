@@ -150,7 +150,7 @@ $result = $orderValidator->validate($formData);
 Use `nullifyEmpty()` to convert empty strings to `null`, then handle them appropriately:
 
 ```php
-// ✅ SAFE: With nullifyEmpty()
+// SAFE: With nullifyEmpty()
 $safeOrderValidator = Validator::isAssociative([
     'quantity' => Validator::isInt()
         ->coerce()
@@ -893,7 +893,7 @@ class FileUploadValidator
 
 ## Next Steps
 
-- 🔤 [String Validation Guide](../guides/string-validation.md) - Advanced string validation patterns
-- 🔢 [Numeric Validation Guide](../guides/numeric-validation.md) - Numeric validation techniques
-- 🏗️ [Object & Schema Validation](../guides/object-validation.md) - Complex nested structure validation
-- ❌ [Error Handling Guide](../guides/error-handling.md) - Advanced error handling techniques
+- [String Validation Guide](../guides/string-validation.md) -- Advanced string validation patterns
+- [Numeric Validation Guide](../guides/numeric-validation.md) -- Numeric validation techniques
+- [Object & Schema Validation](../guides/object-validation.md) -- Complex nested structure validation
+- [Error Handling Guide](../guides/error-handling.md) -- Advanced error handling techniques

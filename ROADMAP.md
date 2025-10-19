@@ -2,121 +2,121 @@
 
 This roadmap outlines the strategic development plan for future releases, prioritizing features that deliver maximum value to the PHP validation ecosystem.
 
-## 🎯 **Strategic Philosophy**
+## Strategic Philosophy
 
 **Extensibility Over Reinvention:** We focus on creating a clean, extensible validation flow rather than reimplementing existing libraries. Our `transform()` method enables seamless integration with established libraries like Laravel Str, Symfony String, and Laravel Collections. This approach keeps our library lightweight while providing unlimited flexibility through the rich PHP ecosystem.
 
 **Core Principle:** Validate first, transform with the best tools available.
 
-## ✅ Recently Completed
+## Recently Completed
 
 ### Type-Safe Pipeline Architecture (Current)
-- [x] ✅ **PipelineType Enum Implementation** - Modern PHP 8.1+ enum for type-safe pipeline operations
-- [x] ✅ **IDE Integration** - Full autocomplete support for `PipelineType::VALIDATION` and `PipelineType::TRANSFORMATION`
-- [x] ✅ **Refactoring Safety** - No more magic strings, IDE handles all references automatically
-- [x] ✅ **Self-Documenting Code** - Enum cases include comprehensive documentation explaining validation vs transformation behavior
-- [x] ✅ **Perfect Static Analysis** - PHPStan level max compliance with proper type annotations
-- [x] ✅ **Zero Performance Cost** - Enums compile to identical string values with no runtime overhead
+- [x] **PipelineType Enum Implementation** - Modern PHP 8.1+ enum for type-safe pipeline operations
+- [x] **IDE Integration** - Full autocomplete support for `PipelineType::VALIDATION` and `PipelineType::TRANSFORMATION`
+- [x] **Refactoring Safety** - No more magic strings, IDE handles all references automatically
+- [x] **Self-Documenting Code** - Enum cases include comprehensive documentation explaining validation vs transformation behavior
+- [x] **Perfect Static Analysis** - PHPStan level max compliance with proper type annotations
+- [x] **Zero Performance Cost** - Enums compile to identical string values with no runtime overhead
 
 ### Smart Null Handling (v0.7.0)
-- [x] ✅ **Revolutionary Null Handling System** - Intuitive, order-independent validation behavior
-- [x] ✅ **Intelligent Null Processing** - Validations skip `null` unless `required()`, transformations always execute
-- [x] ✅ **Order Independence** - `->email()->required()` and `->required()->email()` work identically
-- [x] ✅ **Global Required Flag** - `required()` works as a flag (like `coerce()`), not a pipeline step
-- [x] ✅ **Smart Default Application** - Defaults applied after pipeline execution if final result is `null`
-- [x] ✅ **Real-World Safety** - Eliminates confusing execution order dependencies in production
+- [x] **Revolutionary Null Handling System** - Intuitive, order-independent validation behavior
+- [x] **Intelligent Null Processing** - Validations skip `null` unless `required()`, transformations always execute
+- [x] **Order Independence** - `->email()->required()` and `->required()->email()` work identically
+- [x] **Global Required Flag** - `required()` works as a flag (like `coerce()`), not a pipeline step
+- [x] **Smart Default Application** - Defaults applied after pipeline execution if final result is `null`
+- [x] **Real-World Safety** - Eliminates confusing execution order dependencies in production
 
 ### Unified Pipeline Architecture (v0.6.0)
-- [x] ✅ **Revolutionary Single Pipeline Design** - Conceptual simplicity with hybrid execution model for optimal performance
-- [x] ✅ **Execution Order Guarantee** - All methods execute in the exact order written in fluent chains
-- [x] ✅ **Hybrid Execution Model** - Error collection for pure validations (better UX), fail-fast for transformations (correct behavior)
-- [x] ✅ **Backward Compatibility** - All existing code works unchanged, 135 tests pass with 390 assertions
-- [x] ✅ **Performance Optimized** - No unnecessary error collection overhead for transformation operations
+- [x] **Revolutionary Single Pipeline Design** - Conceptual simplicity with hybrid execution model for optimal performance
+- [x] **Execution Order Guarantee** - All methods execute in the exact order written in fluent chains
+- [x] **Hybrid Execution Model** - Error collection for pure validations (better UX), fail-fast for transformations (correct behavior)
+- [x] **Backward Compatibility** - All existing code works unchanged, 135 tests pass with 390 assertions
+- [x] **Performance Optimized** - No unnecessary error collection overhead for transformation operations
 
 ### Static Logical Combinators (v0.4.0)
-- [x] ✅ **Static Logical Combinators** - `Validator::anyOf()`, `Validator::allOf()`, `Validator::not()` for type-agnostic validation
-- [x] ✅ **Enhanced Mixed-Type Support** - Clean syntax for arrays with mixed item types
-- [x] ✅ **Comprehensive Documentation** - Complete API reference and practical examples
-- [x] ✅ **Comprehensive Test Suite** - 19 new tests (76 total) with 54 new assertions (208 total)
+- [x] **Static Logical Combinators** - `Validator::anyOf()`, `Validator::allOf()`, `Validator::not()` for type-agnostic validation
+- [x] **Enhanced Mixed-Type Support** - Clean syntax for arrays with mixed item types
+- [x] **Comprehensive Documentation** - Complete API reference and practical examples
+- [x] **Comprehensive Test Suite** - 19 new tests (76 total) with 54 new assertions (208 total)
 
-## 📋 Immediate Tasks (Documentation Gaps from Real-World Testing)
+## Immediate Tasks
 
 ### Critical Documentation Updates
-- [x] ✅ **Document `nullifyEmpty()` method** - Add to README, API reference, string/form guides (currently only in array guide)
+- [x] **Document `nullifyEmpty()` method** - Add to README, API reference, string/form guides (currently only in array guide)
   - Added comprehensive "Universal Methods" section to API Reference with detailed `nullifyEmpty()` documentation
   - Added "Form-Safe String Handling" section to String Validation Guide with practical examples
   - Added "Explicit Empty String Nullification" section to Numeric Validation Guide
   - Updated README.md Quick Start example to showcase `nullifyEmpty()` usage
-- [x] ✅ **Add form handling examples** - Show `nullifyEmpty()` in real-world form validation scenarios
+- [x] **Add form handling examples** - Show `nullifyEmpty()` in real-world form validation scenarios
   - Added comprehensive "Form-Safe Validation with nullifyEmpty()" section to Form Validation Examples
   - Included real-world ProductFormValidator example demonstrating form-safe patterns
   - Added contact form example updates showing proper `nullifyEmpty()` usage
-- [x] ✅ **Update getting started guides** - Include `nullifyEmpty()` in basic usage patterns
+- [x] **Update getting started guides** - Include `nullifyEmpty()` in basic usage patterns
   - Added "Empty String Nullification" section to Basic Usage Guide with fundamental patterns
   - Included practical examples combining `nullifyEmpty()` with `default()` for optional fields
   - Added guidelines on when to use `nullifyEmpty()` for different scenarios
-- [x] ✅ **Fix all dead links in documentation** - Replace missing API references with existing guides
+- [x] **Fix all dead links in documentation** - Replace missing API references with existing guides
   - Fixed 15 dead links across all documentation files
   - Replaced missing API reference links with existing comprehensive guides
   - Ensured all internal navigation works properly
 
 ### Critical API Improvements
-- [x] ✅ **Rename `addValidation()` to `satisfies()`** - Intuitive, descriptive method name that clearly indicates validation intent
+- [x] **Rename `addValidation()` to `satisfies()`** - Intuitive, descriptive method name that clearly indicates validation intent
   - Added new `satisfies(callable $validation, ?string $message = null)` method with optional error message
   - Maintains backward compatibility with deprecated `addValidation()` method
   - Provides generic fallback message "Custom validation failed" when no message provided
   - Added comprehensive test coverage (4 new tests, 12 new assertions)
   - Method reads naturally: `->satisfies(fn($v) => $v > 0)` - "value must satisfy this condition"
-- [x] ✅ **Update all documentation** - Replace `addValidation()` with `satisfies()` across all guides and examples
+- [x] **Update all documentation** - Replace `addValidation()` with `satisfies()` across all guides and examples
   - Updated Custom Validation Guide (primary guide for this method)
   - Updated Form Validation Examples (22+ references)
   - Updated Core Concepts, Basic Usage, and API Reference guides
   - Updated Error Handling, Numeric, String, and Object Validation guides
   - Maintained backward compatibility with deprecated `addValidation()` method
-- [x] ✅ **Complete internal API modernization** - Migrate all internal code from `addValidation()` to `satisfies()`
+- [x] **Complete internal API modernization** - Migrate all internal code from `addValidation()` to `satisfies()`
   - Migrated all StringValidator methods (10 methods) to use `satisfies()` internally
   - Migrated all NumericConstraintsTrait methods (5 methods) to use `satisfies()` internally
   - Updated static logical combinators to use new `satisfies*` API internally
   - Codebase now fully consistent with modern API while maintaining backward compatibility
 
 ### Critical Bug Fixes
-- [x] ✅ **Fix ObjectValidator null property handling** - `isset($validatedFieldValue)` excluded null properties from result object
+- [x] **Fix ObjectValidator null property handling** - `isset($validatedFieldValue)` excluded null properties from result object
   - Fixed: ObjectValidator now correctly includes all validated properties, even when null
   - Maintains consistency with AssociativeValidator behavior
   - Added comprehensive test coverage to prevent regression
-- [x] ✅ **Fix schema validation field inclusion behavior** - ObjectValidator and AssociativeValidator were including ALL schema fields in results
+- [x] **Fix schema validation field inclusion behavior** - ObjectValidator and AssociativeValidator were including ALL schema fields in results
   - **Issue**: Validators incorrectly added all schema properties to results, even when not provided in input
   - **Fix**: Now only includes fields that were actually provided in input OR have default values applied
   - **Impact**: Results accurately reflect validated data without unexpected properties
   - **Behavior**: Required field validation still works correctly (missing required fields still fail)
   - Added comprehensive test coverage (6 new tests, 45 new assertions) to prevent regression
-- [x] ✅ **Fix dangerous empty string coercion across all validators** - **BREAKING CHANGE**: `coerce()` now converts `''` → `null` for form safety
+- [x] **Fix dangerous empty string coercion across all validators** - **BREAKING CHANGE**: `coerce()` now converts `''` → `null` for form safety
   - IntValidator: `''` → `null` (not 0) - prevents dangerous zero defaults in forms
   - FloatValidator: `''` → `null` (not 0.0) - prevents dangerous zero defaults in forms
   - BoolValidator: `''` → `null` (not false) - empty query params should be null
   - Critical for real-world form/API safety (prevents accidental zero bank balances, etc.)
-- [x] ✅ **Add comprehensive tests for empty string handling** - Added BoolValidator test suite and updated existing tests
+- [x] **Add comprehensive tests for empty string handling** - Added BoolValidator test suite and updated existing tests
   - 110 tests total with 278 assertions
   - Complete coverage for new empty string → null coercion behavior
-- [x] ✅ **Update documentation** - Explain the form-safety rationale behind empty string → null coercion
+- [x] **Update documentation** - Explain the form-safety rationale behind empty string → null coercion
   - Added comprehensive form-safety sections to Core Concepts and Numeric Validation guides
   - Included real-world examples showing dangerous scenarios prevented
   - Added migration guidance for users who need explicit zero defaults
   - Added brief form-safety note in Basic Usage guide with cross-references
 
-## 📋 Next Release (v0.5.0) - Utility Features
+## Next Release -- Utility Features
 
 ### String Enhancements
-- [ ] **`hostname()`** - Validates hostname format (domain names, subdomains)
-- [ ] **`time()`** - Validates time format (HH:MM:SS, HH:MM)
-- [ ] **`base64()`** - Validates Base64 encoded strings (simple regex, no dependencies)
-- [ ] **`hex()`** - Validates hexadecimal strings (simple regex, optional length constraints)
-- [ ] **`regex()` alias** - Alternative name for `pattern()` method for clarity
+- [ ] **`hostname()`** -- Validates hostname format (domain names, subdomains)
+- [ ] **`time()`** -- Validates time format (HH:MM:SS, HH:MM)
+- [ ] **`base64()`** -- Validates Base64 encoded strings (simple regex, no dependencies)
+- [ ] **`hex()`** -- Validates hexadecimal strings (simple regex, optional length constraints)
+- [ ] **`regex()` alias** -- Alternative name for `pattern()` method for clarity
 
 ### String Transformations
-- [x] ✅ **`transform()`** - Single transformation method (already implemented!)
-- [x] ✅ **`pipe(...$transformers)`** - Multiple transformations in sequence with variadic arguments (already implemented!)
-- [x] ✅ **`nullifyEmpty()`** - Convert empty strings/arrays to null (already implemented!)
+- [x] **`transform()`** - Single transformation method (already implemented!)
+- [x] **`pipe(...$transformers)`** - Multiple transformations in sequence with variadic arguments (already implemented!)
+- [x] **`nullifyEmpty()`** - Convert empty strings/arrays to null (already implemented!)
 
 ### Common Normalization Patterns
 ```php
@@ -139,11 +139,11 @@ This roadmap outlines the strategic development plan for future releases, priori
 ```
 
 ### Removed from Scope
-- ~~`trim()`~~ - Use `->transform('trim')` or `->transform(fn($v) => trim($v))` for predictability
-- ~~`toCamelCase()` / `toSnakeCase()`~~ - Better handled by specialized libraries (Laravel Str, Symfony String)
-- ~~`slugify()`~~ - Complex internationalization logic, use dedicated libraries
-- ~~`normalizeSpaces()`~~ - Complex whitespace handling (spaces, tabs, newlines, Unicode), use `Str::squish()`
-- ~~`cuid2()` / `nanoid()` / `ulid()`~~ - Use specialized libraries (ramsey/uuid, hidehalo/nanoid-php, ulid/php)
+- ~~`trim()`~~ -- Use `->transform('trim')` or `->transform(fn($v) => trim($v))` for predictability
+- ~~`toCamelCase()` / `toSnakeCase()`~~ -- Better handled by specialized libraries (Laravel Str, Symfony String)
+- ~~`slugify()`~~ -- Complex internationalization logic, use dedicated libraries
+- ~~`normalizeSpaces()`~~ -- Complex whitespace handling (spaces, tabs, newlines, Unicode), use `Str::squish()`
+- ~~`cuid2()` / `nanoid()` / `ulid()`~~ -- Use specialized libraries (ramsey/uuid, hidehalo/nanoid-php, ulid/php)
 
 ### Extensibility Examples
 ```php
@@ -157,7 +157,7 @@ $validator = Validator::isString()
 // Pipeline transformations (clean variadic syntax):
 $textValidator = Validator::isString()
     ->required()
-    ->pipe(                                    // Multiple transformations - no array brackets!
+    ->pipe(                                    // Multiple transformations -- no array brackets!
         'trim',
         'mb_strtolower',
         fn($v) => Str::title($v),
@@ -188,14 +188,14 @@ $nanoidValidator = Validator::isString()
 // Real-world form data normalization (with dedicated methods):
 $formValidator = Validator::isAssociative([
     'name' => Validator::isString()
-        ->nullifyEmpty()                                // Already implemented! ✅
+        ->nullifyEmpty()                                // Already implemented!
         ->transform('trim')
         ->required(),
     'age' => Validator::isInt()
-        ->nullifyEmpty()                                // Works across all types ✅
+        ->nullifyEmpty()                                // Works across all types
         ->coerce(),
     'salary' => Validator::isFloat()
-        ->coerce(),                                     // Enhanced: empty strings → 0.0
+        ->coerce(),                                     // Enhanced: empty strings → null
     'tags' => Validator::isArray()
         ->filterEmpty()                                 // Remove empty values + auto-reindex
         ->default([])
@@ -203,13 +203,13 @@ $formValidator = Validator::isAssociative([
 
 // Compare: Before vs After
 // Before (verbose):
-->transform(fn($v) => $v === '' ? 0 : $v)               // Empty string to zero
+->transform(fn($v) => $v === '' ? null : $v)            // Empty string to null
 ->transform(fn($v) => array_filter($v))                 // Remove empty values
 ->transform(fn($v) => array_values($v))                 // Re-index array
 
 // After (clean and discoverable):
-->coerce()                                              // ✅ Enhanced: empty strings → null (form-safe)!
-->filterEmpty()                                         // ✅ Clean array method + auto-reindex!
+->coerce()                                              // Enhanced: empty strings → null (form-safe)!
+->filterEmpty()                                         // Clean array method + auto-reindex!
 
 // Type-aware transformation chains (NEW!):
 $result = Validator::isArray()
@@ -235,38 +235,38 @@ $stringValidator = Validator::isString()
 - [ ] **`contains()`** - Validates array contains specific item
 
 ### Array Transformations
-- [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
-- [x] ✅ **`nullifyEmpty()`** - Convert empty arrays to null (already implemented!)
-- [x] ✅ **`filterEmpty()`** - Remove empty/null values and reindex automatically (already implemented!)
+- [x] **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
+- [x] **`nullifyEmpty()`** - Convert empty arrays to null (already implemented!)
+- [x] **`filterEmpty()`** - Remove empty/null values and reindex automatically (already implemented!)
 
 ### Removed from Scope
-- ~~`unique()`~~ - Use `array_unique()` or Laravel Collections (complex deduplication logic)
-- ~~`flatten()`~~ - Complex recursive logic, use Laravel Collections or `array_merge_recursive()`
+- ~~`unique()`~~ -- Use `array_unique()` or Laravel Collections (complex deduplication logic)
+- ~~`flatten()`~~ -- Complex recursive logic, use Laravel Collections or `array_merge_recursive()`
 
 ### Numeric Enhancements
 - [ ] **`nonNegative()`** - Validates numbers >= 0 (includes zero)
 - [ ] **`nonPositive()`** - Validates numbers <= 0 (includes zero)
-- [ ] **`gt()`** / **`gte()`** - Greater than / greater than or equal explicit comparisons
-- [ ] **`lt()`** / **`lte()`** - Less than / less than or equal explicit comparisons
+- [ ] **`gt()`** / **`gte()`** -- Greater than / greater than or equal explicit comparisons
+- [ ] **`lt()`** / **`lte()`** -- Less than / less than or equal explicit comparisons
 
 ### Numeric Transformations
 - [ ] **`clamp(min, max)`** - Restrict numbers to range (not obvious: max(min, min(max, value)))
-- [x] ✅ **Enhanced `coerce()`** - Empty strings → `null` for form safety (BREAKING CHANGE implemented!)
-- [x] ✅ **`nullifyEmpty()`** - Convert empty strings to null (already implemented!)
-- [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
+- [x] **Enhanced `coerce()`** - Empty strings → `null` for form safety (BREAKING CHANGE implemented!)
+- [x] **`nullifyEmpty()`** - Convert empty strings to null (already implemented!)
+- [x] **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
 
 ### Removed from Scope
-- ~~`round(precision)`~~ - Use `->pipe(fn($v) => round($v, $precision))` for clarity
+- ~~`round(precision)`~~ -- Use `->pipe(fn($v) => round($v, $precision))` for clarity
 
 ### Universal Validators
 - [ ] **`enum()`** - Validates value is one of predefined options (available on all validators)
 - [ ] **`const()`** - Validates value equals specific constant
 
 ### Universal Transformations
-- [x] ✅ **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented on all validators!)
+- [x] **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented on all validators!)
 
 ### Removed from Scope
-- ~~`when(condition, transform)`~~ - Complex conditional logic, use external control flow
+- ~~`when(condition, transform)`~~ -- Complex conditional logic, use external control flow
 
 ### Enhanced Error Handling
 - [ ] **Structured error codes** - Programmatic error identification
@@ -284,7 +284,7 @@ $stringValidator = Validator::isString()
 - [ ] ~~`optional()` method~~ - Redundant since everything is optional by default
 - [ ] ~~`nullable()` method~~ - Redundant since everything accepts null by default (unless required)
 
-## 🏗️ Future Release (v0.6.0) - Advanced Schema Features
+## Future Release - Advanced Schema Features
 
 ### Schema Composition
 - [ ] **`additionalProperties()`** - Control undefined properties in schemas
@@ -302,7 +302,7 @@ $stringValidator = Validator::isString()
 - [ ] **`additionalItems()`** - Control validation of extra array items
 - [ ] **Tuple validation** - Fixed-position array item validation
 
-## 🔮 Long-term Vision (v1.0.0+)
+## Long-term Vision
 
 ### Performance & Scalability
 - [ ] **Validation caching** - Cache expensive validation results
@@ -319,25 +319,25 @@ $stringValidator = Validator::isString()
 - [ ] **Symfony integration** - Symfony Form component compatibility
 - [ ] **PSR-7 middleware** - HTTP request validation middleware
 
-## 🎯 Ongoing Quality Initiatives
+## Ongoing Quality Initiatives
 
 ### Documentation
-- [x] ✅ Comprehensive guide restructure
-- [x] ✅ API reference documentation
-- [x] ✅ Real-world examples
-- [x] ✅ Complete `nullifyEmpty()` documentation across all guides
-- [x] ✅ Form-safe validation examples and rationale
-- [x] ✅ Fixed all dead links in documentation
+- [x] Comprehensive guide restructure
+- [x] API reference documentation
+- [x] Real-world examples
+- [x] Complete `nullifyEmpty()` documentation across all guides
+- [x] Form-safe validation examples and rationale
+- [x] Fixed all dead links in documentation
 - [ ] **Video tutorials** - Getting started screencasts
 - [ ] **Interactive documentation** - Runnable examples
 
 ### Testing & Quality
-- [x] ✅ Organized test suite (10 focused test files, 135 tests, 390 assertions)
-- [x] ✅ 100% PHPStan compliance
-- [x] ✅ PHP-CS-Fixer standards
-- [x] ✅ Static logical combinators test coverage
-- [x] ✅ Comprehensive schema validation test coverage
-- [x] ✅ Floating-point precision bug fixes with comprehensive edge case testing
+- [x] Organized test suite (10 focused test files, 135 tests, 390 assertions)
+- [x] 100% PHPStan compliance
+- [x] PHP-CS-Fixer standards
+- [x] Static logical combinators test coverage
+- [x] Comprehensive schema validation test coverage
+- [x] Floating-point precision bug fixes with comprehensive edge case testing
 - [ ] **Mutation testing** - Enhanced test quality verification
 - [ ] **Property-based testing** - Randomized validation testing
 - [ ] **Performance benchmarking** - Continuous performance monitoring
@@ -347,7 +347,7 @@ $stringValidator = Validator::isString()
 - [ ] **Community validators** - Shared validation library
 - [ ] **Migration tools** - Automated upgrades between versions
 
-## 🔄 Development Process
+## Development Process
 
 ### Feature Development Workflow
 1. **Research & Design** - Community input, API design
@@ -357,19 +357,19 @@ $stringValidator = Validator::isString()
 5. **Release & Feedback** - Version release, community feedback
 
 ### Quality Gates
-- ✅ **100% test coverage** for new features
-- ✅ **PHPStan level max** compliance
-- ✅ **Backward compatibility** preservation
-- ✅ **Performance benchmarking** - No regressions
-- ✅ **Documentation completeness** - Guides and examples
-- ✅ **Ecosystem integration** - Prefer extensibility over reimplementation
+- **100% test coverage** for new features
+- **PHPStan level max** compliance
+- **Backward compatibility** preservation
+- **Performance benchmarking** - No regressions
+- **Documentation completeness** - Guides and examples
+- **Ecosystem integration** - Prefer extensibility over reimplementation
 
 ### Release Cadence
 - **Major releases** (x.0.0) - Breaking changes, major features (quarterly)
 - **Minor releases** (x.y.0) - New features, enhancements (monthly)
 - **Patch releases** (x.y.z) - Bug fixes, documentation (as needed)
 
-## 📊 Success Metrics
+## Success Metrics
 
 ### Adoption Metrics
 - **Package downloads** - Packagist installation statistics
