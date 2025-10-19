@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-10-19
+
 ### Added
 - **Type-Safe Pipeline Architecture**: Enhanced internal architecture with `PipelineType` enum for improved developer experience
   - **IDE Autocomplete Support**: `PipelineType::VALIDATION` and `PipelineType::TRANSFORMATION` with full IDE integration
