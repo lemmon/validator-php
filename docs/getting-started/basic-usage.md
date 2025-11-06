@@ -7,7 +7,7 @@ This guide covers the fundamental concepts and usage patterns of the Lemmon Vali
 All validation starts with the `Validator` factory class, which provides static methods to create specific validator instances:
 
 ```php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 // Create validators for different types
 $stringValidator = Validator::isString();

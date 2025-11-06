@@ -15,7 +15,7 @@ This guide covers array validation using the `ArrayValidator` class, which handl
 ### Simple Array Validation
 
 ```php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 // Validate indexed arrays
 $validator = Validator::isArray();
@@ -293,7 +293,7 @@ $result = $nestedArray->validate([
 ### Basic Error Handling
 
 ```php
-use Lemmon\ValidationException;
+use Lemmon\Validator\ValidationException;
 
 $validator = Validator::isArray();
 

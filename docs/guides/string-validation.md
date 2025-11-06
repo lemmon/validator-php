@@ -7,7 +7,7 @@ The `StringValidator` provides comprehensive validation for string data, includi
 Create a string validator using the factory:
 
 ```php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 $validator = Validator::isString();
 $result = $validator->validate('Hello, World!'); // Returns: 'Hello, World!'

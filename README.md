@@ -49,8 +49,10 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 
 ## Quick Start
 
+All runtime classes live under the `Lemmon\Validator` namespace.
+
 ```php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 // Simple validation with form-safe coercion
 $email = Validator::isString()

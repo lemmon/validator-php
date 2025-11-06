@@ -1,6 +1,7 @@
 <?php
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 it('should coerce empty string to null for form safety', function () {
     $validator = Validator::isFloat()->coerce();
@@ -21,7 +22,7 @@ it('should fail coercion for non-numeric strings', function () {
     $validator = Validator::isFloat()->coerce();
 
     $validator->validate('abc');
-})->throws(Lemmon\ValidationException::class, 'Value must be a float');
+})->throws(ValidationException::class, 'Value must be a float');
 
 it('should validate floats', function () {
     $validator = Validator::isFloat();
@@ -31,7 +32,7 @@ it('should validate floats', function () {
     expect($validator->validate('123.45'))->toBe(123.45);
 
     $validator->validate('not-a-float');
-})->throws(Lemmon\ValidationException::class, 'Value must be a float');
+})->throws(ValidationException::class, 'Value must be a float');
 
 it('should validate float ranges', function () {
     $rangeValidator = Validator::isFloat()->min(10)->max(100);
@@ -41,7 +42,7 @@ it('should validate float ranges', function () {
     expect($rangeValidator->validate(100))->toBe(100.0);
 
     $rangeValidator->validate(5);
-})->throws(Lemmon\ValidationException::class);
+})->throws(ValidationException::class);
 
 it('should validate float multiples', function () {
     $multipleValidator = Validator::isFloat()->multipleOf(5);
@@ -50,7 +51,7 @@ it('should validate float multiples', function () {
     expect($multipleValidator->validate(20))->toBe(20.0);
 
     $multipleValidator->validate(13);
-})->throws(Lemmon\ValidationException::class, 'Value must be a multiple of 5');
+})->throws(ValidationException::class, 'Value must be a multiple of 5');
 
 it('should validate positive floats', function () {
     $positiveValidator = Validator::isFloat()->positive();
@@ -59,7 +60,7 @@ it('should validate positive floats', function () {
     expect($positiveValidator->validate(0.1))->toBe(0.1);
 
     $positiveValidator->validate(-1);
-})->throws(Lemmon\ValidationException::class, 'Value must be positive');
+})->throws(ValidationException::class, 'Value must be positive');
 
 it('should handle floating-point precision in multipleOf validation', function () {
     // Test cases that previously failed due to floating-point precision

@@ -1,10 +1,12 @@
 <?php
 
-namespace Lemmon;
+namespace Lemmon\Validator;
 
-class BoolValidator extends FieldValidator
+class FloatValidator extends FieldValidator
 {
+    use NumericConstraintsTrait;
     use OneOfTrait;
+
     /**
      * @inheritDoc
      */
@@ -13,11 +15,8 @@ class BoolValidator extends FieldValidator
         if ($value === '') {
             return null; // Empty string to null for form safety
         }
-        if (in_array(strtolower((string) $value), ['true', 'on', '1'], true)) {
-            return true;
-        }
-        if (in_array(strtolower((string) $value), ['false', 'off', '0'], true)) {
-            return false;
+        if (is_numeric($value)) {
+            return is_int($value) ? (float) $value : (float) $value;
         }
         return $value;
     }
@@ -27,7 +26,7 @@ class BoolValidator extends FieldValidator
      */
     protected function getValidatorType(): string
     {
-        return 'bool';
+        return 'float';
     }
 
     /**
@@ -35,9 +34,9 @@ class BoolValidator extends FieldValidator
      */
     protected function validateType(mixed $value, string $key): mixed
     {
-        if (!is_bool($value)) {
-            throw new ValidationException(['Value must be a boolean']);
+        if (!is_numeric($value)) {
+            throw new ValidationException(['Value must be a float']);
         }
-        return $value;
+        return (float) $value;
     }
 }

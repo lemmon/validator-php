@@ -7,7 +7,7 @@ The Lemmon Validator provides two distinct numeric validators: `IntValidator` fo
 ### Basic Integer Validation
 
 ```php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 $intValidator = Validator::isInt();
 $result = $intValidator->validate(42); // Returns: 42 (int)

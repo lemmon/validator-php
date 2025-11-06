@@ -1,6 +1,6 @@
 <?php
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 it('should handle mixed numeric constraints via trait', function () {
     // Test that int validator works with float constraints (via union types)

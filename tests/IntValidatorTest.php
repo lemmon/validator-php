@@ -1,6 +1,7 @@
 <?php
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 it('should coerce empty string to null for form safety', function () {
     $validator = Validator::isInt()->coerce();
@@ -20,7 +21,7 @@ it('should fail coercion for non-numeric strings', function () {
     $validator = Validator::isInt()->coerce();
 
     $validator->validate('abc');
-})->throws(Lemmon\ValidationException::class, 'Value must be an integer');
+})->throws(ValidationException::class, 'Value must be an integer');
 
 it('should validate integer ranges', function () {
     $rangeValidator = Validator::isInt()->min(10)->max(100);
@@ -30,7 +31,7 @@ it('should validate integer ranges', function () {
     expect($rangeValidator->validate(100))->toBe(100);
 
     $rangeValidator->validate(5);
-})->throws(Lemmon\ValidationException::class, 'Value must be at least 10');
+})->throws(ValidationException::class, 'Value must be at least 10');
 
 it('should validate integer multiples', function () {
     $multipleValidator = Validator::isInt()->multipleOf(5);
@@ -40,7 +41,7 @@ it('should validate integer multiples', function () {
     expect($multipleValidator->validate(0))->toBe(0);
 
     $multipleValidator->validate(13);
-})->throws(Lemmon\ValidationException::class, 'Value must be a multiple of 5');
+})->throws(ValidationException::class, 'Value must be a multiple of 5');
 
 it('should validate positive integers', function () {
     $positiveValidator = Validator::isInt()->positive();
@@ -49,7 +50,7 @@ it('should validate positive integers', function () {
     expect($positiveValidator->validate(100))->toBe(100);
 
     $positiveValidator->validate(-1);
-})->throws(Lemmon\ValidationException::class, 'Value must be positive');
+})->throws(ValidationException::class, 'Value must be positive');
 
 it('should validate negative integers', function () {
     $negativeValidator = Validator::isInt()->negative();
@@ -58,7 +59,7 @@ it('should validate negative integers', function () {
     expect($negativeValidator->validate(-100))->toBe(-100);
 
     $negativeValidator->validate(1);
-})->throws(Lemmon\ValidationException::class, 'Value must be negative');
+})->throws(ValidationException::class, 'Value must be negative');
 
 it('should coerce strings to integers', function () {
     $intValidator = Validator::isInt()->coerce();

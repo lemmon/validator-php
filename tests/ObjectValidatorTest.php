@@ -1,6 +1,7 @@
 <?php
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 it('should validate a stdClass object', function () {
     $schema = Validator::isObject([
@@ -80,7 +81,7 @@ it('should fail to validate an associative array when coerce is not enabled', fu
 
     try {
         $schema->validate($input);
-    } catch (Lemmon\ValidationException $e) {
+    } catch (Lemmon\Validator\ValidationException $e) {
         expect($e->getErrors())->toBe(['Input must be an object']);
         return;
     }
@@ -167,7 +168,7 @@ it('should still validate required fields even when not provided', function () {
     ];
 
     expect(fn () => $schema->validate($input))
-        ->toThrow(Lemmon\ValidationException::class, 'Value is required');
+        ->toThrow(ValidationException::class, 'Value is required');
 });
 
 it('should coerce empty string to empty object when coerce is enabled', function () {
@@ -198,5 +199,5 @@ it('should reject non-empty strings even with coerce enabled', function () {
     $schema = Validator::isObject()->coerce();
 
     expect(fn () => $schema->validate('not-empty'))
-        ->toThrow(Lemmon\ValidationException::class, 'Input must be an object');
+        ->toThrow(ValidationException::class, 'Input must be an object');
 });

@@ -11,8 +11,8 @@ The library provides two validation approaches with different error handling str
 Throws a `ValidationException` when validation fails:
 
 ```php
-use Lemmon\Validator;
-use Lemmon\ValidationException;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 $validator = Validator::isString()->email();
 

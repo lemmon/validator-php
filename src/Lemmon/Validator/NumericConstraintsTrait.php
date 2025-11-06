@@ -1,6 +1,6 @@
 <?php
 
-namespace Lemmon;
+namespace Lemmon\Validator;
 
 /**
  * Trait providing common numeric validation constraints.

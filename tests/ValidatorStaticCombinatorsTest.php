@@ -1,7 +1,7 @@
 <?php
 
-use Lemmon\Validator;
-use Lemmon\ValidationException;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 describe('Validator Static Logical Combinators', function () {
 

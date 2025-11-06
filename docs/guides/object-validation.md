@@ -17,7 +17,7 @@ This guide covers validation of structured data using `AssociativeValidator` (fo
 ### Basic Associative Array Validation
 
 ```php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 // Simple associative array without schema
 $validator = Validator::isAssociative();
@@ -358,7 +358,7 @@ $contactFormSchema = Validator::isAssociative([
 ### Schema Validation Errors
 
 ```php
-use Lemmon\ValidationException;
+use Lemmon\Validator\ValidationException;
 
 $schema = Validator::isAssociative([
     'name' => Validator::isString()->required(),

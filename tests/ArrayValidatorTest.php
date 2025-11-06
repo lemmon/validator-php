@@ -1,6 +1,7 @@
 <?php
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 it('should filter empty values and reindex array', function () {
     $validator = Validator::isArray()->filterEmpty();
@@ -67,7 +68,7 @@ it('should reject associative arrays', function () {
     $validator = Validator::isArray();
 
     $validator->validate(['key' => 'value']);
-})->throws(Lemmon\ValidationException::class);
+})->throws(ValidationException::class);
 
 it('should validate array items with type validator', function () {
     $validator = Validator::isArray()->items(Validator::isString());
@@ -80,7 +81,7 @@ it('should reject array items that do not match type validator', function () {
     $validator = Validator::isArray()->items(Validator::isString());
 
     $validator->validate(['foo', 123, 'baz']);
-})->throws(Lemmon\ValidationException::class);
+})->throws(ValidationException::class);
 
 it('should coerce string to single-item array', function () {
     $validator = Validator::isArray()->coerce();
@@ -125,7 +126,7 @@ it('should work with required and default values', function () {
     // Test with required
     $validator = Validator::isArray()->required();
     $validator->validate(null, 'test', []);
-})->throws(Lemmon\ValidationException::class);
+})->throws(ValidationException::class);
 
 // Note: oneOf() is not available on ArrayValidator as array comparison doesn't make logical sense.
 // Use satisfies() for custom array validation logic if needed.
@@ -144,7 +145,7 @@ it('should handle null correctly with coercion', function () {
     // With required - null should throw error
     $validator = Validator::isArray()->coerce()->required();
     $validator->validate(null, 'test', []);
-})->throws(Lemmon\ValidationException::class);
+})->throws(ValidationException::class);
 
 it('should allow null for optional array validator', function () {
     $validator = Validator::isArray();

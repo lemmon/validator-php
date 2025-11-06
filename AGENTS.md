@@ -4,6 +4,8 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 
 ## Architecture
 
+- **Root Namespace** - Runtime classes live under `Lemmon\Validator`; tests use `Lemmon\Tests`
+
 ### Core Factory Pattern
 - **`Validator`** - Static factory creating type-specific validators (`isString()`, `isInt()`, `isFloat()`, `isArray()`, `isAssociative()`, `isObject()`, `isBool()`)
 - **`FieldValidator`** - Abstract base class with unified validation interface and shared functionality

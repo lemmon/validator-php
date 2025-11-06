@@ -1,6 +1,7 @@
 <?php
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 it('should validate boolean values', function () {
     $validator = Validator::isBool();
@@ -38,14 +39,14 @@ it('should handle case insensitive coercion', function () {
 it('should fail validation for non-boolean values without coercion', function () {
     $validator = Validator::isBool();
 
-    expect(fn () => $validator->validate('true'))->toThrow(Lemmon\ValidationException::class);
-    expect(fn () => $validator->validate(1))->toThrow(Lemmon\ValidationException::class);
-    expect(fn () => $validator->validate(0))->toThrow(Lemmon\ValidationException::class);
+    expect(fn () => $validator->validate('true'))->toThrow(ValidationException::class);
+    expect(fn () => $validator->validate(1))->toThrow(ValidationException::class);
+    expect(fn () => $validator->validate(0))->toThrow(ValidationException::class);
 });
 
 it('should return non-coercible values as-is for type validation to handle', function () {
     $validator = Validator::isBool()->coerce();
 
-    expect(fn () => $validator->validate('invalid'))->toThrow(Lemmon\ValidationException::class);
-    expect(fn () => $validator->validate(123))->toThrow(Lemmon\ValidationException::class);
+    expect(fn () => $validator->validate('invalid'))->toThrow(ValidationException::class);
+    expect(fn () => $validator->validate(123))->toThrow(ValidationException::class);
 });

@@ -1,6 +1,6 @@
 <?php
 
-namespace Lemmon;
+namespace Lemmon\Validator;
 
 class Validator
 {

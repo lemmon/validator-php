@@ -21,7 +21,7 @@ Validation Rules (email(), min(), etc.)
 The `Validator` class is a factory that creates specific validator instances:
 
 ```php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 // Factory methods create specific validators
 $string = Validator::isString();    // → StringValidator

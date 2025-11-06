@@ -1,6 +1,7 @@
 <?php
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 it('should validate a correct payload', function () {
     $schema = Validator::isAssociative([
@@ -37,14 +38,14 @@ it('should throw a validation exception for invalid payload', function () {
     ];
 
     $schema->validate($input);
-})->throws(Lemmon\ValidationException::class);
+})->throws(ValidationException::class);
 
 it('should throw a validation exception for non-array input in AssociativeValidator', function () {
     $schema = Validator::isAssociative([]);
 
     try {
         $schema->validate('not an array');
-    } catch (Lemmon\ValidationException $e) {
+    } catch (ValidationException $e) {
         expect($e->getErrors())->toBe(['Input must be an associative array']);
     }
 });
@@ -89,9 +90,9 @@ it('should allow null for optional nested associative array in schema', function
 });
 
 it('should coerce stdClass object to associative array when coerce is enabled', function () {
-    $schema = Lemmon\Validator::isAssociative([
-        'name' => Lemmon\Validator::isString(),
-        'age' => Lemmon\Validator::isInt(),
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString(),
+        'age' => Validator::isInt(),
     ])->coerce();
 
     $object = new stdClass();
@@ -107,15 +108,15 @@ it('should coerce stdClass object to associative array when coerce is enabled', 
 });
 
 it('should fail to validate stdClass object when coerce is not enabled', function () {
-    $schema = Lemmon\Validator::isAssociative([
-        'name' => Lemmon\Validator::isString(),
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString(),
     ]);
 
     $object = new stdClass();
     $object->name = 'John Doe';
 
     $schema->validate($object);
-})->throws(Lemmon\ValidationException::class, 'Input must be an associative array');
+})->throws(ValidationException::class, 'Input must be an associative array');
 
 it('should only include provided fields in result (not all schema fields)', function () {
     $schema = Validator::isAssociative([
@@ -194,7 +195,7 @@ it('should still validate required fields even when not provided', function () {
     ];
 
     expect(fn () => $schema->validate($input))
-        ->toThrow(Lemmon\ValidationException::class, 'Value is required');
+        ->toThrow(ValidationException::class, 'Value is required');
 });
 
 it('should coerce empty string to empty array when coerce is enabled', function () {
@@ -227,5 +228,5 @@ it('should reject non-empty strings even with coerce enabled', function () {
     $schema = Validator::isAssociative()->coerce();
 
     expect(fn () => $schema->validate('not-empty'))
-        ->toThrow(Lemmon\ValidationException::class, 'Input must be an associative array');
+        ->toThrow(ValidationException::class, 'Input must be an associative array');
 });

@@ -1,6 +1,6 @@
 <?php
 
-namespace Lemmon;
+namespace Lemmon\Validator;
 
 /**
  * Trait for validators that support oneOf() validation (value restriction to specific allowed values).

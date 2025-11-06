@@ -21,7 +21,7 @@ The package follows PSR-4 autoloading standards. If you're using Composer's auto
 <?php
 require_once 'vendor/autoload.php';
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 // Ready to use!
 $validator = Validator::isString();
@@ -35,7 +35,7 @@ Verify your installation by running a simple validation:
 <?php
 require_once 'vendor/autoload.php';
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 try {
     $result = Validator::isString()->email()->validate('test@example.com');

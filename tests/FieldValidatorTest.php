@@ -1,6 +1,7 @@
 <?php
 
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 it('should apply single transformation after validation', function () {
     $validator = Validator::isString()->transform('trim');
@@ -175,7 +176,7 @@ it('should work with numeric type transitions', function () {
 it('should throw a validation exception with a generic message for standalone validators', function () {
     try {
         Validator::isString()->validate(123);
-    } catch (Lemmon\ValidationException $e) {
+    } catch (Lemmon\Validator\ValidationException $e) {
         expect($e->getErrors())->toBe(['Value must be a string']);
     }
 });
@@ -228,7 +229,7 @@ it('should validate satisfiesAll combinator', function () {
     expect($validator->validate('hello'))->toBe('hello');
 
     $validator->validate('hi'); // Too short
-})->throws(Lemmon\ValidationException::class, 'Value must satisfy all validation rules');
+})->throws(ValidationException::class, 'Value must satisfy all validation rules');
 
 it('should validate satisfiesAny combinator', function () {
     $validator = Validator::isString()->satisfiesAny([
@@ -242,7 +243,7 @@ it('should validate satisfiesAny combinator', function () {
     expect($validator->validate('550e8400-e29b-41d4-a716-446655440000'))->toBe('550e8400-e29b-41d4-a716-446655440000');
 
     $validator->validate('invalid-value');
-})->throws(Lemmon\ValidationException::class, 'Value must satisfy at least one validation rule');
+})->throws(ValidationException::class, 'Value must satisfy at least one validation rule');
 
 it('should validate satisfiesNone combinator', function () {
     $validator = Validator::isString()->satisfiesNone([Validator::isString()->email()]);
@@ -251,7 +252,7 @@ it('should validate satisfiesNone combinator', function () {
     expect($validator->validate('hello world'))->toBe('hello world');
 
     $validator->validate('test@example.com');
-})->throws(Lemmon\ValidationException::class, 'Value must not satisfy any of the validation rules');
+})->throws(ValidationException::class, 'Value must not satisfy any of the validation rules');
 
 it('should add custom validation with satisfies() method and custom message', function () {
     $validator = Validator::isString()->satisfies(
@@ -262,7 +263,7 @@ it('should add custom validation with satisfies() method and custom message', fu
     expect($validator->validate('long enough'))->toBe('long enough');
 
     $validator->validate('short');
-})->throws(Lemmon\ValidationException::class, 'String must be longer than 5 characters');
+})->throws(ValidationException::class, 'String must be longer than 5 characters');
 
 it('should add custom validation with satisfies() method and default message', function () {
     $validator = Validator::isString()->satisfies(
@@ -273,7 +274,7 @@ it('should add custom validation with satisfies() method and default message', f
     expect($validator->validate('long enough'))->toBe('long enough');
 
     $validator->validate('short');
-})->throws(Lemmon\ValidationException::class, 'Custom validation failed');
+})->throws(ValidationException::class, 'Custom validation failed');
 
 it('should maintain backward compatibility with addValidation()', function () {
     $validator = Validator::isString()->addValidation(
@@ -284,7 +285,7 @@ it('should maintain backward compatibility with addValidation()', function () {
     expect($validator->validate('long enough'))->toBe('long enough');
 
     $validator->validate('short');
-})->throws(Lemmon\ValidationException::class, 'Old method still works');
+})->throws(ValidationException::class, 'Old method still works');
 
 it('should support context-aware validation with satisfies()', function () {
     $validator = Validator::isString()->satisfies(
@@ -299,7 +300,7 @@ it('should support context-aware validation with satisfies()', function () {
 
     $input = ['password' => 'secret123', 'password_confirm' => 'different'];
     $validator->validate('different', 'password_confirm', $input);
-})->throws(Lemmon\ValidationException::class, 'Password confirmation must match password');
+})->throws(ValidationException::class, 'Password confirmation must match password');
 
 it('should support satisfies() with FieldValidator instances', function () {
     $validator = Validator::isString()->satisfies(
@@ -310,7 +311,7 @@ it('should support satisfies() with FieldValidator instances', function () {
     expect($validator->validate('hello world'))->toBe('hello world');
 
     $validator->validate('hi');
-})->throws(Lemmon\ValidationException::class, 'Must be at least 5 characters');
+})->throws(ValidationException::class, 'Must be at least 5 characters');
 
 it('should support satisfiesAny() with mixed validators and callables', function () {
     $validator = Validator::isString()->satisfiesAny([
@@ -330,7 +331,7 @@ it('should support satisfiesAny() with mixed validators and callables', function
 
     // Should fail - none of the conditions
     $validator->validate('short');
-})->throws(Lemmon\ValidationException::class, 'Must be long, contain @, or be numeric');
+})->throws(ValidationException::class, 'Must be long, contain @, or be numeric');
 
 it('should support satisfiesAll() with mixed validators and callables', function () {
     $validator = Validator::isString()->satisfiesAll([
@@ -344,7 +345,7 @@ it('should support satisfiesAll() with mixed validators and callables', function
 
     // Should fail - contains 'bad'
     $validator->validate('bad string');
-})->throws(Lemmon\ValidationException::class, 'Must be 5-20 chars and not contain \"bad\"');
+})->throws(ValidationException::class, 'Must be 5-20 chars and not contain \"bad\"');
 
 it('should support satisfiesNone() with array of validators and callables', function () {
     $validator = Validator::isString()->satisfiesNone([
@@ -358,7 +359,7 @@ it('should support satisfiesNone() with array of validators and callables', func
 
     // Should fail - contains numbers
     $validator->validate('hello123');
-})->throws(Lemmon\ValidationException::class, 'Must not contain numbers, forbidden words, or be too long');
+})->throws(ValidationException::class, 'Must not contain numbers, forbidden words, or be too long');
 
 it('should support satisfiesNone() with single forbidden condition', function () {
     $validator = Validator::isString()->satisfiesNone([
@@ -370,7 +371,7 @@ it('should support satisfiesNone() with single forbidden condition', function ()
 
     // Should fail - contains spam
     $validator->validate('this is spam content');
-})->throws(Lemmon\ValidationException::class, 'Must not contain spam');
+})->throws(ValidationException::class, 'Must not contain spam');
 
 it('should use custom error message for required() method', function () {
     $validator = Validator::isString()->required('Name is mandatory');
@@ -378,7 +379,7 @@ it('should use custom error message for required() method', function () {
     expect($validator->validate('John'))->toBe('John');
 
     $validator->validate(null);
-})->throws(Lemmon\ValidationException::class, 'Name is mandatory');
+})->throws(ValidationException::class, 'Name is mandatory');
 
 it('should use default error message for required() method when no custom message provided', function () {
     $validator = Validator::isString()->required();
@@ -386,7 +387,7 @@ it('should use default error message for required() method when no custom messag
     expect($validator->validate('John'))->toBe('John');
 
     $validator->validate(null);
-})->throws(Lemmon\ValidationException::class, 'Value is required');
+})->throws(ValidationException::class, 'Value is required');
 
 it('should use custom required message with coercion', function () {
     $validator = Validator::isInt()->coerce()->required('Please provide a valid number');
@@ -395,7 +396,7 @@ it('should use custom required message with coercion', function () {
 
     // Empty string coerces to null, then fails required validation
     $validator->validate('');
-})->throws(Lemmon\ValidationException::class, 'Please provide a valid number');
+})->throws(ValidationException::class, 'Please provide a valid number');
 
 it('should use custom required message with nullifyEmpty', function () {
     $validator = Validator::isString()->nullifyEmpty()->required('Field cannot be empty');
@@ -404,4 +405,4 @@ it('should use custom required message with nullifyEmpty', function () {
 
     // Empty string nullified, then fails required validation
     $validator->validate('');
-})->throws(Lemmon\ValidationException::class, 'Field cannot be empty');
+})->throws(ValidationException::class, 'Field cannot be empty');

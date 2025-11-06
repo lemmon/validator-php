@@ -7,7 +7,7 @@ The Lemmon Validator allows you to add custom validation logic using the `satisf
 ### Simple Custom Rule
 
 ```php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 $validator = Validator::isString()->satisfies(
     function ($value) {

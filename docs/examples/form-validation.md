@@ -36,8 +36,8 @@ This guide demonstrates how to use the Lemmon Validator for common form validati
 
 ```php
 <?php
-use Lemmon\Validator;
-use Lemmon\ValidationException;
+use Lemmon\Validator\Validator;
+use Lemmon\Validator\ValidationException;
 
 class ContactFormValidator
 {
@@ -272,11 +272,11 @@ if (!$result['valid']) {
 
 ```php
 <?php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 class UserRegistrationValidator
 {
-    public function createValidator(): \Lemmon\AssociativeValidator
+    public function createValidator(): \Lemmon\Validator\AssociativeValidator
     {
         return Validator::isAssociative([
             // Personal Information
@@ -366,7 +366,7 @@ class UserRegistrationValidator
         ]);
     }
 
-    private function createPasswordValidator(): \Lemmon\StringValidator
+    private function createPasswordValidator(): \Lemmon\Validator\StringValidator
     {
         return Validator::isString()
             ->required('Password is required')
@@ -483,11 +483,11 @@ class RegistrationController
 
 ```php
 <?php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 class ProductFormValidator
 {
-    public function createValidator(): \Lemmon\AssociativeValidator
+    public function createValidator(): \Lemmon\Validator\AssociativeValidator
     {
         return Validator::isAssociative([
             // Basic Information
@@ -668,7 +668,7 @@ class ProductFormValidator
 
 ```php
 <?php
-use Lemmon\Validator;
+use Lemmon\Validator\Validator;
 
 class MultiStepRegistrationValidator
 {
