@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [0.8.0] - 2025-11-06
 ### Changed
 - Migrated all runtime classes to the `Lemmon\Validator` namespace and aligned documentation/examples with the new structure.
 
