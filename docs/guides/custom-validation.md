@@ -326,6 +326,94 @@ $conditionalValidator = Validator::isString()->satisfies(
 );
 ```
 
+## Extending Core Validators
+
+Sometimes a project needs a richer, domain-specific validator (e.g., domains, SKU formats, internal identifiers) with its own fluent helpers. You can create these by subclassing the appropriate Lemmon validator and preconfiguring the shared pipeline logic.
+
+### Example: Domain Validator With Convenience Methods
+
+```php
+namespace App\Validation;
+
+use App\Domain;
+use Lemmon\Validator\StringValidator;
+
+final class DomainValidator extends StringValidator
+{
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Build on top of the standard string validator pipeline
+        $this->pipe(
+            'trim',
+            'strtolower',
+            fn($value) => str_starts_with($value, 'www.') ? substr($value, 4) : $value,
+            fn($value) => rtrim($value, '.')
+        )
+        ->nullifyEmpty()
+        ->satisfies(
+            fn($value) => substr_count($value, '.') > 0
+                && filter_var($value, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME),
+            'HOSTNAME_INVALID'
+        );
+    }
+
+    public function ensureUnique(): self
+    {
+        return $this->satisfies(
+            fn($value) => !Domain::fromDomain($value, silent: true),
+            'DOMAIN_DUPLICATE'
+        );
+    }
+
+    public function mustBeRoot(): self
+    {
+        return $this->satisfies(
+            fn($value) => substr_count($value, '.') === 1,
+            'DOMAIN_NOT_ROOT'
+        );
+    }
+
+    public function mustBeSubdomainOf(string $root): self
+    {
+        $root = ltrim($root, '.');
+
+        return $this->satisfies(
+            fn($value) => substr_count($value, '.') > 1
+                && str_ends_with($value, '.' . $root),
+            'DOMAIN_NOT_ALLOWED'
+        );
+    }
+}
+
+final class ValidationRules
+{
+    public static function isDomain(): DomainValidator
+    {
+        return new DomainValidator();
+    }
+}
+```
+
+Usage stays fully fluent:
+
+```php
+$domain = ValidationRules::isDomain()
+    ->ensureUnique()
+    ->mustBeSubdomainOf('example.com')
+    ->validate('blog.example.com');
+```
+
+This pattern scales to any custom validator:
+
+- Subclass the Lemmon validator that matches your base type (`StringValidator`, `IntValidator`, etc.)
+- Configure the shared pipeline in `__construct` (coercion, transforms, generic `satisfies()` calls)
+- Add expressive helper methods that append more rules and return `$this`
+- Return the custom validator from a project-specific factory (e.g., `ValidationRules::isDomain()`)
+
+Because these classes extend the core validators, they inherit null handling, error aggregation, coercion, and every other built-in capability, while letting you publish clean, reusable validators for your application.
+
 ## Testing Custom Validators
 
 ### Unit Testing Custom Validation Logic
