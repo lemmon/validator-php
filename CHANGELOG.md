@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.9.0] - 2025-11-18
+
+### Added
+- **Validator cloning**: Added `clone()` support to all validators for safe reuse of prebuilt pipelines without shared state. Pipelines are rebound to the cloned instance and nested schemas/item validators deep-clone to avoid cross-contamination between validators.
+
 ## [0.8.0] - 2025-11-06
 ### Changed
 - Migrated all runtime classes to the `Lemmon\Validator` namespace and aligned documentation/examples with the new structure.

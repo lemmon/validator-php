@@ -102,4 +102,13 @@ class ArrayValidator extends FieldValidator
 
         return $value;
     }
+
+    public function __clone()
+    {
+        parent::__clone();
+
+        if ($this->itemValidator !== null) {
+            $this->itemValidator = $this->itemValidator->clone();
+        }
+    }
 }

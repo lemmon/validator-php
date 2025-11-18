@@ -193,6 +193,46 @@ it('should return a result tuple for standalone validators', function () {
     expect($errors)->toBe(['Value must be a string']);
 });
 
+it('should clone validators without sharing pipeline state', function () {
+    $original = Validator::isString()
+        ->transform(fn ($v) => explode(',', trim($v))) // String → Array
+        ->pipe('array_reverse')                        // Array operations use current type
+        ->transform(fn ($v) => implode('-', $v));      // Array → String
+
+    $clone = $original->clone();
+
+    $result = $clone->validate('a,b,c');
+    expect($result)->toBe('c-b-a');
+
+    $currentType = new ReflectionProperty($original, 'currentType');
+    $currentType->setAccessible(true);
+
+    expect($currentType->getValue($original))->toBeNull(); // Original instance untouched
+});
+
+it('should deep clone nested schemas for associative validators', function () {
+    $original = Validator::isAssociative([
+        'nickname' => Validator::isString(),
+    ]);
+
+    $clone = $original->clone();
+
+    $schemaProperty = new ReflectionProperty($clone, 'schema');
+    $schemaProperty->setAccessible(true);
+    $cloneSchema = $schemaProperty->getValue($clone);
+
+    $cloneSchema['nickname']->default('buddy');
+
+    $originalSchemaProperty = new ReflectionProperty($original, 'schema');
+    $originalSchemaProperty->setAccessible(true);
+    $originalSchema = $originalSchemaProperty->getValue($original);
+
+    expect($cloneSchema['nickname'])->not->toBe($originalSchema['nickname']); // No shared instances
+
+    expect($original->validate([]))->toBe([]);
+    expect($clone->validate([]))->toBe(['nickname' => 'buddy']);
+});
+
 it('should fail fast in single pipeline - first validation error stops execution', function () {
     $validator = Validator::isString()->minLength(10)->maxLength(3)->email();
 

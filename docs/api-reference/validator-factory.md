@@ -214,6 +214,24 @@ $email2 = $emailValidator->validate('user2@example.com');
 $email3 = $emailValidator->validate('user3@example.com');
 ```
 
+### Cloning Validators for Variations
+
+Use `clone()` to fork a base pipeline without sharing state:
+
+```php
+$baseEmail = Validator::isString()
+    ->email()
+    ->pipe('trim', 'strtolower');
+
+$requiredEmail = $baseEmail->clone()->required();
+$nullableEmail = $baseEmail->clone()->default(null);
+
+$requiredEmail->validate('USER@EXAMPLE.COM'); // 'user@example.com'
+$nullableEmail->validate(null);               // null (default applied)
+```
+
+`clone()` performs a deep copy, including nested schemas/item validators, so modifications on the clone never leak back to the original.
+
 ### Complex Schema Validation
 
 ```php

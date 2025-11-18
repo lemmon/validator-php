@@ -11,6 +11,16 @@ abstract class FieldValidator
     protected ?string $requiredMessage = null;
 
     /**
+     * Creates a deep copy of the validator, including pipeline closures bound to the clone.
+     *
+     * @return static
+     */
+    public function clone(): static
+    {
+        return clone $this;
+    }
+
+    /**
      * @var array<array{type: PipelineType, operation: callable}>
      */
     protected array $pipeline = [];
@@ -452,5 +462,23 @@ abstract class FieldValidator
             return $value;
         }
         return $value; // Preserve keys - no reindexing!
+    }
+
+    public function __clone()
+    {
+        $rebuiltPipeline = [];
+        foreach ($this->pipeline as $step) {
+            $operation = $step['operation'];
+            if ($operation instanceof \Closure) {
+                $operation = $operation->bindTo($this);
+            }
+
+            $rebuiltPipeline[] = [
+                'type' => $step['type'],
+                'operation' => $operation,
+            ];
+        }
+
+        $this->pipeline = $rebuiltPipeline;
     }
 }

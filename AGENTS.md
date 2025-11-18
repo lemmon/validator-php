@@ -82,6 +82,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Task Tracking** - Use GitHub-style checkboxes (`- [ ]` for pending, `- [x]` for completed) in ROADMAP.md for clear progress tracking
 - **Commit Standards** - Follow Conventional Commits spec (e.g., `fix:`, `refactor:`, `docs:`)
 - **Commit Scope** - Each commit should address a single concern; tests and implementation can ship together, but unrelated formatting belongs elsewhere
+- **Git Tags** - Prefer annotated tags for releases (author, date, message/signing) over lightweight tags
 
 ### Development Tools
 - **Debugging** - `symfony/var-dumper` integration

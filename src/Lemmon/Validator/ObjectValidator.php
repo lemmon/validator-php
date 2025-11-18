@@ -88,4 +88,13 @@ class ObjectValidator extends FieldValidator
 
         return $data;
     }
+
+    public function __clone()
+    {
+        parent::__clone();
+
+        foreach ($this->schema as $fieldKey => $validator) {
+            $this->schema[$fieldKey] = $validator->clone();
+        }
+    }
 }

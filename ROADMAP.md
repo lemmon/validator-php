@@ -61,7 +61,10 @@ This roadmap outlines the strategic development plan for future releases, priori
   - Ensured all internal navigation works properly
 
 ### Critical API Improvements
-- [ ] **Create `clone()` function** - Provide a first-class way to duplicate validator pipelines for reuse without rebuilding chains manually
+- [x] **Create `clone()` function** - Provide a first-class way to duplicate validator pipelines for reuse without rebuilding chains manually
+  - Added deep clone support with pipeline closure rebinding to cloned instances
+  - Nested schemas/item validators now clone recursively to prevent shared state
+  - Added regression tests covering pipeline state isolation and schema deep copying
 - [x] **Rename `addValidation()` to `satisfies()`** - Intuitive, descriptive method name that clearly indicates validation intent
   - Added new `satisfies(callable $validation, ?string $message = null)` method with optional error message
   - Maintains backward compatibility with deprecated `addValidation()` method
