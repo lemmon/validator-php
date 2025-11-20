@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Numeric comparison helpers (`gt`, `gte`, `lt`, `lte`), non-negative/non-positive validators, and `clampToRange(min, max)` transformation for numeric validators.
+
 ## [0.9.0] - 2025-11-18
 
 ### Added

@@ -62,6 +62,41 @@ it('should validate positive floats', function () {
     $positiveValidator->validate(-1);
 })->throws(ValidationException::class, 'Value must be positive');
 
+it('should validate non-negative and non-positive floats', function () {
+    $nonNegative = Validator::isFloat()->nonNegative();
+    expect($nonNegative->validate(0.0))->toBe(0.0);
+    expect($nonNegative->validate(1.5))->toBe(1.5);
+    $nonNegative->validate(-0.1);
+})->throws(ValidationException::class, 'Value must be non-negative');
+
+it('should validate comparison helpers on floats', function () {
+    $gtLt = Validator::isFloat()->gt(1.5)->lt(2.5);
+    expect($gtLt->validate(2.0))->toBe(2.0);
+    $gtLt->validate(1.5);
+})->throws(ValidationException::class, 'Value must be greater than 1.5');
+
+it('should validate inclusive comparison helpers on floats', function () {
+    $gteLte = Validator::isFloat()->gte(10.5)->lte(12.5);
+    expect($gteLte->validate(10.5))->toBe(10.5);
+    expect($gteLte->validate(12.5))->toBe(12.5);
+    $gteLte->validate(12.6);
+})->throws(ValidationException::class, 'Value must be at most 12.5');
+
+it('should validate non-positive floats', function () {
+    $nonPositive = Validator::isFloat()->nonPositive();
+    expect($nonPositive->validate(0.0))->toBe(0.0);
+    expect($nonPositive->validate(-2.5))->toBe(-2.5);
+    $nonPositive->validate(0.1);
+})->throws(ValidationException::class, 'Value must be non-positive');
+
+it('should clamp floats within bounds', function () {
+    $clamped = Validator::isFloat()->clampToRange(-1.5, 1.5);
+
+    expect($clamped->validate(-2.0))->toBe(-1.5);
+    expect($clamped->validate(2.0))->toBe(1.5);
+    expect($clamped->validate(0.5))->toBe(0.5);
+});
+
 it('should handle floating-point precision in multipleOf validation', function () {
     // Test cases that previously failed due to floating-point precision
     $validator = Validator::isFloat()->multipleOf(0.01);

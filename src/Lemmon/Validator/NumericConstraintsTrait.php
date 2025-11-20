@@ -41,6 +41,66 @@ trait NumericConstraintsTrait
     }
 
     /**
+     * Validates that the value is greater than the given threshold.
+     *
+     * @param int|float $threshold The minimum exclusive value.
+     * @param ?string $message Custom error message.
+     * @return static
+     */
+    public function gt(int|float $threshold, ?string $message = null): static
+    {
+        return $this->satisfies(
+            fn ($value, $key = null, $input = null) => $value > $threshold,
+            $message ?? "Value must be greater than {$threshold}"
+        );
+    }
+
+    /**
+     * Validates that the value is greater than or equal to the given threshold.
+     *
+     * @param int|float $threshold The minimum inclusive value.
+     * @param ?string $message Custom error message.
+     * @return static
+     */
+    public function gte(int|float $threshold, ?string $message = null): static
+    {
+        return $this->satisfies(
+            fn ($value, $key = null, $input = null) => $value >= $threshold,
+            $message ?? "Value must be at least {$threshold}"
+        );
+    }
+
+    /**
+     * Validates that the value is less than the given threshold.
+     *
+     * @param int|float $threshold The maximum exclusive value.
+     * @param ?string $message Custom error message.
+     * @return static
+     */
+    public function lt(int|float $threshold, ?string $message = null): static
+    {
+        return $this->satisfies(
+            fn ($value, $key = null, $input = null) => $value < $threshold,
+            $message ?? "Value must be less than {$threshold}"
+        );
+    }
+
+    /**
+     * Validates that the value is less than or equal to the given threshold.
+     *
+     * @param int|float $threshold The maximum inclusive value.
+     * @param ?string $message Custom error message.
+     * @return static
+     */
+    public function lte(int|float $threshold, ?string $message = null): static
+    {
+        return $this->satisfies(
+            fn ($value, $key = null, $input = null) => $value <= $threshold,
+            $message ?? "Value must be at most {$threshold}"
+        );
+    }
+
+    /**
      * Validates that the value is a multiple of the given divisor.
      *
      * @param int|float $divisor The divisor.
@@ -89,6 +149,54 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             fn ($value, $key = null, $input = null) => $value < 0,
             $message ?? 'Value must be negative'
+        );
+    }
+
+    /**
+     * Validates that the value is non-negative (zero or greater).
+     *
+     * @param ?string $message Custom error message.
+     * @return static
+     */
+    public function nonNegative(?string $message = null): static
+    {
+        return $this->gte(0, $message ?? 'Value must be non-negative');
+    }
+
+    /**
+     * Validates that the value is non-positive (zero or less).
+     *
+     * @param ?string $message Custom error message.
+     * @return static
+     */
+    public function nonPositive(?string $message = null): static
+    {
+        return $this->lte(0, $message ?? 'Value must be non-positive');
+    }
+
+    /**
+     * Clamps the value within the provided range.
+     *
+     * @param int|float $min Minimum allowed value.
+     * @param int|float $max Maximum allowed value.
+     * @return static
+     */
+    public function clampToRange(int|float $min, int|float $max): static
+    {
+        if ($min > $max) {
+            throw new \InvalidArgumentException('Minimum cannot be greater than maximum for clamp');
+        }
+
+        return $this->pipe(
+            function ($value) use ($min, $max) {
+                if ($value < $min) {
+                    return $min;
+                }
+                if ($value > $max) {
+                    return $max;
+                }
+                return $value;
+            }
         );
     }
 }

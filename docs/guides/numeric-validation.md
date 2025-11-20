@@ -90,6 +90,14 @@ $price = $positiveValidator->validate(29.99); // Valid
 $negativeValidator = Validator::isInt()->negative();
 $debt = $negativeValidator->validate(-1000); // Valid
 
+// Non-negative (>= 0)
+$nonNegative = Validator::isInt()->nonNegative();
+$zeroOrMore = $nonNegative->validate(0); // Valid
+
+// Non-positive (<= 0)
+$nonPositive = Validator::isFloat()->nonPositive();
+$zeroOrLess = $nonPositive->validate(0.0); // Valid
+
 // Note: Zero fails both positive() and negative()
 ```
 
@@ -107,6 +115,28 @@ $price = $centValidator->validate(19.99); // Valid (cent precision)
 // Custom multiples
 $quarterValidator = Validator::isFloat()->multipleOf(0.25);
 $quarters = $quarterValidator->validate(2.75); // Valid (11 quarters)
+```
+
+### Comparison Helpers
+
+```php
+Validator::isInt()->gt(10);     // > 10
+Validator::isInt()->gte(10);    // >= 10
+Validator::isFloat()->lt(5.5);  // < 5.5
+Validator::isFloat()->lte(5.5); // <= 5.5
+```
+
+### Clamping Values (Transformation)
+
+Use `clampToRange(min, max)` to keep values in range without extra conditionals. This is a transformation step (pipeline), not a validation rule:
+
+```php
+$score = Validator::isInt()->clampToRange(0, 100);
+expect($score->validate(150))->toBe(100);
+expect($score->validate(-10))->toBe(0);
+
+$normalized = Validator::isFloat()->clampToRange(-1.0, 1.0);
+expect($normalized->validate(2.0))->toBe(1.0);
 ```
 
 ## Type Coercion

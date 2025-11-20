@@ -248,13 +248,13 @@ $stringValidator = Validator::isString()
 - ~~`flatten()`~~ -- Complex recursive logic, use Laravel Collections or `array_merge_recursive()`
 
 ### Numeric Enhancements
-- [ ] **`nonNegative()`** - Validates numbers >= 0 (includes zero)
-- [ ] **`nonPositive()`** - Validates numbers <= 0 (includes zero)
-- [ ] **`gt()`** / **`gte()`** -- Greater than / greater than or equal explicit comparisons
-- [ ] **`lt()`** / **`lte()`** -- Less than / less than or equal explicit comparisons
+- [x] **`nonNegative()`** - Validates numbers >= 0 (includes zero)
+- [x] **`nonPositive()`** - Validates numbers <= 0 (includes zero)
+- [x] **`gt()`** / **`gte()`** -- Greater than / greater than or equal explicit comparisons
+- [x] **`lt()`** / **`lte()`** -- Less than / less than or equal explicit comparisons
 
 ### Numeric Transformations
-- [ ] **`clamp(min, max)`** - Restrict numbers to range (not obvious: max(min, min(max, value)))
+- [x] **`clampToRange(min, max)`** - Restrict numbers to range (not obvious: max(min, min(max, value)))
 - [x] **Enhanced `coerce()`** - Empty strings → `null` for form safety (BREAKING CHANGE implemented!)
 - [x] **`nullifyEmpty()`** - Convert empty strings to null (already implemented!)
 - [x] **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
