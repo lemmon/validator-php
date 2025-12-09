@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lemmon\Validator;
 
 class AssociativeValidator extends FieldValidator
@@ -10,9 +12,8 @@ class AssociativeValidator extends FieldValidator
      * @param array<string, FieldValidator> $schema
      */
     public function __construct(
-        private array $schema
-    ) {
-    }
+        private array $schema,
+    ) {}
 
     /**
      * @inheritDoc
@@ -67,7 +68,11 @@ class AssociativeValidator extends FieldValidator
             // Get field value (null if not present)
             $fieldValue = array_key_exists($fieldKey, $value) ? $value[$fieldKey] : null;
 
-            [$valid, $validatedFieldValue, $fieldErrors] = $validator->tryValidate($fieldValue, $fieldKey, $value);
+            [$valid, $validatedFieldValue, $fieldErrors] = $validator->tryValidate(
+                $fieldValue,
+                $fieldKey,
+                $value,
+            );
 
             if (!$valid) {
                 $errors[$fieldKey] = $fieldErrors;

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lemmon\Validator;
 
 class BoolValidator extends FieldValidator
 {
     use OneOfTrait;
+
     /**
      * @inheritDoc
      */

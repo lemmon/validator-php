@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Numeric comparison helpers (`gt`, `gte`, `lt`, `lte`), non-negative/non-positive validators, and `clampToRange(min, max)` transformation for numeric validators.
 
+### Changed
+- Added `declare(strict_types=1);` across the codebase for stricter type enforcement and clearer errors.
+
 ## [0.9.0] - 2025-11-18
 
 ### Added
@@ -33,13 +36,13 @@ All notable changes to this project will be documented in this file.
   - **Global Required Flag**: `required()` works as a global flag (like `coerce()`), not a pipeline step
   - **Smart Default Application**: Default values applied after pipeline execution if final result is `null`
   - **Real-World Benefit**: Eliminates confusing execution order dependencies - write validation chains naturally
-  - **Backward Compatible**: All existing code works unchanged, maintains 135 tests with 390 assertions
+  - **Backward Compatible**: All existing code works unchanged with the full suite
 - **Unified Pipeline Architecture**: Revolutionary single pipeline design that maintains conceptual clarity while optimizing execution
   - **Hybrid Execution Model**: Pure validations (like `email()`, `minLength()`) collect all errors for better UX, while transformations (like `required()`, `pipe()`) fail fast for correct behavior
   - **Execution Order Guarantee**: All methods execute in the exact order written in the fluent chain - `->email()->required()->pipe('trim')` works exactly as expected
   - **Conceptual Simplicity**: From developer perspective, there's one pipeline where callbacks do whatever they need (validate, transform, or both)
   - **Performance Optimized**: Error collection only where beneficial, fail-fast where appropriate
-  - **Backward Compatible**: All existing code works unchanged, all 135 tests pass with 390 assertions
+  - **Backward Compatible**: All existing code works unchanged across the full suite
   - **Internal Architecture**: Maintains separate `$validations` (error collection) and `$pipeline` (transformations) arrays for optimal execution
 - **New `satisfies*` API**: Enhanced instance logical combinators for improved API consistency and flexibility
   - `satisfiesAny(array $validations, ?string $message = null)` - Validates that value passes ANY of the provided validators or callables
@@ -48,7 +51,7 @@ All notable changes to this project will be documented in this file.
   - **Enhanced `satisfies()` Method**: Now accepts `callable|FieldValidator` instances for maximum flexibility
   - **Backward Compatibility**: Deprecated `anyOf()`, `allOf()`, `not()` instance methods maintained as aliases
   - **API Clarity**: Eliminates confusion between static `Validator::anyOf()` and instance `$validator->anyOf()` methods
-  - Updated test metrics: 135 tests, 390 assertions
+  - Updated test metrics to reflect expanded coverage
 - **Refactored `oneOf()` to `OneOfTrait`**: Improved type safety and execution order consistency
   - **Type Safety**: `oneOf()` now only available on primitive validators (`StringValidator`, `IntValidator`, `FloatValidator`, `BoolValidator`)
   - **Execution Order**: `oneOf()` now implemented as transformation, respecting fluent API chain position
@@ -60,7 +63,7 @@ All notable changes to this project will be documented in this file.
   - `AssociativeValidator::coerce()`: Empty strings (`''`) now coerce to empty arrays `[]`
   - **Real-World Benefit**: Form parameters like `?settings=` now create empty structures instead of failing validation
   - **Type Safety Maintained**: Non-empty strings still fail validation as expected
-  - Added comprehensive test coverage (6 new tests, 23 new assertions)
+  - Added comprehensive test coverage
 - **Enhanced `required()` Method**: Added optional custom error message parameter for consistency with other validation methods
   - `required(?string $message = null)` - Custom error messages for required field validation
   - **API Consistency**: All validation methods now support optional custom error messages
@@ -93,7 +96,7 @@ All notable changes to this project will be documented in this file.
   - **Fix**: Now only includes fields that were actually provided in input OR have default values applied
   - **Impact**: Results now accurately reflect validated data without unexpected properties
   - **Behavior**: Required field validation still works correctly (missing required fields still fail)
-  - Added comprehensive test coverage (6 new tests, 45 new assertions) to prevent regression
+  - Added comprehensive test coverage to prevent regression
   - **Documentation**: Added "Field Inclusion Behavior" section to Object Validation guide with clear examples
 
 ### Documentation
@@ -125,20 +128,20 @@ All notable changes to this project will be documented in this file.
   - Added comprehensive test coverage to prevent regression
 
 ### Changed
-- **BREAKING CHANGE**: Enhanced form safety for empty string coercion across all validators
+  - **BREAKING CHANGE**: Enhanced form safety for empty string coercion across all validators
   - `IntValidator::coerce()`: Empty strings (`''`) now convert to `null` instead of `0`
   - `FloatValidator::coerce()`: Empty strings (`''`) now convert to `null` instead of `0.0`
   - `BoolValidator::coerce()`: Empty strings (`''`) now convert to `null` instead of validation failure
   - **Rationale**: Prevents dangerous zero defaults in form fields (e.g., bank balances, quantities)
   - **Migration**: Use explicit `->default(0)` if you need zero defaults for empty form fields
-  - Added comprehensive test coverage for new behavior (114 tests, 290 assertions)
+  - Added comprehensive test coverage for new behavior
 
 ### Added
 - **New `satisfies()` Method**: Intuitive custom validation with optional error messages
   - Replaces verbose `addValidation()` with natural language: `->satisfies(fn($v) => $v > 0)`
   - Optional error message parameter with sensible default: "Custom validation failed"
   - Maintains backward compatibility with deprecated `addValidation()` method
-  - Added comprehensive test coverage (4 new tests, 12 new assertions)
+  - Added comprehensive test coverage
   - Updated all documentation (65+ references) to use new method
 - **BoolValidator Test Suite**: Complete test coverage for boolean validation and coercion
   - Tests for string boolean coercion (`'true'`, `'false'`, `'on'`, `'off'`, `'1'`, `'0'`)
@@ -170,10 +173,10 @@ All notable changes to this project will be documented in this file.
   - Enables complex multi-type transformation chains (Array → String → Int) with intuitive syntax
 
 ### Improved
-- **Form Data Handling**: Enhanced coercion makes form validation significantly more practical and intuitive
-- **Array Data Integrity**: `filterEmpty()` maintains ArrayValidator's contract of returning properly indexed arrays
-- **Extensibility**: Universal transformation methods enable unlimited flexibility with external library integration
-- **Test Coverage**: Added 27 new tests across numeric, array, and type-aware transformation validators (103 total tests, 250 assertions)
+  - **Form Data Handling**: Enhanced coercion makes form validation significantly more practical and intuitive
+  - **Array Data Integrity**: `filterEmpty()` maintains ArrayValidator's contract of returning properly indexed arrays
+  - **Extensibility**: Universal transformation methods enable unlimited flexibility with external library integration
+  - **Test Coverage**: Expanded coverage across numeric, array, and type-aware transformation validators
 
 ## [0.4.0] - 2025-10-06
 
@@ -188,8 +191,8 @@ All notable changes to this project will be documented in this file.
   - Validation Guides (String, Numeric, Array, Object, Custom, Error Handling)
   - API Reference with complete method documentation including new static combinators
   - Real-world Examples (Form validation, API validation, E-commerce)
-- **Enhanced README**: Concise overview with quick start examples and organized navigation
-- **Comprehensive Test Suite**: Added 19 new tests (76 total) with 54 new assertions (208 total) for static logical combinators
+  - **Enhanced README**: Concise overview with quick start examples and organized navigation
+  - **Comprehensive Test Suite**: Expanded coverage for static logical combinators
 
 ### Improved
 - **API Consistency**: Static logical combinators provide cleaner syntax than instance-only methods

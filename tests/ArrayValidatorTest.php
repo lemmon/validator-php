@@ -1,7 +1,9 @@
 <?php
 
-use Lemmon\Validator\Validator;
+declare(strict_types=1);
+
 use Lemmon\Validator\ValidationException;
+use Lemmon\Validator\Validator;
 
 it('should filter empty values and reindex array', function () {
     $validator = Validator::isArray()->filterEmpty();

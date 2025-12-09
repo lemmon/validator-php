@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lemmon\Validator;
 
 class ArrayValidator extends FieldValidator
 {
-    private ?FieldValidator $itemValidator = null;
+    private null|FieldValidator $itemValidator = null;
     private bool $filterEmpty = false;
 
     /**
@@ -61,7 +63,7 @@ class ArrayValidator extends FieldValidator
 
         // Coerce scalar values to array: empty string to empty array, others to single-item array
         if (is_scalar($value)) {
-            return ($value === '') ? [] : [$value];
+            return $value === '' ? [] : [$value];
         }
 
         return $value;
@@ -83,7 +85,10 @@ class ArrayValidator extends FieldValidator
 
         // Apply filterEmpty transformation if enabled
         if ($this->filterEmpty) {
-            $value = array_values(array_filter($value, fn ($item) => $item !== '' && $item !== null));
+            $value = array_values(array_filter(
+                $value,
+                fn($item) => $item !== '' && $item !== null,
+            ));
         }
 
         // If item validator is set, validate each item

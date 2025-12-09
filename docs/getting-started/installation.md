@@ -2,8 +2,10 @@
 
 ## Requirements
 
-- **PHP 8.1 or higher**
+- **PHP 8.3 or higher**
 - **Composer** for dependency management
+
+> Note: The library ships with `declare(strict_types=1);`. Scalar mismatches will raise a `TypeError`; use `coerce()` if you need form-friendly conversions.
 
 ## Installation
 

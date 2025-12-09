@@ -1,7 +1,9 @@
 <?php
 
-use Lemmon\Validator\Validator;
+declare(strict_types=1);
+
 use Lemmon\Validator\ValidationException;
+use Lemmon\Validator\Validator;
 
 it('should coerce empty string to null for form safety', function () {
     $validator = Validator::isInt()->coerce();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lemmon\Validator;
 
 /**
@@ -17,11 +19,11 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function min(int|float $min, ?string $message = null): static
+    public function min(int|float $min, null|string $message = null): static
     {
         return $this->satisfies(
-            fn ($value, $key = null, $input = null) => $value >= $min,
-            $message ?? "Value must be at least {$min}"
+            fn($value, $key = null, $input = null) => $value >= $min,
+            $message ?? "Value must be at least {$min}",
         );
     }
 
@@ -32,11 +34,11 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function max(int|float $max, ?string $message = null): static
+    public function max(int|float $max, null|string $message = null): static
     {
         return $this->satisfies(
-            fn ($value, $key = null, $input = null) => $value <= $max,
-            $message ?? "Value must be at most {$max}"
+            fn($value, $key = null, $input = null) => $value <= $max,
+            $message ?? "Value must be at most {$max}",
         );
     }
 
@@ -47,11 +49,11 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function gt(int|float $threshold, ?string $message = null): static
+    public function gt(int|float $threshold, null|string $message = null): static
     {
         return $this->satisfies(
-            fn ($value, $key = null, $input = null) => $value > $threshold,
-            $message ?? "Value must be greater than {$threshold}"
+            fn($value, $key = null, $input = null) => $value > $threshold,
+            $message ?? "Value must be greater than {$threshold}",
         );
     }
 
@@ -62,11 +64,11 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function gte(int|float $threshold, ?string $message = null): static
+    public function gte(int|float $threshold, null|string $message = null): static
     {
         return $this->satisfies(
-            fn ($value, $key = null, $input = null) => $value >= $threshold,
-            $message ?? "Value must be at least {$threshold}"
+            fn($value, $key = null, $input = null) => $value >= $threshold,
+            $message ?? "Value must be at least {$threshold}",
         );
     }
 
@@ -77,11 +79,11 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function lt(int|float $threshold, ?string $message = null): static
+    public function lt(int|float $threshold, null|string $message = null): static
     {
         return $this->satisfies(
-            fn ($value, $key = null, $input = null) => $value < $threshold,
-            $message ?? "Value must be less than {$threshold}"
+            fn($value, $key = null, $input = null) => $value < $threshold,
+            $message ?? "Value must be less than {$threshold}",
         );
     }
 
@@ -92,11 +94,11 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function lte(int|float $threshold, ?string $message = null): static
+    public function lte(int|float $threshold, null|string $message = null): static
     {
         return $this->satisfies(
-            fn ($value, $key = null, $input = null) => $value <= $threshold,
-            $message ?? "Value must be at most {$threshold}"
+            fn($value, $key = null, $input = null) => $value <= $threshold,
+            $message ?? "Value must be at most {$threshold}",
         );
     }
 
@@ -107,12 +109,12 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function multipleOf(int|float $divisor, ?string $message = null): static
+    public function multipleOf(int|float $divisor, null|string $message = null): static
     {
         return $this->satisfies(
             function ($value, $key = null, $input = null) use ($divisor) {
                 if (is_int($divisor) && is_int($value)) {
-                    return $value % $divisor === 0;
+                    return ($value % $divisor) === 0;
                 }
 
                 // Use epsilon comparison for floating-point precision
@@ -120,7 +122,7 @@ trait NumericConstraintsTrait
                 $epsilon = 1e-9; // Tolerance for floating-point comparison
                 return abs($remainder) < $epsilon || abs($remainder - $divisor) < $epsilon;
             },
-            $message ?? "Value must be a multiple of {$divisor}"
+            $message ?? "Value must be a multiple of {$divisor}",
         );
     }
 
@@ -130,11 +132,11 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function positive(?string $message = null): static
+    public function positive(null|string $message = null): static
     {
         return $this->satisfies(
-            fn ($value, $key = null, $input = null) => $value > 0,
-            $message ?? 'Value must be positive'
+            fn($value, $key = null, $input = null) => $value > 0,
+            $message ?? 'Value must be positive',
         );
     }
 
@@ -144,11 +146,11 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function negative(?string $message = null): static
+    public function negative(null|string $message = null): static
     {
         return $this->satisfies(
-            fn ($value, $key = null, $input = null) => $value < 0,
-            $message ?? 'Value must be negative'
+            fn($value, $key = null, $input = null) => $value < 0,
+            $message ?? 'Value must be negative',
         );
     }
 
@@ -158,7 +160,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function nonNegative(?string $message = null): static
+    public function nonNegative(null|string $message = null): static
     {
         return $this->gte(0, $message ?? 'Value must be non-negative');
     }
@@ -169,7 +171,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function nonPositive(?string $message = null): static
+    public function nonPositive(null|string $message = null): static
     {
         return $this->lte(0, $message ?? 'Value must be non-positive');
     }
@@ -187,16 +189,14 @@ trait NumericConstraintsTrait
             throw new \InvalidArgumentException('Minimum cannot be greater than maximum for clamp');
         }
 
-        return $this->pipe(
-            function ($value) use ($min, $max) {
-                if ($value < $min) {
-                    return $min;
-                }
-                if ($value > $max) {
-                    return $max;
-                }
-                return $value;
+        return $this->pipe(function ($value) use ($min, $max) {
+            if ($value < $min) {
+                return $min;
             }
-        );
+            if ($value > $max) {
+                return $max;
+            }
+            return $value;
+        });
     }
 }

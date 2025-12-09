@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lemmon\Validator;
 
 abstract class FieldValidator
@@ -8,7 +10,7 @@ abstract class FieldValidator
     protected bool $hasDefault = false;
     protected bool $coerce = false;
     protected bool $required = false;
-    protected ?string $requiredMessage = null;
+    protected null|string $requiredMessage = null;
 
     /**
      * Creates a deep copy of the validator, including pipeline closures bound to the clone.
@@ -27,7 +29,7 @@ abstract class FieldValidator
     /**
      * Current type context for transformations (null = original validator type)
      */
-    protected ?string $currentType = null;
+    protected null|string $currentType = null;
 
     /**
      * Marks the field as required.
@@ -35,7 +37,7 @@ abstract class FieldValidator
      * @param string|null $message Custom error message for required validation
      * @return $this
      */
-    public function required(?string $message = null): self
+    public function required(null|string $message = null): self
     {
         $this->required = true;
         $this->requiredMessage = $message ?? 'Value is required';
@@ -76,8 +78,8 @@ abstract class FieldValidator
         $this->pipeline[] = [
             'type' => PipelineType::TRANSFORMATION,
             'operation' => function ($value) {
-                return (($value === '') || (is_array($value) && empty($value))) ? null : $value;
-            }
+                return $value === '' || is_array($value) && empty($value) ? null : $value;
+            },
         ];
         return $this;
     }
@@ -89,12 +91,14 @@ abstract class FieldValidator
      * @param ?string $message Optional custom error message. If not provided, a generic message is used.
      * @return $this
      */
-    public function satisfies(callable|FieldValidator $validation, ?string $message = null): self
-    {
+    public function satisfies(
+        callable|FieldValidator $validation,
+        null|string $message = null,
+    ): self {
         if ($validation instanceof FieldValidator) {
             // Convert FieldValidator to callable
             $rule = function ($value, $key = null, $input = null) use ($validation) {
-                [$valid, , ] = $validation->tryValidate($value, $key, $input);
+                [$valid] = $validation->tryValidate($value, $key, $input);
                 return $valid;
             };
         } else {
@@ -108,7 +112,7 @@ abstract class FieldValidator
                     throw new ValidationException([$message ?? 'Custom validation failed']);
                 }
                 return $value;
-            }
+            },
         ];
         return $this;
     }
@@ -128,33 +132,30 @@ abstract class FieldValidator
      * @param ?string $message Custom error message.
      * @return $this
      */
-    public function satisfiesAll(array $validations, ?string $message = null): self
+    public function satisfiesAll(array $validations, null|string $message = null): self
     {
-        return $this->satisfies(
-            function ($value, $key = null, $input = null) use ($validations) {
-                foreach ($validations as $validation) {
-                    if ($validation instanceof FieldValidator) {
-                        [$valid, , ] = $validation->tryValidate($value, $key, $input);
-                        if (!$valid) {
-                            return false;
-                        }
-                    } else {
-                        if (!$validation($value, $key, $input)) {
-                            return false;
-                        }
+        return $this->satisfies(function ($value, $key = null, $input = null) use ($validations) {
+            foreach ($validations as $validation) {
+                if ($validation instanceof FieldValidator) {
+                    [$valid] = $validation->tryValidate($value, $key, $input);
+                    if (!$valid) {
+                        return false;
+                    }
+                } else {
+                    if (!$validation($value, $key, $input)) {
+                        return false;
                     }
                 }
-                return true;
-            },
-            $message ?? 'Value must satisfy all validation rules'
-        );
+            }
+            return true;
+        }, $message ?? 'Value must satisfy all validation rules');
     }
 
     /**
      * @deprecated Use satisfiesAll() instead. Will be removed in v1.0.0.
      * @param array<FieldValidator|callable> $validators
      */
-    public function allOf(array $validators, ?string $message = null): self
+    public function allOf(array $validators, null|string $message = null): self
     {
         return $this->satisfiesAll($validators, $message);
     }
@@ -166,33 +167,30 @@ abstract class FieldValidator
      * @param ?string $message Custom error message.
      * @return $this
      */
-    public function satisfiesAny(array $validations, ?string $message = null): self
+    public function satisfiesAny(array $validations, null|string $message = null): self
     {
-        return $this->satisfies(
-            function ($value, $key = null, $input = null) use ($validations) {
-                foreach ($validations as $validation) {
-                    if ($validation instanceof FieldValidator) {
-                        [$valid, , ] = $validation->tryValidate($value, $key, $input);
-                        if ($valid) {
-                            return true;
-                        }
-                    } else {
-                        if ($validation($value, $key, $input)) {
-                            return true;
-                        }
+        return $this->satisfies(function ($value, $key = null, $input = null) use ($validations) {
+            foreach ($validations as $validation) {
+                if ($validation instanceof FieldValidator) {
+                    [$valid] = $validation->tryValidate($value, $key, $input);
+                    if ($valid) {
+                        return true;
+                    }
+                } else {
+                    if ($validation($value, $key, $input)) {
+                        return true;
                     }
                 }
-                return false;
-            },
-            $message ?? 'Value must satisfy at least one validation rule'
-        );
+            }
+            return false;
+        }, $message ?? 'Value must satisfy at least one validation rule');
     }
 
     /**
      * @deprecated Use satisfiesAny() instead. Will be removed in v1.0.0.
      * @param array<FieldValidator|callable> $validators
      */
-    public function anyOf(array $validators, ?string $message = null): self
+    public function anyOf(array $validators, null|string $message = null): self
     {
         return $this->satisfiesAny($validators, $message);
     }
@@ -204,13 +202,13 @@ abstract class FieldValidator
      * @param ?string $message Custom error message.
      * @return $this
      */
-    public function satisfiesNone(array $validations, ?string $message = null): self
+    public function satisfiesNone(array $validations, null|string $message = null): self
     {
         return $this->satisfies(
             function ($value, $key = null, $input = null) use ($validations) {
                 foreach ($validations as $validation) {
                     if ($validation instanceof FieldValidator) {
-                        [$valid, , ] = $validation->tryValidate($value, $key, $input);
+                        [$valid] = $validation->tryValidate($value, $key, $input);
                         if ($valid) {
                             return false; // If any validation passes, satisfiesNone fails
                         }
@@ -222,16 +220,19 @@ abstract class FieldValidator
                 }
                 return true; // All validations failed, so satisfiesNone passes
             },
-            $message ?? 'Value must not satisfy any of the validation rules'
+            $message ?? 'Value must not satisfy any of the validation rules',
         );
     }
 
     /**
      * @deprecated Use satisfiesNone() instead. Will be removed in v1.0.0.
      */
-    public function not(FieldValidator $validator, ?string $message = null): self
+    public function not(FieldValidator $validator, null|string $message = null): self
     {
-        return $this->satisfiesNone([$validator], $message ?? 'Value must not satisfy the validation rule');
+        return $this->satisfiesNone(
+            [$validator],
+            $message ?? 'Value must not satisfy the validation rule',
+        );
     }
 
     /**
@@ -252,7 +253,7 @@ abstract class FieldValidator
                 $this->currentType = $this->detectType($result);
 
                 return $result; // No coercion - transform can change type
-            }
+            },
         ];
         return $this;
     }
@@ -274,7 +275,7 @@ abstract class FieldValidator
 
                     // Apply type-specific coercion based on current type context
                     return $this->coerceForCurrentType($result);
-                }
+                },
             ];
         }
         return $this;
@@ -330,7 +331,9 @@ abstract class FieldValidator
             }
 
             // Skip type validation for null values if we have pipeline (let pipeline handle it)
-            $processedValue = is_null($value) && !empty($this->pipeline) ? $value : $this->validateType($value, $key);
+            $processedValue = is_null($value) && !empty($this->pipeline)
+                ? $value
+                : $this->validateType($value, $key);
 
             // Execute the unified pipeline with smart null handling
             foreach ($this->pipeline as $step) {
@@ -404,7 +407,7 @@ abstract class FieldValidator
      */
     protected function detectType(mixed $value): string
     {
-        return match(true) {
+        return match (true) {
             is_array($value) && array_is_list($value) => 'indexed_array',
             is_array($value) => 'associative_array',
             is_string($value) => 'string',
@@ -412,7 +415,7 @@ abstract class FieldValidator
             is_float($value) => 'float',
             is_bool($value) => 'bool',
             is_object($value) => 'object',
-            default => 'mixed'
+            default => 'mixed',
         };
     }
 
@@ -424,15 +427,15 @@ abstract class FieldValidator
      */
     protected function coerceForCurrentType(mixed $value): mixed
     {
-        return match($this->getCurrentType()) {
+        return match ($this->getCurrentType()) {
             'indexed_array' => $this->coerceToIndexedArray($value),
             'associative_array' => $this->coerceToAssociativeArray($value),
             'string' => $value, // No coercion needed
-            'int' => $value,    // No coercion needed
-            'float' => $value,  // No coercion needed
-            'bool' => $value,   // No coercion needed
+            'int' => $value, // No coercion needed
+            'float' => $value, // No coercion needed
+            'bool' => $value, // No coercion needed
             'object' => $value, // No coercion needed
-            default => $value
+            default => $value,
         };
     }
 

@@ -70,7 +70,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ## Development Workflow
 
 ### Code Quality
-- **Testing** - Pest PHP with organized test suite (10 focused test files, 135 tests, 390 assertions)
+- **Testing** - Pest PHP with organized, focused test suite
 - **Static Analysis** - PHPStan at maximum level for type safety
 - **Code Style** - PHP-CS-Fixer for consistent formatting
 - **Performance** - Optimized validation logic with eliminated code duplication
@@ -80,6 +80,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **ASCII Punctuation** - Stick to ASCII punctuation in code and docs (prefer -- over em dashes) so diffs stay predictable
 - **Emoji Usage** - Reserve emojis for rare emphasis; moderate use is fine for emphasis, but skip emoji-driven lists
 - **Task Tracking** - Use GitHub-style checkboxes (`- [ ]` for pending, `- [x]` for completed) in ROADMAP.md for clear progress tracking
+- **Task Pool** - Maintain immediate priorities in `TASKS.md`; keep it short, prune completed items, and avoid numbering to minimize churn
 - **Commit Standards** - Follow Conventional Commits spec (e.g., `fix:`, `refactor:`, `docs:`)
 - **Commit Scope** - Each commit should address a single concern; tests and implementation can ship together, but unrelated formatting belongs elsewhere
 - **Commit Format** - Use concise Conventional Commit summaries: `<type>(<scope>): <short action>`. Avoid verbose release blurbs in commit messages; keep release notes in CHANGELOG/release tagging.
@@ -113,7 +114,7 @@ tests/
 - **8 validator types** covering all PHP data types
 - **Unified pipeline architecture** with smart null handling and execution order guarantees
 - **Type-safe internal structure** using modern PHP 8.1+ enums
-- **Comprehensive test coverage** with 135 unit tests and 390 assertions
+- **Comprehensive test coverage** across all validator types
 - **Enterprise-grade documentation** with practical examples and complete API reference
 
 ## Vision & Roadmap

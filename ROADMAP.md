@@ -30,14 +30,14 @@ This roadmap outlines the strategic development plan for future releases, priori
 - [x] **Revolutionary Single Pipeline Design** - Conceptual simplicity with hybrid execution model for optimal performance
 - [x] **Execution Order Guarantee** - All methods execute in the exact order written in fluent chains
 - [x] **Hybrid Execution Model** - Error collection for pure validations (better UX), fail-fast for transformations (correct behavior)
-- [x] **Backward Compatibility** - All existing code works unchanged, 135 tests pass with 390 assertions
+- [x] **Backward Compatibility** - All existing code works unchanged with the full suite
 - [x] **Performance Optimized** - No unnecessary error collection overhead for transformation operations
 
 ### Static Logical Combinators (v0.4.0)
 - [x] **Static Logical Combinators** - `Validator::anyOf()`, `Validator::allOf()`, `Validator::not()` for type-agnostic validation
 - [x] **Enhanced Mixed-Type Support** - Clean syntax for arrays with mixed item types
 - [x] **Comprehensive Documentation** - Complete API reference and practical examples
-- [x] **Comprehensive Test Suite** - 19 new tests (76 total) with 54 new assertions (208 total)
+- [x] **Comprehensive Test Suite** - Expanded coverage for the new combinators
 
 ## Immediate Tasks
 
@@ -69,7 +69,7 @@ This roadmap outlines the strategic development plan for future releases, priori
   - Added new `satisfies(callable $validation, ?string $message = null)` method with optional error message
   - Maintains backward compatibility with deprecated `addValidation()` method
   - Provides generic fallback message "Custom validation failed" when no message provided
-  - Added comprehensive test coverage (4 new tests, 12 new assertions)
+  - Added comprehensive test coverage
   - Method reads naturally: `->satisfies(fn($v) => $v > 0)` - "value must satisfy this condition"
 - [x] **Update all documentation** - Replace `addValidation()` with `satisfies()` across all guides and examples
   - Updated Custom Validation Guide (primary guide for this method)
@@ -93,14 +93,13 @@ This roadmap outlines the strategic development plan for future releases, priori
   - **Fix**: Now only includes fields that were actually provided in input OR have default values applied
   - **Impact**: Results accurately reflect validated data without unexpected properties
   - **Behavior**: Required field validation still works correctly (missing required fields still fail)
-  - Added comprehensive test coverage (6 new tests, 45 new assertions) to prevent regression
+  - Added comprehensive test coverage to prevent regression
 - [x] **Fix dangerous empty string coercion across all validators** - **BREAKING CHANGE**: `coerce()` now converts `''` → `null` for form safety
   - IntValidator: `''` → `null` (not 0) - prevents dangerous zero defaults in forms
   - FloatValidator: `''` → `null` (not 0.0) - prevents dangerous zero defaults in forms
   - BoolValidator: `''` → `null` (not false) - empty query params should be null
   - Critical for real-world form/API safety (prevents accidental zero bank balances, etc.)
 - [x] **Add comprehensive tests for empty string handling** - Added BoolValidator test suite and updated existing tests
-  - 110 tests total with 278 assertions
   - Complete coverage for new empty string → null coercion behavior
 - [x] **Update documentation** - Explain the form-safety rationale behind empty string → null coercion
   - Added comprehensive form-safety sections to Core Concepts and Numeric Validation guides
@@ -336,7 +335,7 @@ $stringValidator = Validator::isString()
 - [ ] **Interactive documentation** - Runnable examples
 
 ### Testing & Quality
-- [x] Organized test suite (10 focused test files, 135 tests, 390 assertions)
+- [x] Organized test suite with focused files
 - [x] 100% PHPStan compliance
 - [x] PHP-CS-Fixer standards
 - [x] Static logical combinators test coverage

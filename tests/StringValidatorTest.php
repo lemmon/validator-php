@@ -1,7 +1,9 @@
 <?php
 
-use Lemmon\Validator\Validator;
+declare(strict_types=1);
+
 use Lemmon\Validator\ValidationException;
+use Lemmon\Validator\Validator;
 
 it('should validate email strings', function () {
     $validator = Validator::isString()->email();
@@ -48,8 +50,10 @@ it('should validate URL strings', function () {
 it('should validate UUID strings', function () {
     $validator = Validator::isString()->uuid();
 
-    expect($validator->validate('550e8400-e29b-41d4-a716-446655440000'))->toBe('550e8400-e29b-41d4-a716-446655440000');
-    expect($validator->validate('6ba7b810-9dad-11d1-80b4-00c04fd430c8'))->toBe('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+    expect($validator->validate('550e8400-e29b-41d4-a716-446655440000'))
+        ->toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect($validator->validate('6ba7b810-9dad-11d1-80b4-00c04fd430c8'))
+        ->toBe('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
 
     $validator->validate('not-a-uuid');
 })->throws(ValidationException::class, 'Value must be a valid UUID');
@@ -58,7 +62,8 @@ it('should validate IP addresses', function () {
     $validator = Validator::isString()->ip();
 
     expect($validator->validate('192.168.1.1'))->toBe('192.168.1.1');
-    expect($validator->validate('2001:0db8:85a3:0000:0000:8a2e:0370:7334'))->toBe('2001:0db8:85a3:0000:0000:8a2e:0370:7334');
+    expect($validator->validate('2001:0db8:85a3:0000:0000:8a2e:0370:7334'))
+        ->toBe('2001:0db8:85a3:0000:0000:8a2e:0370:7334');
 
     $validator->validate('not-an-ip');
 })->throws(ValidationException::class, 'Value must be a valid IP address');

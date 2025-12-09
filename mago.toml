@@ -1,0 +1,19 @@
+php-version = "8.3.0"
+
+[source]
+paths = ["src", "tests"]
+excludes = ["vendor"]
+
+[formatter]
+print-width = 100
+tab-width = 4
+use-tabs = false
+trailing-comma = true
+remove-trailing-close-tag = true
+
+[linter.rules]
+literal-named-argument = { enabled = false }
+too-many-methods = { threshold = 15 }
+cyclomatic-complexity = { threshold = 20 }
+tagged-todo = { enabled = false }
+no-boolean-flag-parameter = { enabled = false }

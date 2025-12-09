@@ -1,7 +1,9 @@
 <?php
 
-use Lemmon\Validator\Validator;
+declare(strict_types=1);
+
 use Lemmon\Validator\ValidationException;
+use Lemmon\Validator\Validator;
 
 it('should validate a stdClass object', function () {
     $schema = Validator::isObject([
@@ -9,7 +11,7 @@ it('should validate a stdClass object', function () {
         'age' => Validator::isInt()->coerce(),
     ]);
 
-    $input = (object)[
+    $input = (object) [
         'name' => 'John Doe',
         'age' => '42',
     ];
@@ -30,7 +32,7 @@ it('should include null properties in validated object result', function () {
         'active' => Validator::isBool()->coerce(),
     ]);
 
-    $input = (object)[
+    $input = (object) [
         'name' => null,
         'age' => null,
         'active' => null,
@@ -99,7 +101,7 @@ it('should only include provided fields in result (not all schema fields)', func
     ]);
 
     // Only provide 2 out of 5 schema fields
-    $input = (object)[
+    $input = (object) [
         'name' => 'John Doe',
         'age' => '30',
     ];
@@ -132,7 +134,7 @@ it('should include fields with default values even when not provided', function 
     ]);
 
     // Only provide required field
-    $input = (object)[
+    $input = (object) [
         'name' => 'John Doe',
     ];
 
@@ -141,7 +143,7 @@ it('should include fields with default values even when not provided', function 
     // Should include provided field + fields with defaults
     $expected = new stdClass();
     $expected->name = 'John Doe';
-    $expected->age = 25;      // Default applied
+    $expected->age = 25; // Default applied
     $expected->active = true; // Default applied
 
     expect($data)->toEqual($expected);
@@ -152,7 +154,7 @@ it('should include fields with default values even when not provided', function 
     expect($data)->toHaveProperty('age', 25);
     expect($data)->toHaveProperty('active', true);
     expect($data)->not->toHaveProperty('email'); // Not provided, no default
-    expect($data)->not->toHaveProperty('city');  // Not provided, no default
+    expect($data)->not->toHaveProperty('city'); // Not provided, no default
 });
 
 it('should still validate required fields even when not provided', function () {
@@ -163,11 +165,11 @@ it('should still validate required fields even when not provided', function () {
     ]);
 
     // Missing required email field
-    $input = (object)[
+    $input = (object) [
         'name' => 'John Doe',
     ];
 
-    expect(fn () => $schema->validate($input))
+    expect(fn() => $schema->validate($input))
         ->toThrow(ValidationException::class, 'Value is required');
 });
 
@@ -184,7 +186,7 @@ it('should coerce empty string to object with defaults when schema has defaults'
     $schema = Validator::isObject([
         'name' => Validator::isString(),
         'status' => Validator::isString()->default('active'),
-        'role' => Validator::isString()->default('user')
+        'role' => Validator::isString()->default('user'),
     ])->coerce();
 
     $result = $schema->validate('');
@@ -198,6 +200,6 @@ it('should coerce empty string to object with defaults when schema has defaults'
 it('should reject non-empty strings even with coerce enabled', function () {
     $schema = Validator::isObject()->coerce();
 
-    expect(fn () => $schema->validate('not-empty'))
+    expect(fn() => $schema->validate('not-empty'))
         ->toThrow(ValidationException::class, 'Input must be an object');
 });

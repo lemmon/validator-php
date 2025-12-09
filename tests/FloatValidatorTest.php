@@ -1,7 +1,9 @@
 <?php
 
-use Lemmon\Validator\Validator;
+declare(strict_types=1);
+
 use Lemmon\Validator\ValidationException;
+use Lemmon\Validator\Validator;
 
 it('should coerce empty string to null for form safety', function () {
     $validator = Validator::isFloat()->coerce();
@@ -102,7 +104,7 @@ it('should handle floating-point precision in multipleOf validation', function (
     $validator = Validator::isFloat()->multipleOf(0.01);
 
     expect($validator->validate(500.01))->toBe(500.01); // Original bug case
-    expect($validator->validate(19.99))->toBe(19.99);   // Another precision case
+    expect($validator->validate(19.99))->toBe(19.99); // Another precision case
     expect($validator->validate(1234.56))->toBe(1234.56); // Larger number
 
     // Test with smaller precision

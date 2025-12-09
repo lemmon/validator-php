@@ -15,7 +15,7 @@ Lemmon Validator is a comprehensive, fluent validation and data processing libra
 composer require lemmon/validator
 ```
 
-**Requirements:** PHP 8.1 or higher
+**Requirements:** PHP 8.3 or higher
 
 ## About
 
@@ -32,6 +32,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 - **Comprehensive Error Collection**: All validation errors are collected, not just the first failure
 - **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically
 - **Extensible Architecture**: Generic transformation methods work with any PHP callable or external library
+- **Strict Typing**: All files use `declare(strict_types=1);`, so scalar mismatches raise clear errors; opt into `coerce()` when you need form-friendly conversions.
 
 ## Features
 

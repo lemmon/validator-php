@@ -1,14 +1,19 @@
 <?php
 
-use Lemmon\Validator\Validator;
+declare(strict_types=1);
+
 use Lemmon\Validator\ValidationException;
+use Lemmon\Validator\Validator;
 
 it('should validate a correct payload', function () {
     $schema = Validator::isAssociative([
         'required' => Validator::isString()->required(),
         'optional' => Validator::isString(),
-        'forced'   => Validator::isString()->default('Hello!'),
-        'level'    => Validator::isInt()->coerce()->oneOf([3, 5, 8])->default(3),
+        'forced' => Validator::isString()->default('Hello!'),
+        'level' => Validator::isInt()
+            ->coerce()
+            ->oneOf([3, 5, 8])
+            ->default(3),
         'override' => Validator::isBool()->coerce()->default(false),
     ])->coerceAll();
 
@@ -21,8 +26,8 @@ it('should validate a correct payload', function () {
 
     expect($data)->toBe([
         'required' => 'test',
-        'forced'   => 'Hello!',
-        'level'    => 5,
+        'forced' => 'Hello!',
+        'level' => 5,
         'override' => false,
     ]);
 });
@@ -30,7 +35,7 @@ it('should validate a correct payload', function () {
 it('should throw a validation exception for invalid payload', function () {
     $schema = Validator::isAssociative([
         'required' => Validator::isString()->required(),
-        'level'    => Validator::isInt()->oneOf([3, 5, 8]),
+        'level' => Validator::isInt()->oneOf([3, 5, 8]),
     ]);
 
     $input = [
@@ -169,7 +174,7 @@ it('should include fields with default values even when not provided', function 
     // Should include provided field + fields with defaults
     expect($data)->toBe([
         'name' => 'John Doe',
-        'age' => 25,      // Default applied
+        'age' => 25, // Default applied
         'active' => true, // Default applied
     ]);
 
@@ -179,7 +184,7 @@ it('should include fields with default values even when not provided', function 
     expect($data)->toHaveKey('age');
     expect($data)->toHaveKey('active');
     expect($data)->not->toHaveKey('email'); // Not provided, no default
-    expect($data)->not->toHaveKey('city');  // Not provided, no default
+    expect($data)->not->toHaveKey('city'); // Not provided, no default
 });
 
 it('should still validate required fields even when not provided', function () {
@@ -194,7 +199,7 @@ it('should still validate required fields even when not provided', function () {
         'name' => 'John Doe',
     ];
 
-    expect(fn () => $schema->validate($input))
+    expect(fn() => $schema->validate($input))
         ->toThrow(ValidationException::class, 'Value is required');
 });
 
@@ -211,7 +216,7 @@ it('should coerce empty string to array with defaults when schema has defaults',
     $schema = Validator::isAssociative([
         'name' => Validator::isString(),
         'status' => Validator::isString()->default('active'),
-        'role' => Validator::isString()->default('user')
+        'role' => Validator::isString()->default('user'),
     ])->coerce();
 
     $result = $schema->validate('');
@@ -227,6 +232,6 @@ it('should coerce empty string to array with defaults when schema has defaults',
 it('should reject non-empty strings even with coerce enabled', function () {
     $schema = Validator::isAssociative()->coerce();
 
-    expect(fn () => $schema->validate('not-empty'))
+    expect(fn() => $schema->validate('not-empty'))
         ->toThrow(ValidationException::class, 'Input must be an associative array');
 });

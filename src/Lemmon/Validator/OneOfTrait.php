@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lemmon\Validator;
 
 /**
@@ -23,11 +25,11 @@ trait OneOfTrait
      * @param ?string $message Optional custom error message.
      * @return $this
      */
-    public function oneOf(array $values, ?string $message = null): self
+    public function oneOf(array $values, null|string $message = null): self
     {
         return $this->satisfies(
-            fn ($value) => in_array($value, $values, true),
-            $message ?? 'Value must be one of: ' . json_encode($values)
+            fn($value) => in_array($value, $values, true),
+            $message ?? 'Value must be one of: ' . json_encode($values),
         );
     }
 }
