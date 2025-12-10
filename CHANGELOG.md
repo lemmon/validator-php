@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.10.0] - 2025-12-10
+
 ### Added
 - Numeric comparison helpers (`gt`, `gte`, `lt`, `lte`), non-negative/non-positive validators, and `clampToRange(min, max)` transformation for numeric validators.
 - String format validators: `hostname()`, `time()`, `base64()`, `hex()`, `domain()`, and `regex()` alias method for `pattern()` on `StringValidator`.
