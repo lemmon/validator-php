@@ -6,8 +6,17 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Numeric comparison helpers (`gt`, `gte`, `lt`, `lte`), non-negative/non-positive validators, and `clampToRange(min, max)` transformation for numeric validators.
+- String format validators: `hostname()`, `time()`, `base64()`, `hex()`, `domain()`, and `regex()` alias method for `pattern()` on `StringValidator`.
+- `port()` method for `IntValidator` to validate port numbers (1-65535) as numeric constraints.
+- Enum-based variant flags: `IpVersion` enum for IP address validation, `Base64Variant` enum for Base64 validation, and `UuidVariant` enum for UUID validation.
+- UUID version 7 support in `UuidVariant` enum (Unix timestamp-based, sortable).
+- Comprehensive documentation clarifying library philosophy: focus on core validation principles over exhaustive validator coverage, with external libraries encouraged for advanced/specialized validators.
 
 ### Changed
+- **BREAKING**: Refactored `ip()` method to use `IpVersion` enum flag instead of separate `ipv4()`/`ipv6()` methods. Use `ip(IpVersion::IPv4)` or `ip(IpVersion::IPv6)` for version-specific validation. Enum flag comes first, message parameter last.
+- **BREAKING**: Refactored `base64()` method to use `Base64Variant` enum flag. Use `base64(Base64Variant::UrlSafe)` for URL-safe Base64 validation or `base64(Base64Variant::Any)` to accept both variants. Enum flag comes first, message parameter last.
+- **BREAKING**: Refactored `uuid()` method to use `UuidVariant` enum flag. Use `uuid(UuidVariant::V1)` through `uuid(UuidVariant::V7)` for version-specific validation, or `uuid(UuidVariant::Any)` (default) to accept all versions (1-7). Enum flag comes first, message parameter last.
+- Enhanced documentation to clarify library philosophy: primary focus on core validation principles rather than implementing every possible validator. External libraries are strongly encouraged for advanced, specialized, or frequently-evolving validators.
 - Added `declare(strict_types=1);` across the codebase for stricter type enforcement and clearer errors.
 - Replaced php-cs-fixer with Mago for linting/formatting; scripts now map `composer lint`/`composer fix` to Mago.
 

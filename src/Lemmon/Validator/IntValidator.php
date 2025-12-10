@@ -38,4 +38,22 @@ class IntValidator extends FieldValidator
         }
         return $value;
     }
+
+    /**
+     * Validates that the value is a valid port number (1-65535).
+     *
+     * @param ?string $message Custom error message.
+     * @return static
+     */
+    public function port(null|string $message = null): static
+    {
+        return $this->satisfies(
+            static fn ($value, $key = null, $input = null) => (
+                is_int($value)
+                && $value >= 1
+                && $value <= 65535
+            ),
+            $message ?? 'Value must be a valid port number (1-65535)',
+        );
+    }
 }

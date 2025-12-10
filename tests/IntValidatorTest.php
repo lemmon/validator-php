@@ -105,3 +105,47 @@ it('should coerce strings to integers', function () {
     expect($intValidator->validate('0'))->toBe(0);
     expect($intValidator->validate('-5'))->toBe(-5);
 });
+
+it('should validate port numbers', function () {
+    $validator = Validator::isInt()->port();
+
+    // Valid ports
+    expect($validator->validate(80))->toBe(80);
+    expect($validator->validate(443))->toBe(443);
+    expect($validator->validate(3000))->toBe(3000);
+    expect($validator->validate(65535))->toBe(65535);
+    expect($validator->validate(1))->toBe(1);
+
+    // Invalid: out of range
+    $validator->validate(0);
+})->throws(ValidationException::class, 'Value must be a valid port number (1-65535)');
+
+it('should validate port numbers with coercion', function () {
+    $validator = Validator::isInt()->coerce()->port();
+
+    // Valid ports from strings
+    expect($validator->validate('80'))->toBe(80);
+    expect($validator->validate('443'))->toBe(443);
+    expect($validator->validate('3000'))->toBe(3000);
+    expect($validator->validate('65535'))->toBe(65535);
+});
+
+it('should reject port 0', function () {
+    $validator = Validator::isInt()->port();
+    $validator->validate(0);
+})->throws(ValidationException::class);
+
+it('should reject ports above 65535', function () {
+    $validator = Validator::isInt()->port();
+    $validator->validate(65536);
+})->throws(ValidationException::class);
+
+it('should reject negative ports', function () {
+    $validator = Validator::isInt()->port();
+    $validator->validate(-1);
+})->throws(ValidationException::class);
+
+it('should use custom error message for port validation', function () {
+    $validator = Validator::isInt()->port('Must be a valid port');
+    $validator->validate(0);
+})->throws(ValidationException::class, 'Must be a valid port');

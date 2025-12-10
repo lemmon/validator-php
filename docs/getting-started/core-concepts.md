@@ -195,6 +195,8 @@ $result = Validator::isAssociative()
 
 ### Integration with External Libraries
 
+**Philosophy:** The library prioritizes core validation principles over implementing every possible validator. For advanced or specialized validation needs, leveraging external libraries via `satisfies()` is strongly encouraged. This keeps the library focused on what it does best while enabling you to leverage the entire PHP ecosystem.
+
 The transformation system seamlessly integrates with PHP's ecosystem:
 
 ```php

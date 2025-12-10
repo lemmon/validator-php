@@ -12,21 +12,23 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **`ValidationException`** - Structured exception handling with comprehensive error collection
 
 ### Type-Specific Validators
-- **`StringValidator`** - Format validation (email, URL, UUID, IP), length constraints, pattern matching
-- **`IntValidator`** / **`FloatValidator`** - Numeric constraints via shared `NumericConstraintsTrait`
+- **`StringValidator`** - Format validation (email, URL, UUID with version variants, IP with version variants, hostname, domain, time, base64 with variants, hex), length constraints, pattern matching
+- **`IntValidator`** / **`FloatValidator`** - Numeric constraints via shared `NumericConstraintsTrait` (includes port validation for IntValidator)
 - **`ArrayValidator`** - Indexed array validation with optional item validation
 - **`AssociativeValidator`** / **`ObjectValidator`** - Schema-based validation for complex structures
 - **`BoolValidator`** - Boolean validation with intelligent coercion
 
 ### Shared Components
-- **`NumericConstraintsTrait`** - Common numeric validations (`min()`, `max()`, `multipleOf()`, `positive()`, `negative()`)
+- **`NumericConstraintsTrait`** - Common numeric validations (`min()`, `max()`, `multipleOf()`, `positive()`, `negative()`, comparison helpers)
 - **`PipelineType`** - Type-safe enum for pipeline operations (`VALIDATION`, `TRANSFORMATION`) with IDE support and refactoring safety
+- **Variant Enums** - `IpVersion`, `Base64Variant`, and `UuidVariant` enums for type-safe variant selection in format validators
 
 ## Advanced Features
 
 ### Validation Capabilities
 - **Static Logical Combinators** - `Validator::allOf()`, `Validator::anyOf()`, `Validator::not()` for complex rule composition and mixed-type validation
 - **New `satisfies*` API** - Enhanced instance logical combinators (`satisfiesAny()`, `satisfiesAll()`, `satisfiesNone()`) with support for mixed validators/callables
+- **Enum-Based Variant Flags** - Type-safe variant selection for IP addresses (`IpVersion`), Base64 encoding (`Base64Variant`), and UUID versions (`UuidVariant`) with consistent API pattern
 - **Smart Null Handling** - Revolutionary null handling system where validations skip `null` unless `required()`, transformations always execute, and order is independent
 - **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for primitives, empty structures for objects/arrays
 - **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
@@ -37,6 +39,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Comprehensive Error Collection** - All validation errors collected, not just the first failure
 - **Smart Type Coercion** - Configurable automatic type conversion with form-friendly defaults
 - **Fluent API with guaranteed execution order** - Chainable method calls that execute in the exact order written
+- **Extensibility Philosophy** - Focus on core validation principles; external libraries encouraged for advanced/specialized validators via `satisfies()`
 
 ### Developer Experience
 - **Dual Validation Methods** - `validate()` (exception-based) and `tryValidate()` (tuple-based)
@@ -51,11 +54,11 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Core Concepts** - Architecture understanding, validation flow, performance considerations
 
 ### Focused Guides
-- **String Validation** - Complete format validation suite with practical examples
-- **Numeric Validation** - Integer and float validation with shared constraints
+- **String Validation** - Complete format validation suite (email, URL, UUID, IP, hostname, domain, time, base64, hex) with enum-based variants and practical examples
+- **Numeric Validation** - Integer and float validation with shared constraints, including port validation
 - **Array Validation** - Indexed array validation with filtering and item validation
 - **Object Validation** - Schema-based validation for complex structures
-- **Custom Validation** - Business logic integration and context-aware validation
+- **Custom Validation** - Business logic integration, context-aware validation, and external library integration patterns
 - **Error Handling** - Exception vs tuple patterns, structured error reporting
 
 ### API Reference

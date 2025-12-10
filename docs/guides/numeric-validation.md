@@ -31,6 +31,34 @@ $constrainedInt = Validator::isInt()
 $result = $constrainedInt->validate(25); // Valid (0 ≤ 25 ≤ 100, 25 > 0, 25 % 5 = 0)
 ```
 
+### Port Number Validation
+
+Port numbers are integers in the range 1-65535. Use the `port()` method for network/API validation:
+
+```php
+$portValidator = Validator::isInt()->port();
+
+// Valid ports
+$port = $portValidator->validate(80);      // HTTP
+$port = $portValidator->validate(443);     // HTTPS
+$port = $portValidator->validate(3000);    // Common dev port
+$port = $portValidator->validate(65535);   // Maximum port
+$port = $portValidator->validate(1);        // Minimum port
+
+// With coercion (for string inputs from HTTP/config)
+$portValidator = Validator::isInt()->coerce()->port();
+$port = $portValidator->validate('80');    // Returns: 80 (int)
+$port = $portValidator->validate('443');   // Returns: 443 (int)
+
+// Invalid: out of range
+// $portValidator->validate(0);        // ❌ ValidationException (too low)
+// $portValidator->validate(65536);    // ❌ ValidationException (too high)
+// $portValidator->validate(-1);        // ❌ ValidationException (negative)
+
+// Custom message
+$customPort = Validator::isInt()->port('Must be a valid port number');
+```
+
 ## Float Validation
 
 ### Basic Float Validation

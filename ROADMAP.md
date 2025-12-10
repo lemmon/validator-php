@@ -10,7 +10,15 @@ This roadmap outlines the strategic development plan for future releases, priori
 
 ## Recently Completed
 
-### Type-Safe Pipeline Architecture (Current)
+### String Validators Bundle & Enum-Based Variants (Current)
+- [x] **String Format Validators** - Added `hostname()`, `time()`, `base64()`, `hex()`, `domain()`, and `regex()` alias
+- [x] **Enum-Based Variant Flags** - Implemented `IpVersion`, `Base64Variant`, and `UuidVariant` enums for type-safe variant selection
+- [x] **UUID v7 Support** - Added support for UUID version 7 (Unix timestamp-based, sortable)
+- [x] **API Consistency** - Established consistent pattern: enum flags come first, message parameter last
+- [x] **Port Validator** - Moved `port()` to `IntValidator` as numeric constraint (1-65535)
+- [x] **Documentation Philosophy** - Clarified library's focus on core validation principles over exhaustive validator coverage
+
+### Type-Safe Pipeline Architecture
 - [x] **PipelineType Enum Implementation** - Modern PHP 8.1+ enum for type-safe pipeline operations
 - [x] **IDE Integration** - Full autocomplete support for `PipelineType::VALIDATION` and `PipelineType::TRANSFORMATION`
 - [x] **Refactoring Safety** - No more magic strings, IDE handles all references automatically
@@ -110,11 +118,14 @@ This roadmap outlines the strategic development plan for future releases, priori
 ## Next Release -- Utility Features
 
 ### String Enhancements
-- [ ] **`hostname()`** -- Validates hostname format (domain names, subdomains)
-- [ ] **`time()`** -- Validates time format (HH:MM:SS, HH:MM)
-- [ ] **`base64()`** -- Validates Base64 encoded strings (simple regex, no dependencies)
-- [ ] **`hex()`** -- Validates hexadecimal strings (simple regex, optional length constraints)
-- [ ] **`regex()` alias** -- Alternative name for `pattern()` method for clarity
+- [x] **`hostname()`** -- Validates hostname format (domain names, subdomains)
+- [x] **`time()`** -- Validates time format (HH:MM:SS, HH:MM)
+- [x] **`base64()`** -- Validates Base64 encoded strings with `Base64Variant` enum (Standard, UrlSafe, Any)
+- [x] **`hex()`** -- Validates hexadecimal strings (simple regex, optional length constraints)
+- [x] **`regex()` alias** -- Alternative name for `pattern()` method for clarity
+- [x] **`domain()`** -- Validates domain names (stricter than hostname, requires at least one dot)
+- [x] **Enum-based variant flags** -- `IpVersion`, `Base64Variant`, and `UuidVariant` enums for type-safe variant selection
+- [x] **UUID v7 support** -- Added support for UUID version 7 (Unix timestamp-based, sortable)
 
 ### String Transformations
 - [x] **`transform()`** - Single transformation method (already implemented!)
@@ -142,11 +153,17 @@ This roadmap outlines the strategic development plan for future releases, priori
 ```
 
 ### Removed from Scope
+
+**General Principle:** The library's primary focus is on core validation principles (type safety, fluent APIs, error handling, extensibility) rather than implementing every possible validator. For advanced, specialized, or frequently-evolving validators, leveraging external libraries via `satisfies()` is strongly encouraged. This keeps the library focused on its core strengths while enabling you to leverage domain expertise from specialized libraries.
+
+**Removed Validators:**
 - ~~`trim()`~~ -- Use `->transform('trim')` or `->transform(fn($v) => trim($v))` for predictability
 - ~~`toCamelCase()` / `toSnakeCase()`~~ -- Better handled by specialized libraries (Laravel Str, Symfony String)
 - ~~`slugify()`~~ -- Complex internationalization logic, use dedicated libraries
 - ~~`normalizeSpaces()`~~ -- Complex whitespace handling (spaces, tabs, newlines, Unicode), use `Str::squish()`
 - ~~`cuid2()` / `nanoid()` / `ulid()`~~ -- Use specialized libraries (ramsey/uuid, hidehalo/nanoid-php, ulid/php)
+
+**Note on UUID:** UUID validation is provided as a built-in convenience method due to its widespread use. However, external libraries are encouraged because they stay current with newer UUID variants and versions, while the built-in implementation may fall behind as the library prioritizes core validation principles over exhaustive validator coverage. For advanced UUID features (parsing, generation, strict RFC compliance, latest specifications), using [`ramsey/uuid`](https://github.com/ramsey/uuid) via `satisfies()` is recommended.
 
 ### Extensibility Examples
 ```php

@@ -44,24 +44,172 @@ $customUrl = Validator::isString()->url('Please provide a valid URL');
 
 ### UUID Validation
 
-```php
-$uuidValidator = Validator::isString()->uuid();
+The `uuid()` method accepts an optional `UuidVariant` enum to specify which UUID version to validate. The enum flag comes first, message parameter last:
 
-// Valid UUIDs (all versions supported)
-$uuid = $uuidValidator->validate('550e8400-e29b-41d4-a716-446655440000');
-$uuid = $uuidValidator->validate('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+```php
+use Lemmon\Validator\UuidVariant;
+
+// Any UUID version (default - accepts versions 1-7)
+$uuidValidator = Validator::isString()->uuid();
+$uuid = $uuidValidator->validate('550e8400-e29b-41d4-a716-446655440000'); // V4
+$uuid = $uuidValidator->validate('6ba7b810-9dad-11d1-80b4-00c04fd430c8'); // V1
+$uuid = $uuidValidator->validate('01890a5d-ac96-7748-b800-303132333435'); // V7
+
+// Explicit UUID version 1 (time-based)
+$v1Validator = Validator::isString()->uuid(UuidVariant::V1);
+$uuid = $v1Validator->validate('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+// $v1Validator->validate('550e8400-e29b-41d4-a716-446655440000'); // ❌ ValidationException (V4)
+
+// Explicit UUID version 4 (random)
+$v4Validator = Validator::isString()->uuid(UuidVariant::V4);
+$uuid = $v4Validator->validate('550e8400-e29b-41d4-a716-446655440000');
+// $v4Validator->validate('6ba7b810-9dad-11d1-80b4-00c04fd430c8'); // ❌ ValidationException (V1)
+
+// Explicit UUID version 7 (Unix timestamp-based, sortable)
+$v7Validator = Validator::isString()->uuid(UuidVariant::V7);
+$uuid = $v7Validator->validate('01890a5d-ac96-7748-b800-303132333435');
+// $v7Validator->validate('550e8400-e29b-41d4-a716-446655440000'); // ❌ ValidationException (V4)
+
+// Other versions: V2 (DCE Security), V3 (name-based MD5), V5 (name-based SHA-1)
+$v2Validator = Validator::isString()->uuid(UuidVariant::V2);
+$v3Validator = Validator::isString()->uuid(UuidVariant::V3);
+$v5Validator = Validator::isString()->uuid(UuidVariant::V5);
+
+// Custom message with variant (enum flag first, message last)
+$customUuid = Validator::isString()->uuid(UuidVariant::V4, 'Must be UUID v4');
 ```
+
+> **Note on UUID Implementation:** While UUID validation is provided as a built-in convenience method due to its widespread use, the library's primary focus is on core validation principles rather than implementing every possible validator. External libraries are encouraged because they stay current with newer UUID variants and versions, while the built-in implementation may fall behind as the library prioritizes core validation features over exhaustive validator coverage. For production applications requiring comprehensive UUID validation, parsing, or generation capabilities, consider using [`ramsey/uuid`](https://github.com/ramsey/uuid) via the `satisfies()` method:
+>
+> ```php
+> use Ramsey\Uuid\Uuid;
+>
+> $advancedUuidValidator = Validator::isString()
+>     ->satisfies(fn($v) => Uuid::isValid($v), 'Must be valid UUID');
+> ```
+>
+> The built-in `uuid()` method provides basic format validation suitable for most use cases, but external libraries offer additional features like strict RFC compliance, parsing, generation, and support for the latest UUID specifications.
 
 ### IP Address Validation
 
-```php
-$ipValidator = Validator::isString()->ip();
+The `ip()` method accepts an optional `IpVersion` enum to specify which IP version to validate. The enum flag comes first, message parameter last:
 
-// Valid IP addresses (IPv4 and IPv6)
+```php
+use Lemmon\Validator\IpVersion;
+
+// Any IP version (default - accepts both IPv4 and IPv6)
+$ipValidator = Validator::isString()->ip();
 $ipv4 = $ipValidator->validate('192.168.1.1');
-$ipv4 = $ipValidator->validate('10.0.0.1');
 $ipv6 = $ipValidator->validate('2001:0db8:85a3:0000:0000:8a2e:0370:7334');
-$ipv6 = $ipValidator->validate('::1'); // localhost IPv6
+
+// Explicit IPv4 only
+$ipv4Validator = Validator::isString()->ip(IpVersion::IPv4);
+$ipv4 = $ipv4Validator->validate('192.168.1.1');
+$ipv4 = $ipv4Validator->validate('10.0.0.1');
+// $ipv4Validator->validate('2001:0db8::1'); // ❌ ValidationException
+
+// Explicit IPv6 only
+$ipv6Validator = Validator::isString()->ip(IpVersion::IPv6);
+$ipv6 = $ipv6Validator->validate('2001:0db8:85a3:0000:0000:8a2e:0370:7334');
+$ipv6 = $ipv6Validator->validate('::1'); // localhost IPv6
+// $ipv6Validator->validate('192.168.1.1'); // ❌ ValidationException
+
+// Custom message with version (enum flag first, message last)
+$customIpv4 = Validator::isString()->ip(IpVersion::IPv4, 'Must be IPv4 format');
+```
+
+### Hostname Validation
+
+```php
+$hostnameValidator = Validator::isString()->hostname();
+
+// Valid hostnames (includes domains, subdomains, and single labels)
+$hostname = $hostnameValidator->validate('example.com');
+$hostname = $hostnameValidator->validate('subdomain.example.com');
+$hostname = $hostnameValidator->validate('test-domain.co.uk');
+$hostname = $hostnameValidator->validate('localhost'); // Single label allowed
+
+// Custom message
+$customHostname = Validator::isString()->hostname('Please provide a valid hostname');
+```
+
+### Domain Validation
+
+```php
+$domainValidator = Validator::isString()->domain();
+
+// Valid domains (requires at least one dot)
+$domain = $domainValidator->validate('example.com');
+$domain = $domainValidator->validate('subdomain.example.com');
+$domain = $domainValidator->validate('test-domain.co.uk');
+
+// Invalid: single labels (no dot)
+// $domainValidator->validate('localhost'); // ❌ ValidationException
+
+// Custom message
+$customDomain = Validator::isString()->domain('Please provide a valid domain name');
+```
+
+**Note:** `domain()` is stricter than `hostname()` - it requires at least one dot, rejecting single-label hostnames like `localhost` or `server1`.
+
+### Time Validation
+
+```php
+$timeValidator = Validator::isString()->time();
+
+// Valid times (HH:MM format)
+$time = $timeValidator->validate('12:30');
+$time = $timeValidator->validate('00:00');
+$time = $timeValidator->validate('23:59');
+
+// Valid times (HH:MM:SS format)
+$time = $timeValidator->validate('12:30:45');
+$time = $timeValidator->validate('23:59:59');
+
+// Custom message
+$customTime = Validator::isString()->time('Please enter a valid time');
+```
+
+### Base64 Validation
+
+The `base64()` method accepts an optional `Base64Variant` enum to specify which Base64 variant to validate. The enum flag comes first, message parameter last:
+
+```php
+use Lemmon\Validator\Base64Variant;
+
+// Standard Base64 (default - uses +, /, and = padding)
+$standardValidator = Validator::isString()->base64();
+$base64 = $standardValidator->validate('SGVsbG8gV29ybGQ='); // "Hello World"
+$base64 = $standardValidator->validate('dGVzdA=='); // "test"
+$base64 = $standardValidator->validate('YWJj'); // "abc" (no padding)
+
+// URL-safe Base64 (uses -, _, and accepts both variants)
+$urlSafeValidator = Validator::isString()->base64(Base64Variant::UrlSafe);
+$base64 = $urlSafeValidator->validate('SGVsbG8gV29ybGQ'); // URL-safe format
+$base64 = $urlSafeValidator->validate('SGVsbG8gV29ybGQ='); // Standard format also accepted
+
+// Any variant (accepts both standard and URL-safe)
+$anyValidator = Validator::isString()->base64(Base64Variant::Any);
+$base64 = $anyValidator->validate('SGVsbG8gV29ybGQ='); // Standard
+$base64 = $anyValidator->validate('SGVsbG8gV29ybGQ'); // URL-safe
+
+// Custom message with variant (enum flag first, message last)
+$customBase64 = Validator::isString()->base64(Base64Variant::Standard, 'Must be valid Base64');
+```
+
+### Hexadecimal Validation
+
+```php
+$hexValidator = Validator::isString()->hex();
+
+// Valid hex strings
+$hex = $hexValidator->validate('deadbeef');
+$hex = $hexValidator->validate('DEADBEEF');
+$hex = $hexValidator->validate('1234567890abcdef');
+$hex = $hexValidator->validate('a1b2c3');
+
+// Custom message
+$customHex = Validator::isString()->hex('Must be a hexadecimal string');
 ```
 
 ### Date and DateTime Validation
@@ -139,6 +287,20 @@ $codeValidator = Validator::isString()
 $code = $codeValidator->validate('AB1234'); // Valid
 // $codeValidator->validate('ab1234'); // ❌ ValidationException (lowercase)
 // $codeValidator->validate('ABC123'); // ❌ ValidationException (wrong format)
+```
+
+### Regex Alias
+
+The `regex()` method is an alias for `pattern()` and works identically:
+
+```php
+// Both methods are equivalent
+$patternValidator = Validator::isString()->pattern('/^\d{3}$/');
+$regexValidator = Validator::isString()->regex('/^\d{3}$/');
+
+// Both validate the same way
+$patternValidator->validate('123'); // Valid
+$regexValidator->validate('123'); // Valid
 ```
 
 ## Form-Safe String Handling
