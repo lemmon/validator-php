@@ -170,3 +170,99 @@ it('should nullify empty string and empty array when nullifyEmpty is called', fu
     // Should not nullify non-empty values
     expect($arrayValidator->validate([1, 2]))->toBe([1, 2]);
 });
+
+it('should validate minimum items constraint', function () {
+    $validator = Validator::isArray()->minItems(3);
+
+    expect($validator->validate([1, 2, 3]))->toBe([1, 2, 3]);
+    expect($validator->validate([1, 2, 3, 4]))->toBe([1, 2, 3, 4]);
+
+    $validator->validate([1, 2]);
+})->throws(ValidationException::class, 'Value must contain at least 3 items');
+
+it('should validate maximum items constraint', function () {
+    $validator = Validator::isArray()->maxItems(3);
+
+    expect($validator->validate([1, 2, 3]))->toBe([1, 2, 3]);
+    expect($validator->validate([1, 2]))->toBe([1, 2]);
+
+    $validator->validate([1, 2, 3, 4]);
+})->throws(ValidationException::class, 'Value must contain at most 3 items');
+
+it('should validate minItems and maxItems together', function () {
+    $validator = Validator::isArray()->minItems(2)->maxItems(4);
+
+    expect($validator->validate([1, 2]))->toBe([1, 2]);
+    expect($validator->validate([1, 2, 3, 4]))->toBe([1, 2, 3, 4]);
+
+    $validator->validate([1]);
+})->throws(ValidationException::class, 'Value must contain at least 2 items');
+
+it('should validate maxItems constraint when exceeded', function () {
+    $validator = Validator::isArray()->maxItems(4);
+    $validator->validate([1, 2, 3, 4, 5]);
+})->throws(ValidationException::class, 'Value must contain at most 4 items');
+
+it('should use custom error message for minItems', function () {
+    $validator = Validator::isArray()->minItems(3, 'Array must have at least 3 elements');
+    $validator->validate([1, 2]);
+})->throws(ValidationException::class, 'Array must have at least 3 elements');
+
+it('should use custom error message for maxItems', function () {
+    $validator = Validator::isArray()->maxItems(2, 'Array must have at most 2 elements');
+    $validator->validate([1, 2, 3]);
+})->throws(ValidationException::class, 'Array must have at most 2 elements');
+
+it('should validate array contains specific value', function () {
+    $validator = Validator::isArray()->contains('banana');
+
+    expect($validator->validate(['apple', 'banana', 'cherry']))->toBe(['apple', 'banana', 'cherry']);
+
+    $validator->validate(['apple', 'cherry']);
+})->throws(ValidationException::class, 'Value must contain the required item');
+
+it('should validate array contains value with strict comparison', function () {
+    $validator = Validator::isArray()->contains(0);
+
+    // Should find integer 0, not string '0'
+    expect($validator->validate([0, 1, 2]))->toBe([0, 1, 2]);
+    $validator->validate(['0', 1, 2]);
+})->throws(ValidationException::class);
+
+it('should validate array contains item matching validator', function () {
+    $validator = Validator::isArray()->contains(Validator::isString()->email());
+
+    expect($validator->validate(['not-email', 'test@example.com', 'also-not-email']))
+        ->toBe(['not-email', 'test@example.com', 'also-not-email']);
+
+    $validator->validate(['not-email', 'also-not-email']);
+})->throws(ValidationException::class, 'Value must contain the required item');
+
+it('should validate array contains item matching complex validator', function () {
+    $validator = Validator::isArray()->contains(Validator::isInt()->positive());
+
+    expect($validator->validate([-1, 0, 5, -2]))->toBe([-1, 0, 5, -2]);
+
+    $validator->validate([-1, 0, -2]);
+})->throws(ValidationException::class);
+
+it('should use custom error message for contains', function () {
+    $validator = Validator::isArray()->contains('required', 'Array must contain "required"');
+    try {
+        $validator->validate(['other', 'values']);
+        expect(false)->toBe(true); // Should not reach here
+    } catch (ValidationException $e) {
+        expect($e->getErrors())->toContain('Array must contain "required"');
+    }
+});
+
+it('should work with contains and item validator together', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isString())
+        ->contains('banana');
+
+    expect($validator->validate(['apple', 'banana', 'cherry']))->toBe(['apple', 'banana', 'cherry']);
+
+    // Should fail item validation first
+    $validator->validate(['apple', 123, 'banana']);
+})->throws(ValidationException::class);

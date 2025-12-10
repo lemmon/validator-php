@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - `port()` method for `IntValidator` to validate port numbers (1-65535) as numeric constraints.
 - Enum-based variant flags: `IpVersion` enum for IP address validation, `Base64Variant` enum for Base64 validation, and `UuidVariant` enum for UUID validation.
 - UUID version 7 support in `UuidVariant` enum (Unix timestamp-based, sortable).
+- Array length constraints: `minItems()` and `maxItems()` methods for `ArrayValidator` to validate array size.
+- Array contains validation: `contains()` method for `ArrayValidator` supporting both specific value matching and validator-based item matching.
 - Comprehensive documentation clarifying library philosophy: focus on core validation principles over exhaustive validator coverage, with external libraries encouraged for advanced/specialized validators.
 
 ### Changed

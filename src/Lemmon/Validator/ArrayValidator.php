@@ -42,6 +42,65 @@ class ArrayValidator extends FieldValidator
     }
 
     /**
+     * Validates that the array has at least the specified number of items.
+     *
+     * @param int $min Minimum number of items required
+     * @param null|string $message Custom error message
+     * @return $this
+     */
+    public function minItems(int $min, null|string $message = null): static
+    {
+        return $this->satisfies(
+            static fn ($value, $key = null, $input = null) => count($value) >= $min,
+            $message ?? "Value must contain at least {$min} items",
+        );
+    }
+
+    /**
+     * Validates that the array has at most the specified number of items.
+     *
+     * @param int $max Maximum number of items allowed
+     * @param null|string $message Custom error message
+     * @return $this
+     */
+    public function maxItems(int $max, null|string $message = null): static
+    {
+        return $this->satisfies(
+            static fn ($value, $key = null, $input = null) => count($value) <= $max,
+            $message ?? "Value must contain at most {$max} items",
+        );
+    }
+
+    /**
+     * Validates that the array contains a specific value or an item matching the provided validator.
+     *
+     * @param mixed $valueOrValidator Either a specific value to find, or a FieldValidator to match against items
+     * @param null|string $message Custom error message
+     * @return $this
+     */
+    public function contains(mixed $valueOrValidator, null|string $message = null): static
+    {
+        return $this->satisfies(
+            static function ($value, $key = null, $input = null) use ($valueOrValidator) {
+                if ($valueOrValidator instanceof FieldValidator) {
+                    // Check if any item matches the validator
+                    foreach ($value as $item) {
+                        [$valid] = $valueOrValidator->tryValidate($item);
+                        if ($valid) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                // Check if array contains the specific value (strict comparison)
+                return in_array($valueOrValidator, $value, true);
+            },
+            $message ?? 'Value must contain the required item',
+        );
+    }
+
+    /**
      * @inheritDoc
      */
     protected function coerceValue(mixed $value): mixed

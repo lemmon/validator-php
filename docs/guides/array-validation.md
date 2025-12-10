@@ -228,9 +228,83 @@ $validator = Validator::isArray()->coerce()->required();
 $validator->validate(null); // Throws ValidationException
 ```
 
+## Array Length Constraints
+
+### Minimum and Maximum Items
+
+Use `minItems()` and `maxItems()` to validate array length, similar to `minLength()` and `maxLength()` for strings:
+
+```php
+// Minimum items constraint
+$validator = Validator::isArray()->minItems(3);
+$result = $validator->validate([1, 2, 3]); // Valid
+$result = $validator->validate([1, 2, 3, 4]); // Valid
+$validator->validate([1, 2]); // Throws ValidationException: "Value must contain at least 3 items"
+
+// Maximum items constraint
+$validator = Validator::isArray()->maxItems(5);
+$result = $validator->validate([1, 2, 3]); // Valid
+$result = $validator->validate([1, 2, 3, 4, 5]); // Valid
+$validator->validate([1, 2, 3, 4, 5, 6]); // Throws ValidationException: "Value must contain at most 5 items"
+
+// Combined constraints
+$validator = Validator::isArray()->minItems(2)->maxItems(4);
+$result = $validator->validate([1, 2]); // Valid
+$result = $validator->validate([1, 2, 3, 4]); // Valid
+$validator->validate([1]); // Throws ValidationException: "Value must contain at least 2 items"
+$validator->validate([1, 2, 3, 4, 5]); // Throws ValidationException: "Value must contain at most 4 items"
+```
+
+### Custom Error Messages
+
+```php
+$validator = Validator::isArray()
+    ->minItems(3, 'Array must have at least 3 elements')
+    ->maxItems(10, 'Array cannot exceed 10 elements');
+```
+
+### Array Contains Validation
+
+The `contains()` method validates that an array contains a specific value or an item matching a validator:
+
+```php
+// Contains specific value (strict comparison)
+$validator = Validator::isArray()->contains('banana');
+$result = $validator->validate(['apple', 'banana', 'cherry']); // Valid
+$validator->validate(['apple', 'cherry']); // Throws ValidationException
+
+// Contains value with strict type checking
+$validator = Validator::isArray()->contains(0);
+$result = $validator->validate([0, 1, 2]); // Valid (finds integer 0)
+$validator->validate(['0', 1, 2]); // Throws ValidationException (string '0' !== integer 0)
+
+// Contains item matching validator
+$validator = Validator::isArray()->contains(Validator::isString()->email());
+$result = $validator->validate(['not-email', 'test@example.com', 'also-not-email']); // Valid
+$validator->validate(['not-email', 'also-not-email']); // Throws ValidationException
+
+// Contains item matching complex validator
+$validator = Validator::isArray()->contains(Validator::isInt()->positive());
+$result = $validator->validate([-1, 0, 5, -2]); // Valid (contains positive integer 5)
+$validator->validate([-1, 0, -2]); // Throws ValidationException (no positive integers)
+```
+
+### Combining Contains with Item Validation
+
+```php
+// Validate all items are strings AND array contains an email
+$validator = Validator::isArray()
+    ->items(Validator::isString())
+    ->contains(Validator::isString()->email());
+
+$result = $validator->validate(['hello', 'test@example.com', 'world']); // Valid
+$validator->validate(['hello', 'world']); // Throws ValidationException (no email found)
+$validator->validate(['hello', 123, 'test@example.com']); // Throws ValidationException (item validation fails first)
+```
+
 ## Common Patterns
 
-### Array Length Constraints
+### Custom Array Validation
 
 ```php
 // For specific array validation, use custom validation

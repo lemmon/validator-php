@@ -10,12 +10,14 @@ This roadmap outlines the strategic development plan for future releases, priori
 
 ## Recently Completed
 
-### String Validators Bundle & Enum-Based Variants (Current)
+### String Validators Bundle & Array Enhancements (Current)
 - [x] **String Format Validators** - Added `hostname()`, `time()`, `base64()`, `hex()`, `domain()`, and `regex()` alias
 - [x] **Enum-Based Variant Flags** - Implemented `IpVersion`, `Base64Variant`, and `UuidVariant` enums for type-safe variant selection
 - [x] **UUID v7 Support** - Added support for UUID version 7 (Unix timestamp-based, sortable)
 - [x] **API Consistency** - Established consistent pattern: enum flags come first, message parameter last
 - [x] **Port Validator** - Moved `port()` to `IntValidator` as numeric constraint (1-65535)
+- [x] **Array Length Constraints** - Added `minItems()` and `maxItems()` for array size validation
+- [x] **Array Contains Validation** - Added `contains()` supporting value matching and validator-based item matching
 - [x] **Documentation Philosophy** - Clarified library's focus on core validation principles over exhaustive validator coverage
 
 ### Type-Safe Pipeline Architecture
@@ -251,8 +253,8 @@ $stringValidator = Validator::isString()
 ```
 
 ### Array Enhancements
-- [ ] **`minItems()`** / **`maxItems()`** - Array length constraints
-- [ ] **`contains()`** - Validates array contains specific item
+- [x] **`minItems()`** / **`maxItems()`** - Array length constraints
+- [x] **`contains()`** - Validates array contains specific item or item matching validator
 
 ### Array Transformations
 - [x] **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
