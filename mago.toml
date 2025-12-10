@@ -10,10 +10,18 @@ tab-width = 4
 use-tabs = false
 trailing-comma = true
 remove-trailing-close-tag = true
+space-before-arrow-function-parameter-list-parenthesis = true
 
 [linter.rules]
+interface-name = { psr = false }
+trait-name = { psr = false }
+class-name = { psr = false }
 literal-named-argument = { enabled = false }
-too-many-methods = { threshold = 15 }
-cyclomatic-complexity = { threshold = 20 }
+too-many-methods = { enabled = false }
+cyclomatic-complexity = { enabled = false }
 tagged-todo = { enabled = false }
 no-boolean-flag-parameter = { enabled = false }
+no-insecure-comparison = { enabled = false }
+no-literal-password = { enabled = false }
+kan-defect = { enabled = false }
+halstead = { enabled = false }

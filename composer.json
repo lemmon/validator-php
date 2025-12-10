@@ -22,7 +22,6 @@
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.48",
-        "friendsofphp/php-cs-fixer": "^3.84",
         "pestphp/pest": "^2.0",
         "phpstan/phpstan": "^2.1",
         "symfony/error-handler": "^7.0",
@@ -46,8 +45,8 @@
     },
     "scripts": {
         "analyse": "phpstan analyse",
-        "fix": "php-cs-fixer fix --allow-risky=yes",
-        "lint": "php-cs-fixer fix --dry-run --diff --allow-risky=yes",
+        "fix": "mago format",
+        "lint": "mago lint",
         "test": "vendor/bin/pest"
     }
 }

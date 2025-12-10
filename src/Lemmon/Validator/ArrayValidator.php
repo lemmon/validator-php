@@ -87,7 +87,7 @@ class ArrayValidator extends FieldValidator
         if ($this->filterEmpty) {
             $value = array_values(array_filter(
                 $value,
-                fn($item) => $item !== '' && $item !== null,
+                static fn ($item) => $item !== '' && $item !== null,
             ));
         }
 

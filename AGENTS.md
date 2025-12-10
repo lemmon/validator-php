@@ -72,7 +72,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ### Code Quality
 - **Testing** - Pest PHP with organized, focused test suite
 - **Static Analysis** - PHPStan at maximum level for type safety
-- **Code Style** - PHP-CS-Fixer for consistent formatting
+- **Code Style** - Mago for linting/formatting; scripts map `composer lint`/`composer fix` to Mago
 - **Performance** - Optimized validation logic with eliminated code duplication
 
 ### Development Guidelines

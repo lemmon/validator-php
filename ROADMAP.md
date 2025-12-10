@@ -337,7 +337,7 @@ $stringValidator = Validator::isString()
 ### Testing & Quality
 - [x] Organized test suite with focused files
 - [x] 100% PHPStan compliance
-- [x] PHP-CS-Fixer standards
+- [x] Mago lint/formatting standards
 - [x] Static logical combinators test coverage
 - [x] Comprehensive schema validation test coverage
 - [x] Floating-point precision bug fixes with comprehensive edge case testing

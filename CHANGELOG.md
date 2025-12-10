@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Added `declare(strict_types=1);` across the codebase for stricter type enforcement and clearer errors.
+- Replaced php-cs-fixer with Mago for linting/formatting; scripts now map `composer lint`/`composer fix` to Mago.
 
 ## [0.9.0] - 2025-11-18
 

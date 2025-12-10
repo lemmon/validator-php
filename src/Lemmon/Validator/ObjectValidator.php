@@ -76,18 +76,19 @@ class ObjectValidator extends FieldValidator
 
             if (!$valid) {
                 $errors[$fieldKey] = $fieldErrors;
-            } else {
-                // Include fields that were provided in input OR have default values applied
-                $wasProvided = property_exists($value, $fieldKey);
-                $hasDefault = $validator->hasDefault ?? false;
+                continue;
+            }
 
-                if ($wasProvided || $hasDefault) {
-                    $data->{$fieldKey} = $validatedFieldValue;
-                }
+            // Include fields that were provided in input OR have default values applied
+            $wasProvided = property_exists($value, $fieldKey);
+            $hasDefault = $validator->hasDefault ?? false;
+
+            if ($wasProvided || $hasDefault) {
+                $data->{$fieldKey} = $validatedFieldValue;
             }
         }
 
-        if (!empty($errors)) {
+        if ($errors !== []) {
             throw new ValidationException($errors);
         }
 

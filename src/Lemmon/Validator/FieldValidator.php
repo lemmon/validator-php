@@ -77,9 +77,9 @@ abstract class FieldValidator
     {
         $this->pipeline[] = [
             'type' => PipelineType::TRANSFORMATION,
-            'operation' => function ($value) {
-                return $value === '' || is_array($value) && empty($value) ? null : $value;
-            },
+            'operation' => static fn ($value) => $value === '' || is_array($value) && $value === []
+                ? null
+                : $value,
         ];
         return $this;
     }
@@ -95,19 +95,22 @@ abstract class FieldValidator
         callable|FieldValidator $validation,
         null|string $message = null,
     ): self {
+        $rule = $validation;
+
         if ($validation instanceof FieldValidator) {
             // Convert FieldValidator to callable
-            $rule = function ($value, $key = null, $input = null) use ($validation) {
+            $rule = static function ($value, $key = null, $input = null) use ($validation) {
                 [$valid] = $validation->tryValidate($value, $key, $input);
                 return $valid;
             };
-        } else {
-            $rule = $validation;
         }
 
         $this->pipeline[] = [
             'type' => PipelineType::VALIDATION,
-            'operation' => function ($value, $key = null, $input = null) use ($rule, $message) {
+            'operation' => static function ($value, $key = null, $input = null) use (
+                $rule,
+                $message,
+            ) {
                 if (!$rule($value, $key, $input)) {
                     throw new ValidationException([$message ?? 'Custom validation failed']);
                 }
@@ -134,17 +137,20 @@ abstract class FieldValidator
      */
     public function satisfiesAll(array $validations, null|string $message = null): self
     {
-        return $this->satisfies(function ($value, $key = null, $input = null) use ($validations) {
+        return $this->satisfies(static function ($value, $key = null, $input = null) use (
+            $validations,
+        ) {
             foreach ($validations as $validation) {
                 if ($validation instanceof FieldValidator) {
                     [$valid] = $validation->tryValidate($value, $key, $input);
                     if (!$valid) {
                         return false;
                     }
-                } else {
-                    if (!$validation($value, $key, $input)) {
-                        return false;
-                    }
+                    continue;
+                }
+
+                if (!$validation($value, $key, $input)) {
+                    return false;
                 }
             }
             return true;
@@ -169,17 +175,20 @@ abstract class FieldValidator
      */
     public function satisfiesAny(array $validations, null|string $message = null): self
     {
-        return $this->satisfies(function ($value, $key = null, $input = null) use ($validations) {
+        return $this->satisfies(static function ($value, $key = null, $input = null) use (
+            $validations,
+        ) {
             foreach ($validations as $validation) {
                 if ($validation instanceof FieldValidator) {
                     [$valid] = $validation->tryValidate($value, $key, $input);
                     if ($valid) {
                         return true;
                     }
-                } else {
-                    if ($validation($value, $key, $input)) {
-                        return true;
-                    }
+                    continue;
+                }
+
+                if ($validation($value, $key, $input)) {
+                    return true;
                 }
             }
             return false;
@@ -205,17 +214,18 @@ abstract class FieldValidator
     public function satisfiesNone(array $validations, null|string $message = null): self
     {
         return $this->satisfies(
-            function ($value, $key = null, $input = null) use ($validations) {
+            static function ($value, $key = null, $input = null) use ($validations) {
                 foreach ($validations as $validation) {
                     if ($validation instanceof FieldValidator) {
                         [$valid] = $validation->tryValidate($value, $key, $input);
                         if ($valid) {
                             return false; // If any validation passes, satisfiesNone fails
                         }
-                    } else {
-                        if ($validation($value, $key, $input)) {
-                            return false; // If any validation passes, satisfiesNone fails
-                        }
+                        continue;
+                    }
+
+                    if ($validation($value, $key, $input)) {
+                        return false; // If any validation passes, satisfiesNone fails
                     }
                 }
                 return true; // All validations failed, so satisfiesNone passes
@@ -313,14 +323,14 @@ abstract class FieldValidator
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
         // Handle initial null values - only return early if no pipeline, no default, and not required
-        if (is_null($value) && empty($this->pipeline) && !$this->required) {
+        if (is_null($value) && count($this->pipeline) === 0 && !$this->required) {
             return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
         $value = $this->coerce ? $this->coerceValue($value) : $value;
 
         // Handle null values after coercion - only return early if no pipeline, no default, and not required
-        if (is_null($value) && empty($this->pipeline) && !$this->required) {
+        if (is_null($value) && count($this->pipeline) === 0 && !$this->required) {
             return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
         }
 
@@ -331,7 +341,7 @@ abstract class FieldValidator
             }
 
             // Skip type validation for null values if we have pipeline (let pipeline handle it)
-            $processedValue = is_null($value) && !empty($this->pipeline)
+            $processedValue = is_null($value) && count($this->pipeline) > 0
                 ? $value
                 : $this->validateType($value, $key);
 

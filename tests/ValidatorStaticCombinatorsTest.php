@@ -31,7 +31,7 @@ describe('Validator Static Logical Combinators', function () {
                 Validator::isInt()->positive(),
             ]);
 
-            expect(fn() => $validator->validate('not-email-or-positive-int'))
+            expect(fn () => $validator->validate('not-email-or-positive-int'))
                 ->toThrow(ValidationException::class);
         });
 
@@ -55,7 +55,7 @@ describe('Validator Static Logical Combinators', function () {
                 'Must be either a valid email or positive integer',
             );
 
-            expect(fn() => $validator->validate('invalid'))
+            expect(fn () => $validator->validate('invalid'))
                 ->toThrow(
                     ValidationException::class,
                     'Must be either a valid email or positive integer',
@@ -100,10 +100,10 @@ describe('Validator Static Logical Combinators', function () {
             ]);
 
             // Fails minLength
-            expect(fn() => $validator->validate('hi'))->toThrow(ValidationException::class);
+            expect(fn () => $validator->validate('hi'))->toThrow(ValidationException::class);
 
             // Fails pattern
-            expect(fn() => $validator->validate('Hello'))->toThrow(ValidationException::class);
+            expect(fn () => $validator->validate('Hello'))->toThrow(ValidationException::class);
         });
 
         it('should work with different validator types', function () {
@@ -122,7 +122,7 @@ describe('Validator Static Logical Combinators', function () {
                 Validator::isString()->pattern('/^[a-z]+$/'),
             ], 'Must be lowercase string with at least 5 characters');
 
-            expect(fn() => $validator->validate('Hi'))
+            expect(fn () => $validator->validate('Hi'))
                 ->toThrow(
                     ValidationException::class,
                     'Must be lowercase string with at least 5 characters',
@@ -159,7 +159,7 @@ describe('Validator Static Logical Combinators', function () {
         it('should fail when the validator passes', function () {
             $validator = Validator::not(Validator::isString()->email());
 
-            expect(fn() => $validator->validate('test@example.com'))
+            expect(fn () => $validator->validate('test@example.com'))
                 ->toThrow(ValidationException::class);
         });
 
@@ -169,7 +169,7 @@ describe('Validator Static Logical Combinators', function () {
             expect($validator->validate('active'))->toBe('active');
             expect($validator->validate('pending'))->toBe('pending');
 
-            expect(fn() => $validator->validate('banned'))->toThrow(ValidationException::class);
+            expect(fn () => $validator->validate('banned'))->toThrow(ValidationException::class);
         });
 
         it('should use custom error message', function () {
@@ -178,7 +178,7 @@ describe('Validator Static Logical Combinators', function () {
                 'Username cannot be admin or root',
             );
 
-            expect(fn() => $validator->validate('admin'))
+            expect(fn () => $validator->validate('admin'))
                 ->toThrow(ValidationException::class, 'Username cannot be admin or root');
         });
 
@@ -213,8 +213,8 @@ describe('Validator Static Logical Combinators', function () {
             expect($validator->validate('test@example.com'))->toBe('test@example.com');
             expect($validator->validate(123))->toBe(123);
 
-            expect(fn() => $validator->validate('not-email'))->toThrow(ValidationException::class);
-            expect(fn() => $validator->validate(-5))->toThrow(ValidationException::class);
+            expect(fn () => $validator->validate('not-email'))->toThrow(ValidationException::class);
+            expect(fn () => $validator->validate(-5))->toThrow(ValidationException::class);
         });
 
         it('should work in schema validation', function () {
@@ -273,7 +273,7 @@ describe('Validator Static Logical Combinators', function () {
                 Validator::isInt()->positive(),
             ])->required();
 
-            expect(fn() => $validator->validate(null))->toThrow(ValidationException::class);
+            expect(fn () => $validator->validate(null))->toThrow(ValidationException::class);
 
             expect($validator->validate('test@example.com'))->toBe('test@example.com');
         });
