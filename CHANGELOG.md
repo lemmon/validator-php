@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.0] - 2025-12-11
+
 ### Added
 - `getFlattenedErrors()` method on `ValidationException` returning a flattened list of errors suitable for API consumption. Each error entry contains `path` (field path with `'_root'` for root-level errors) and `message` (error message). Supports nested structures, array items, and maintains consistent path notation.
 - `ValidationException::flattenErrors()` static method for flattening errors from `tryValidate()` results without needing to catch exceptions. Returns empty array when passed `null`.
