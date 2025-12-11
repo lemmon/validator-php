@@ -10,7 +10,14 @@ This roadmap outlines the strategic development plan for future releases, priori
 
 ## Recently Completed
 
-### String Validators Bundle & Array Enhancements (Current)
+### Flattened Errors for API Consumption (Current)
+- [x] **Flattened Error Response** - Added `getFlattenedErrors()` method on `ValidationException` returning API-friendly error format
+- [x] **Static Flatten Method** - Added `ValidationException::flattenErrors()` static method for use with `tryValidate()` results
+- [x] **Path Convention** - Implemented `'_root'` namespace for root-level errors, dot notation for nested fields, index notation for arrays
+- [x] **Comprehensive Documentation** - Added complete guide section with examples for both exception and tuple-based patterns
+- [x] **Full Test Coverage** - Added 15 test cases covering all validation scenarios and edge cases
+
+### String Validators Bundle & Array Enhancements
 - [x] **String Format Validators** - Added `hostname()`, `time()`, `base64()`, `hex()`, `domain()`, and `regex()` alias
 - [x] **Enum-Based Variant Flags** - Implemented `IpVersion`, `Base64Variant`, and `UuidVariant` enums for type-safe variant selection
 - [x] **UUID v7 Support** - Added support for UUID version 7 (Unix timestamp-based, sortable)
@@ -291,8 +298,8 @@ $stringValidator = Validator::isString()
 - ~~`when(condition, transform)`~~ -- Complex conditional logic, use external control flow
 
 ### Enhanced Error Handling
+- [x] **Error path enhancement** - Full field paths for nested validation errors (flattened errors with `'_root'` namespace)
 - [ ] **Structured error codes** - Programmatic error identification
-- [ ] **Error path enhancement** - Full field paths for nested validation errors
 
 ### Real-World Validation Gaps (For Consideration)
 - [ ] **`notEmpty()` method** - Explicit validation that value is not empty string/array (clearer than custom validation)

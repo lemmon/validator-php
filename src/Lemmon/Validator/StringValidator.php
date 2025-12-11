@@ -217,8 +217,7 @@ class StringValidator extends FieldValidator
                 Base64Variant::Standard => preg_match('/^[A-Za-z0-9+\/]*={0,2}$/', $value) === 1
                     && ($decoded = base64_decode($value, true)) !== false
                     && base64_encode($decoded) === $value,
-                Base64Variant::UrlSafe => // Try standard Base64 first // URL-safe parsers accept both standard and URL-safe variants
-                preg_match('/^[A-Za-z0-9+\/]*={0,2}$/', $value) === 1
+                Base64Variant::UrlSafe => preg_match('/^[A-Za-z0-9+\/]*={0,2}$/', $value) === 1 // Try standard Base64 first // URL-safe parsers accept both standard and URL-safe variants
                 && ($decoded = base64_decode($value, true)) !== false
                 && base64_encode($decoded) === $value
                     // Or try URL-safe Base64

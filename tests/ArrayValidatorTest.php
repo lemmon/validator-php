@@ -216,7 +216,11 @@ it('should use custom error message for maxItems', function () {
 it('should validate array contains specific value', function () {
     $validator = Validator::isArray()->contains('banana');
 
-    expect($validator->validate(['apple', 'banana', 'cherry']))->toBe(['apple', 'banana', 'cherry']);
+    expect($validator->validate(['apple', 'banana', 'cherry']))->toBe([
+        'apple',
+        'banana',
+        'cherry',
+    ]);
 
     $validator->validate(['apple', 'cherry']);
 })->throws(ValidationException::class, 'Value must contain the required item');
@@ -232,8 +236,11 @@ it('should validate array contains value with strict comparison', function () {
 it('should validate array contains item matching validator', function () {
     $validator = Validator::isArray()->contains(Validator::isString()->email());
 
-    expect($validator->validate(['not-email', 'test@example.com', 'also-not-email']))
-        ->toBe(['not-email', 'test@example.com', 'also-not-email']);
+    expect($validator->validate(['not-email', 'test@example.com', 'also-not-email']))->toBe([
+        'not-email',
+        'test@example.com',
+        'also-not-email',
+    ]);
 
     $validator->validate(['not-email', 'also-not-email']);
 })->throws(ValidationException::class, 'Value must contain the required item');
@@ -257,11 +264,13 @@ it('should use custom error message for contains', function () {
 });
 
 it('should work with contains and item validator together', function () {
-    $validator = Validator::isArray()
-        ->items(Validator::isString())
-        ->contains('banana');
+    $validator = Validator::isArray()->items(Validator::isString())->contains('banana');
 
-    expect($validator->validate(['apple', 'banana', 'cherry']))->toBe(['apple', 'banana', 'cherry']);
+    expect($validator->validate(['apple', 'banana', 'cherry']))->toBe([
+        'apple',
+        'banana',
+        'cherry',
+    ]);
 
     // Should fail item validation first
     $validator->validate(['apple', 123, 'banana']);

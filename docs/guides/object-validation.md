@@ -431,6 +431,34 @@ if (!$valid) {
 }
 ```
 
+### Flattened Errors for API Responses
+
+For API consumption, you can flatten the nested error structure:
+
+```php
+use Lemmon\Validator\ValidationException;
+
+// With exceptions
+try {
+    $schema->validate($input);
+} catch (ValidationException $e) {
+    $flattened = $e->getFlattenedErrors();
+    // Returns: [
+    //     ['path' => 'name', 'message' => 'Value is required'],
+    //     ['path' => 'user.profile.email', 'message' => 'Value must be a valid email address']
+    // ]
+}
+
+// With tryValidate
+[$valid, $data, $errors] = $schema->tryValidate($input);
+if (!$valid) {
+    $flattened = ValidationException::flattenErrors($errors);
+    // Same format as above
+}
+```
+
+See the [Error Handling Guide](../guides/error-handling.md#flattened-errors-for-api-consumption) for complete documentation on flattened errors.
+
 ## Advanced Examples
 
 ### Multi-Step Form Validation

@@ -62,6 +62,92 @@ try {
 }
 ```
 
+## Flattened Errors for API Consumption
+
+For API responses, you often need a flat list of errors with field paths. The `ValidationException` class provides methods to convert nested error structures into a flattened format suitable for frontend consumption.
+
+### Using getFlattenedErrors() with Exceptions
+
+When catching a `ValidationException`, use `getFlattenedErrors()` to get a flattened list:
+
+```php
+use Lemmon\Validator\ValidationException;
+
+try {
+    $schema->validate($input);
+} catch (ValidationException $e) {
+    $flattened = $e->getFlattenedErrors();
+    // Returns: [
+    //     ['path' => 'name', 'message' => 'Value is required'],
+    //     ['path' => 'email', 'message' => 'Value must be a valid email address'],
+    //     ['path' => 'user.profile.phone', 'message' => 'Invalid phone format']
+    // ]
+}
+```
+
+### Using flattenErrors() with tryValidate()
+
+When using `tryValidate()` (which doesn't throw exceptions), use the static `flattenErrors()` method:
+
+```php
+use Lemmon\Validator\ValidationException;
+
+[$valid, $data, $errors] = $validator->tryValidate($input);
+
+if (!$valid) {
+    $flattened = ValidationException::flattenErrors($errors);
+    // Returns empty array if $errors is null
+    // Otherwise returns same format as getFlattenedErrors()
+}
+```
+
+### Error Path Convention
+
+- **Root-level errors**: Use `'_root'` path for scalar validator errors and container type errors
+- **Field paths**: Use dot notation for nested fields (e.g., `'user.profile.email'`)
+- **Array items**: Use index notation (e.g., `'items.0'`, `'items.1'`)
+
+### Example: API Response Format
+
+```php
+try {
+    $schema->validate($input);
+    return ['success' => true, 'data' => $validated];
+} catch (ValidationException $e) {
+    return [
+        'success' => false,
+        'errors' => $e->getFlattenedErrors()
+    ];
+}
+```
+
+JSON output example:
+```json
+{
+  "success": false,
+  "errors": [
+    {"path": "name", "message": "Value is required"},
+    {"path": "email", "message": "Value must be a valid email address"},
+    {"path": "user.profile.phone", "message": "Invalid phone format"}
+  ]
+}
+```
+
+### Example: Root-Level Errors
+
+For scalar validators or container type errors:
+
+```php
+try {
+    Validator::isString()->email()->validate('invalid');
+} catch (ValidationException $e) {
+    $flattened = $e->getFlattenedErrors();
+    // Returns: [
+    //     ['path' => '_root', 'message' => 'Value must be a valid email address']
+    // ]
+}
+```
+
 ## Comprehensive Error Collection
 
 Unlike many validators that stop at the first error, Lemmon Validator collects **all** validation errors:
