@@ -317,6 +317,7 @@ $stringValidator = Validator::isString()
 
 ### Schema Composition
 - [ ] **`additionalProperties()`** - Control undefined properties in schemas
+- [ ] **`passthrough()`** - Preserve unknown keys/properties in schema output (opt-in, default remains schema-only)
 - [ ] **`patternProperties()`** - Validate properties matching regex patterns
 - [ ] **`propertyNames()`** - Validate property names themselves
 - [ ] **`dependencies()`** - Conditional validation based on other properties
