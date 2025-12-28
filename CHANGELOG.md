@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.1] - 2025-12-28
+
+### Fixed
+- **CRITICAL BUG**: Fixed null handling for transformation methods to match documented behavior
+  - **Issue**: `pipe()` transformations (like `trim()`) were executing on `null` values, causing `TypeError` exceptions
+  - **Root Cause**: All transformations were executing on null, but `pipe()` transformations are type-preserving and expect specific types
+  - **Fix**: Implemented `skipNull` flag in pipeline structure - `pipe()` now skips null (type-preserving, expects specific type), `transform()` executes on null (can handle null and change types)
+  - **Impact**: `pipe()` transformations correctly skip null values, preventing errors with functions like `trim()` that don't accept null
+  - **Behavior**: `transform()` continues to execute on null as designed (can transform null to other values/types)
+  - **Clone Support**: Updated `__clone()` method to preserve `skipNull` flag when cloning validators
+  - **Real-World Benefit**: Form validation with optional fields using `pipe(trim(...))` now works correctly without errors
+
+### Documentation
+- Clarified null handling differences between `pipe()` and `transform()` in transformation guidance.
+
 ## [0.11.0] - 2025-12-11
 
 ### Added

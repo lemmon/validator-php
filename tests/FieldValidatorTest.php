@@ -26,6 +26,20 @@ it('should apply transformations using pipe method', function () {
     expect($result)->toBe('Hello world');
 });
 
+it('should skip pipe transformations on null values', function () {
+    $validator = Validator::isString()->pipe('trim');
+
+    $result = $validator->validate(null);
+    expect($result)->toBeNull();
+});
+
+it('should execute transform on null values', function () {
+    $validator = Validator::isString()->transform(fn ($value) => $value ?? 'fallback');
+
+    $result = $validator->validate(null);
+    expect($result)->toBe('fallback');
+});
+
 it('should apply transformations with custom functions', function () {
     $validator = Validator::isInt()
         ->coerce()

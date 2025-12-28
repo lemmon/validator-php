@@ -140,6 +140,7 @@ $result = Validator::isString()
 - **Changes type context** - Updates internal type tracking
 - **No type coercion** - Returns exactly what the transformer produces
 - **Enables type switching** - Subsequent `pipe()` operations work with the new type
+- **Null handling** - `transform()` runs even when the current value is null so you can map null to a new value or type
 
 #### `pipe()` - Type-Preserving Transformations
 
@@ -155,6 +156,7 @@ $result = Validator::isString()
 - **Preserves type context** - Maintains current type for consistency
 - **Type-specific coercion** - Applies intelligent coercion based on current type
 - **Multiple operations** - Accepts variadic arguments for clean chaining
+- **Null handling** - `pipe()` skips null values to avoid type errors for optional fields
 
 ### Type-Aware Transformation Chains
 

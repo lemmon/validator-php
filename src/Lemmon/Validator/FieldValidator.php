@@ -23,7 +23,7 @@ abstract class FieldValidator
     }
 
     /**
-     * @var array<array{type: PipelineType, operation: callable}>
+     * @var array<array{type: PipelineType, operation: callable, skipNull: bool}>
      */
     protected array $pipeline = [];
     /**
@@ -80,6 +80,7 @@ abstract class FieldValidator
             'operation' => static fn ($value) => $value === '' || is_array($value) && $value === []
                 ? null
                 : $value,
+            'skipNull' => true, // nullifyEmpty() should skip null (only operates on empty strings/arrays)
         ];
         return $this;
     }
@@ -116,6 +117,7 @@ abstract class FieldValidator
                 }
                 return $value;
             },
+            'skipNull' => true, // Validations always skip null (required already checked)
         ];
         return $this;
     }
@@ -264,6 +266,7 @@ abstract class FieldValidator
 
                 return $result; // No coercion - transform can change type
             },
+            'skipNull' => false, // transform() should execute on null (can handle null and change types)
         ];
         return $this;
     }
@@ -286,6 +289,7 @@ abstract class FieldValidator
                     // Apply type-specific coercion based on current type context
                     return $this->coerceForCurrentType($result);
                 },
+                'skipNull' => true, // pipe() should skip null (type-preserving, expects specific type)
             ];
         }
         return $this;
@@ -349,10 +353,15 @@ abstract class FieldValidator
             foreach ($this->pipeline as $step) {
                 $operation = $step['operation'];
                 $type = $step['type'];
+                $skipNull = $step['skipNull'] ?? false;
 
-                // Smart null handling: validations skip null (already checked required), transformations always execute
-                if (is_null($processedValue) && $type === PipelineType::VALIDATION) {
-                    continue; // Skip validation for null values (required already checked)
+                // Smart null handling: validations always skip null, transformations skip based on skipNull flag
+                // pipe() transformations skip null (type-preserving, expect specific type)
+                // transform() transformations execute on null (can handle null and change types)
+                if (is_null($processedValue)) {
+                    if ($type === PipelineType::VALIDATION || $skipNull) {
+                        continue;
+                    }
                 }
 
                 $processedValue = $operation($processedValue, $key, $input);
@@ -489,6 +498,7 @@ abstract class FieldValidator
             $rebuiltPipeline[] = [
                 'type' => $step['type'],
                 'operation' => $operation,
+                'skipNull' => $step['skipNull'] ?? false,
             ];
         }
 

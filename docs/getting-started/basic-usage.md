@@ -307,6 +307,7 @@ $count = Validator::isString()
 
 - **Use `pipe()`** for same-type operations (string → string, array → array)
 - **Use `transform()`** for type changes (string → array, array → int)
+- **Null handling** - `pipe()` skips null values to avoid type errors, `transform()` runs on null so you can map it to a new value
 
 ```php
 // Correct usage

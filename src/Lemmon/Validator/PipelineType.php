@@ -19,7 +19,9 @@ enum PipelineType: string
 
     /**
      * Transformation operations that modify or convert values.
-     * These operations always execute, even on null values.
+     * Null handling depends on the transformation type:
+     * - `pipe()` transformations skip null (type-preserving, expect specific type)
+     * - `transform()` transformations execute on null (can handle null and change types)
      */
     case TRANSFORMATION = 'transformation';
 }
