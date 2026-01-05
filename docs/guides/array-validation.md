@@ -387,8 +387,18 @@ $validator = Validator::isArray()->items(Validator::isString());
 try {
     $validator->validate(['valid', 123, 'also valid']);
 } catch (ValidationException $e) {
-    // Error will indicate which item failed validation
+    // Errors preserve array indices to identify which item failed
     print_r($e->getErrors());
+    // Output:
+    // [
+    //     '1' => ['Value must be a string']
+    // ]
+
+    // Flattened errors show full path with index
+    $flattened = $e->getFlattenedErrors();
+    // [
+    //     ['path' => '1', 'message' => 'Value must be a string']
+    // ]
 }
 ```
 
@@ -402,9 +412,49 @@ $validator = Validator::isArray()->items(Validator::isInt());
 if (!$valid) {
     echo "Validation failed:\n";
     print_r($errors);
+    // Output:
+    // [
+    //     '1' => ['Value must be an integer']
+    // ]
+
+    // Flattened errors preserve array indices
+    $flattened = ValidationException::flattenErrors($errors);
+    // [
+    //     ['path' => '1', 'message' => 'Value must be an integer']
+    // ]
 } else {
     echo "Valid array:\n";
     print_r($result);
+}
+```
+
+### Nested Array Item Errors
+
+For arrays with complex item validators (like associative arrays), errors preserve the full path including array indices:
+
+```php
+$schema = Validator::isAssociative([
+    'users' => Validator::isArray()->items(Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+        'email' => Validator::isString()->email()->required(),
+    ])),
+]);
+
+$input = [
+    'users' => [
+        ['name' => 'John'], // Missing email
+        ['name' => 'Jane', 'email' => 'invalid-email'], // Invalid email
+    ],
+];
+
+try {
+    $schema->validate($input);
+} catch (ValidationException $e) {
+    $flattened = $e->getFlattenedErrors();
+    // [
+    //     ['path' => 'users.0.email', 'message' => 'Value is required'],
+    //     ['path' => 'users.1.email', 'message' => 'Value must be a valid email address']
+    // ]
 }
 ```
 

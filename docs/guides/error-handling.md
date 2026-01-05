@@ -198,6 +198,65 @@ $invalidData = [
 // ]
 ```
 
+### Array Item Validation Errors
+
+For arrays with item validators, errors preserve array indices to identify which item failed:
+
+```php
+$schema = Validator::isAssociative([
+    'items' => Validator::isArray()->items(Validator::isInt()->min(1)),
+]);
+
+$input = [
+    'items' => [5, -2, 0, 10], // Items at index 1 and 2 are invalid
+];
+
+[$valid, $data, $errors] = $schema->tryValidate($input);
+
+// $errors structure preserves array indices:
+// [
+//     'items' => [
+//         '1' => ['Value must be at least 1'],
+//         '2' => ['Value must be at least 1']
+//     ]
+// ]
+
+// Flattened errors show full paths with indices:
+$flattened = ValidationException::flattenErrors($errors);
+// [
+//     ['path' => 'items.1', 'message' => 'Value must be at least 1'],
+//     ['path' => 'items.2', 'message' => 'Value must be at least 1']
+// ]
+```
+
+For nested structures with array items, the full path including indices is preserved:
+
+```php
+$schema = Validator::isAssociative([
+    'users' => Validator::isArray()->items(Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+        'email' => Validator::isString()->email()->required(),
+    ])),
+]);
+
+$input = [
+    'users' => [
+        ['name' => 'John'], // Missing email at index 0
+        ['name' => 'Jane', 'email' => 'invalid'], // Invalid email at index 1
+    ],
+];
+
+try {
+    $schema->validate($input);
+} catch (ValidationException $e) {
+    $flattened = $e->getFlattenedErrors();
+    // [
+    //     ['path' => 'users.0.email', 'message' => 'Value is required'],
+    //     ['path' => 'users.1.email', 'message' => 'Value must be a valid email address']
+    // ]
+}
+```
+
 ## Error Message Customization
 
 ### Built-in Validator Messages

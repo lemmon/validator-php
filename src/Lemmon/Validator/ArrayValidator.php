@@ -153,14 +153,29 @@ class ArrayValidator extends FieldValidator
         // If item validator is set, validate each item
         if ($this->itemValidator !== null) {
             $validatedItems = [];
+            $errors = [];
+
             foreach ($value as $index => $item) {
-                try {
-                    $itemKey = ($key ? $key . '.' : '') . $index;
-                    $validatedItems[] = $this->itemValidator->validate($item, $itemKey, []);
-                } catch (ValidationException $e) {
-                    throw $e;
+                $itemKey = ($key ? $key . '.' : '') . $index;
+                [$valid, $validatedItem, $itemErrors] = $this->itemValidator->tryValidate(
+                    $item,
+                    (string) $index,
+                    $value,
+                );
+
+                if (!$valid) {
+                    // Wrap item errors under the index key
+                    $errors[$index] = $itemErrors;
+                    continue;
                 }
+
+                $validatedItems[] = $validatedItem;
             }
+
+            if ($errors !== []) {
+                throw new ValidationException($errors);
+            }
+
             return $validatedItems;
         }
 

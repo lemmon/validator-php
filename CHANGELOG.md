@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **CRITICAL BUG**: Fixed array validator error handling to preserve array indices in flattened error messages
+  - **Issue**: Array item validation errors lost array index information, showing paths like `symlinks.destination` instead of `symlinks.0.destination`
+  - **Root Cause**: `ArrayValidator` used `validate()` which threw immediately on first error, losing index context and preventing error collection
+  - **Fix**: Changed to use `tryValidate()` for all items, collecting errors with proper indexing (similar to `AssociativeValidator` behavior)
+  - **Impact**: Flattened error messages now correctly identify which array item has validation errors (e.g., `symlinks.0.destination`, `symlinks.2.destination`)
+  - **Behavior**: All array item errors are now collected (not just the first), and indices are preserved in error paths
+  - **Real-World Benefit**: API error responses and form validation can now accurately pinpoint which array element failed validation
+
 ## [0.11.1] - 2025-12-28
 
 ### Fixed

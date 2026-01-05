@@ -115,10 +115,10 @@ it('should flatten array items validation errors', function () {
         $schema->validate($input);
     } catch (ValidationException $e) {
         $flattened = $e->getFlattenedErrors();
-        // Note: Currently array validation throws on first error
-        // The error is stored at 'items' key, not 'items.1'
+        // Array validation collects all errors with proper indices
         expect($flattened)->toBe([
-            ['path' => 'items', 'message' => 'Value must be at least 1'],
+            ['path' => 'items.1', 'message' => 'Value must be at least 1'],
+            ['path' => 'items.2', 'message' => 'Value must be at least 1'],
         ]);
     }
 });
@@ -141,11 +141,11 @@ it('should flatten nested arrays with object items errors', function () {
         $schema->validate($input);
     } catch (ValidationException $e) {
         $flattened = $e->getFlattenedErrors();
-        // Note: Currently array item errors lose the index in the structure
-        // The error is stored as ['users' => ['email' => ['error']]]
-        // So the flattened path is 'users.email' not 'users.0.email'
+        // Array item errors preserve the index in the structure
+        // The error is stored as ['users' => ['0' => ['email' => ['error']]]]
+        // So the flattened path is 'users.0.email'
         expect($flattened)->toBe([
-            ['path' => 'users.email', 'message' => 'Value is required'],
+            ['path' => 'users.0.email', 'message' => 'Value is required'],
         ]);
     }
 });
@@ -199,8 +199,8 @@ it('should flatten mixed scenarios with multiple error types', function () {
         expect($paths)->toContain('title');
         expect($paths)->toContain('author.name');
         expect($paths)->toContain('author.contact.email');
-        // Array item errors will have path 'tags' (index lost in current implementation)
-        expect($paths)->toContain('tags');
+        // Array item errors preserve the index, so path is 'tags.0'
+        expect($paths)->toContain('tags.0');
     }
 });
 
