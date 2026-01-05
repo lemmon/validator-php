@@ -386,8 +386,6 @@ final class DomainValidator extends StringValidator
 {
     public function __construct()
     {
-        parent::__construct();
-
         // Build on top of the standard string validator pipeline
         $this->pipe(
             'trim',
