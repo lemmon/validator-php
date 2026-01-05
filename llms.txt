@@ -1,0 +1,170 @@
+# Lemmon/Validator Technical Spec
+
+## Core Concepts
+- **Form-Safe Coercion:** `coerce()` converts types but treats empty strings `''` as `null` for `Int`, `Float`, and `Bool` to prevent dangerous defaults (0/false).
+- **Optional by Default:** All fields accept `null` unless `required()` is called.
+- **Null Handling:**
+  - **Validations** (`satisfies`, `min`, `email`): Skip `null` values.
+  - **Transformations**:
+    - `pipe(callable)`: Skips `null` values (type-preserving, expects specific type).
+    - `transform(callable)`: Executes on `null` (can handle null and change types).
+- **Pipeline Order:** Operations execute in the exact order defined (e.g., `pipe('trim')->nullifyEmpty()->required()`).
+- **Transformation Types:**
+  - `pipe(callable)`: Intended for sanitization. Preserves type context and applies type-coercion to result.
+  - `transform(callable)`: Intended for type conversion. Updates type context; no coercion.
+
+## Core Patterns
+- **Namespace:** `Lemmon\Validator`
+- **Entry Point:** `Validator` static factory (e.g., `Validator::isString()`).
+- **Fluency:** Validators are mutable during configuration but used sequentially.
+- **Execution:**
+  - `validate(mixed $value, string $key = '', array $input = [])` throws `ValidationException`.
+  - `tryValidate(mixed $value, string $key = '', mixed $input = null)` returns tuple `[bool $valid, mixed $data, ?array $errors]`.
+- **Error Structure:** `ValidationException` contains nested array of error messages. Use `getFlattenedErrors()` for API format `[{path: string, message: string}]`.
+- **Null Handling:** Validators skip `null` values unless `required()` is called.
+- **Pipeline:** Supports both validation (`satisfies`) and transformation (`transform`, `pipe`).
+- **Coercion:** `coerce()` enables smart type conversion (e.g., "true" -> `true`). Non-coercible values pass through unchanged.
+- **Form Safety:** Empty strings `''` are treated as `null` for primitives if coerced.
+
+## API Reference
+
+### Factory (`Lemmon\Validator\Validator`)
+```php
+static isString(): StringValidator
+static isInt(): IntValidator
+static isFloat(): FloatValidator
+static isBool(): BoolValidator
+static isArray(): ArrayValidator
+static isAssociative(array<string, FieldValidator> $schema = []): AssociativeValidator
+static isObject(array<string, FieldValidator> $schema = []): ObjectValidator
+static anyOf(array<FieldValidator> $validators, ?string $message = null): FieldValidator
+static allOf(array<FieldValidator> $validators, ?string $message = null): FieldValidator
+static not(FieldValidator $validator, ?string $message = null): FieldValidator
+```
+
+### Base API (`FieldValidator`)
+*Available on all validators*
+```php
+required(?string $message = null): static
+default(mixed $value): static
+coerce(): static
+nullifyEmpty(): static (transforms '' or [] to null)
+clone(): static (deep copy with bound closures)
+
+// Custom Validation
+satisfies(callable|FieldValidator $rule, ?string $message = null): static
+satisfiesAny(array<callable|FieldValidator> $rules, ?string $message = null): static
+satisfiesAll(array<callable|FieldValidator> $rules, ?string $message = null): static
+satisfiesNone(array<callable|FieldValidator> $rules, ?string $message = null): static
+
+// Transformation
+transform(callable $fn): static (can change type)
+pipe(callable ...$fns): static (preserves type, skips null)
+```
+
+### StringValidator
+```php
+email(?string $message = null): static
+url(?string $message = null): static
+uuid(UuidVariant $variant = UuidVariant::Any, ?string $message = null): static
+ip(IpVersion $version = IpVersion::Any, ?string $message = null): static
+hostname(?string $message = null): static
+domain(?string $message = null): static // Requires dot
+time(?string $message = null): static // HH:MM or HH:MM:SS
+base64(Base64Variant $variant = Base64Variant::Standard, ?string $message = null): static
+hex(?string $message = null): static
+regex(string $pattern, ?string $message = null): static // Alias for pattern()
+pattern(string $pattern, ?string $message = null): static
+datetime(string $format = 'Y-m-d\TH:i:s', ?string $message = null): static
+date(string $format = 'Y-m-d', ?string $message = null): static
+minLength(int $min, ?string $message = null): static
+maxLength(int $max, ?string $message = null): static
+length(int $exact, ?string $message = null): static
+oneOf(array $values, ?string $message = null): static
+```
+
+### IntValidator / FloatValidator
+*Both support NumericConstraintsTrait*
+```php
+min(int|float $min, ?string $message = null): static
+max(int|float $max, ?string $message = null): static
+gt(int|float $threshold, ?string $message = null): static
+gte(int|float $threshold, ?string $message = null): static
+lt(int|float $threshold, ?string $message = null): static
+lte(int|float $threshold, ?string $message = null): static
+multipleOf(int|float $divisor, ?string $message = null): static
+positive(?string $message = null): static
+negative(?string $message = null): static
+nonPositive(?string $message = null): static
+nonNegative(?string $message = null): static
+clampToRange(int|float $min, int|float $max): static // Transformation, not validation
+oneOf(array $values, ?string $message = null): static
+```
+*IntValidator Only:*
+```php
+port(?string $message = null): static // 1-65535
+```
+
+### ArrayValidator (`Validator::isArray()`)
+*Indexed arrays / Lists*
+```php
+items(FieldValidator $validator): static
+filterEmpty(): static (removes null/'', reindexes)
+minItems(int $min, ?string $message = null): static
+maxItems(int $max, ?string $message = null): static
+contains(mixed|FieldValidator $valueOrValidator, ?string $message = null): static
+```
+
+### AssociativeValidator / ObjectValidator
+*Schema validation*
+```php
+// Constructor accepts array<string, FieldValidator>
+coerceAll(): static // Recursively enables coercion on schema fields
+```
+
+### BoolValidator
+```php
+oneOf(array $values, ?string $message = null): static
+// Coercion handles: 'true','on','1' -> true; 'false','off','0' -> false
+```
+
+## Enums
+
+### IpVersion
+`Any`, `IPv4`, `IPv6`
+
+### UuidVariant
+`Any`, `V1`, `V2`, `V3`, `V4`, `V5`, `V7`
+
+### Base64Variant
+`Standard`, `UrlSafe`, `Any`
+
+### PipelineType
+`VALIDATION`, `TRANSFORMATION`
+
+## Quick Examples
+```php
+// Pipeline order: pipe (same type) -> validate -> transform (type change)
+Validator::isString()
+    ->pipe('trim')  // String operations (preserves type)
+    ->nullifyEmpty()
+    ->required()
+    ->date('Y-m-d')
+    ->transform(fn($s) => DateTime::createFromFormat('Y-m-d', $s)); // String → DateTime
+
+// Form-safe coercion: '' -> null (not 0/false)
+Validator::isInt()->coerce()->validate(''); // null (if not required)
+
+// Schema with defaults
+Validator::isAssociative([
+    'name' => Validator::isString()->required(),
+    'age' => Validator::isInt()->default(0)
+]);
+
+// Error handling
+try {
+    $data = $validator->validate($input);
+} catch (ValidationException $e) {
+    $errors = $e->getFlattenedErrors(); // [{path: 'field', message: '...'}]
+}
+```

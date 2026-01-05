@@ -48,6 +48,9 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 
 ## Documentation Structure
 
+### AI Agent Resources
+- **`llms.txt`** - Complete technical specification with full API signatures, method parameters, and core concepts. This is the authoritative reference for AI agents working with the library. Contains complete method signatures, null handling behavior, transformation types, and quick examples.
+
 ### Getting Started
 - **Installation & Setup** - Requirements, installation, verification
 - **Basic Usage** - Fundamental patterns, validation methods, common use cases

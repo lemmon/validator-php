@@ -108,6 +108,9 @@ try {
 ### Examples
 - [Form Validation](docs/examples/form-validation.md)
 
+### For AI Agents
+- **`llms.txt`** - Complete technical specification with full API signatures, method parameters, and core concepts. Download this file and provide it to your AI agent for accurate code generation and assistance with the library.
+
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
