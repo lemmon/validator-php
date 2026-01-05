@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-01-05
+
 ### Fixed
 - **CRITICAL BUG**: Fixed array validator error handling to preserve array indices in flattened error messages
   - **Issue**: Array item validation errors lost array index information, showing paths like `symlinks.destination` instead of `symlinks.0.destination`
