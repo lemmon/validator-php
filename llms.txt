@@ -115,6 +115,8 @@ maxItems(int $max, ?string $message = null): static
 contains(mixed|FieldValidator $valueOrValidator, ?string $message = null): static
 ```
 
+**Cross-Item Validation:** Use `satisfies()` on array validator for uniqueness/relationships. Structure errors as `[index => [field => [message]]]` to get field-level paths (e.g., `symlinks.2.destination`). Runs after item validation, receives validated data structure.
+
 ### AssociativeValidator / ObjectValidator
 *Schema validation*
 ```php

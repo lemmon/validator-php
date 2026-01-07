@@ -262,6 +262,7 @@ $stringValidator = Validator::isString()
 ### Array Enhancements
 - [x] **`minItems()`** / **`maxItems()`** - Array length constraints
 - [x] **`contains()`** - Validates array contains specific item or item matching validator
+- [ ] **`uniqueField(string $fieldName, ?string $message = null)`** - Validates uniqueness of a specific field across array items with field-level error paths (e.g., `symlinks.2.destination`); convenience wrapper around `satisfies()` for common use case
 
 ### Array Transformations
 - [x] **`transform()`** / **`pipe()`** - Generic transformation methods (already implemented!)
@@ -269,7 +270,7 @@ $stringValidator = Validator::isString()
 - [x] **`filterEmpty()`** - Remove empty/null values and reindex automatically (already implemented!)
 
 ### Removed from Scope
-- ~~`unique()`~~ -- Use `array_unique()` or Laravel Collections (complex deduplication logic)
+- ~~`unique()`~~ -- Use `array_unique()` or Laravel Collections (complex deduplication logic). Note: `uniqueField()` validates uniqueness of a specific field across array items, which is different from deduplicating the array itself.
 - ~~`flatten()`~~ -- Complex recursive logic, use Laravel Collections or `array_merge_recursive()`
 
 ### Numeric Enhancements

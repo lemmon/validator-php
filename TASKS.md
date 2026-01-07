@@ -22,3 +22,6 @@ Public repo; keep this list short (about 7) and up to date. Rules: no numbering 
 
 - Property-based tests
   - Add a small property-based test set for key validators (string patterns, numeric constraints) to harden edge cases and catch regressions.
+
+- `uniqueField()` array validation method
+  - Add `uniqueField(string $fieldName, ?string $message = null)` to ArrayValidator for validating uniqueness of nested fields across array items; convenience wrapper around `satisfies()` that automatically handles nested error structure for field-level error paths (e.g., `symlinks.2.destination`); common use case that deserves convenience method similar to Laravel's `distinct` rule.

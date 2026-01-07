@@ -202,6 +202,9 @@ $invalidData = [
 
 For arrays with item validators, errors preserve array indices to identify which item failed:
 
+**Standard Item Errors:**
+Errors from item validation automatically preserve indices:
+
 ```php
 $schema = Validator::isAssociative([
     'items' => Validator::isArray()->items(Validator::isInt()->min(1)),
@@ -253,9 +256,72 @@ try {
     // [
     //     ['path' => 'users.0.email', 'message' => 'Value is required'],
     //     ['path' => 'users.1.email', 'message' => 'Value must be a valid email address']
+    //     ]
+}
+```
+
+**Cross-Item Validation Errors (Field-Level):**
+
+For cross-item validations (like uniqueness) that need to attach errors to specific fields within items, use nested error structure:
+
+```php
+$schema = Validator::isAssociative([
+    'symlinks' => Validator::isArray()
+        ->items(Validator::isAssociative([
+            'destination' => Validator::isString()->required(),
+        ]))
+        ->satisfies(
+            function ($symlinks) {
+                // Check uniqueness
+                $destinations = [];
+                foreach ($symlinks as $index => $item) {
+                    $dest = $item['destination'] ?? null;
+                    if ($dest) {
+                        $destinations[$dest][] = $index;
+                    }
+                }
+
+                $duplicates = [];
+                foreach ($destinations as $dest => $indices) {
+                    if (count($indices) > 1) {
+                        $duplicates[$dest] = $indices;
+                    }
+                }
+
+                if (empty($duplicates)) return true;
+
+                // Nested structure: [index => [field => [message]]]
+                // Flattens to 'symlinks.2.destination'
+                $errors = [];
+                foreach ($duplicates as $dest => $indices) {
+                    foreach (array_slice($indices, 1) as $idx) {
+                        $errors[$idx] = [
+                            'destination' => ["'{$dest}' is not unique"]
+                        ];
+                    }
+                }
+                throw new ValidationException($errors);
+            }
+        )
+]);
+
+try {
+    $schema->validate([
+        'symlinks' => [
+            ['destination' => '/path1'],
+            ['destination' => '/path2'],
+            ['destination' => '/path1'], // Duplicate
+        ],
+    ]);
+} catch (ValidationException $e) {
+    $flattened = $e->getFlattenedErrors();
+    // [
+    //     ['path' => 'symlinks.2.destination', 'message' => "'/path1' is not unique"]
     // ]
 }
 ```
+
+**Key Pattern:** Structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level error paths in flattened output.
 
 ## Error Message Customization
 

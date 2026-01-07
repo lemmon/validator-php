@@ -288,6 +288,107 @@ $validator = Validator::isString()
 - Validators that frequently receive specification updates or new variants
 - Production applications requiring comprehensive validation features
 
+## Cross-Item Array Validation
+
+For validations that need to check relationships across multiple array items (like uniqueness, ordering, or dependencies), use `satisfies()` on the array validator. This runs **after** item validation, so you receive the validated data structure.
+
+### Uniqueness Validation with Field-Level Errors
+
+When validating uniqueness of a nested field across array items, structure errors to attach them to specific fields within items:
+
+```php
+$schema = Validator::isAssociative([
+    'items' => Validator::isArray()
+        ->items(Validator::isAssociative([
+            'id' => Validator::isInt()->required(),
+            'name' => Validator::isString()->required(),
+        ]))
+        ->satisfies(
+            function ($items, $key, $input) {
+                // Check uniqueness of 'id' field
+                $ids = [];
+                foreach ($items as $index => $item) {
+                    if (isset($item['id'])) {
+                        $id = $item['id'];
+                        $ids[$id][] = $index;
+                    }
+                }
+
+                $duplicates = [];
+                foreach ($ids as $id => $indices) {
+                    if (count($indices) > 1) {
+                        $duplicates[$id] = $indices;
+                    }
+                }
+
+                if (empty($duplicates)) {
+                    return true;
+                }
+
+                // Nested error structure: [index => [field => [message]]]
+                // This creates field-level error paths: 'items.2.id'
+                $errors = [];
+                foreach ($duplicates as $id => $indices) {
+                    foreach (array_slice($indices, 1) as $idx) {
+                        $errors[$idx] = [
+                            'id' => ["ID {$id} is not unique (also used at index {$indices[0]})"]
+                        ];
+                    }
+                }
+
+                throw new ValidationException($errors);
+            }
+        )
+]);
+
+$input = [
+    'items' => [
+        ['id' => 1, 'name' => 'First'],
+        ['id' => 2, 'name' => 'Second'],
+        ['id' => 1, 'name' => 'Duplicate'], // Duplicate ID
+    ],
+];
+
+try {
+    $schema->validate($input);
+} catch (ValidationException $e) {
+    $flattened = $e->getFlattenedErrors();
+    // [
+    //     ['path' => 'items.2.id', 'message' => 'ID 1 is not unique (also used at index 0)']
+    // ]
+}
+```
+
+**Key Pattern:** Structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level error paths. The error flattening logic automatically builds paths like `items.2.id` from this nested structure.
+
+### Other Cross-Item Validations
+
+This pattern works for any cross-item validation:
+
+```php
+// Validate that items are in ascending order by 'order' field
+->satisfies(
+    function ($items) {
+        $orders = array_column($items, 'order');
+        $sorted = $orders;
+        sort($sorted);
+        return $orders === $sorted;
+    },
+    'Items must be in ascending order'
+)
+
+// Validate that total doesn't exceed limit
+->satisfies(
+    function ($items, $key, $input) {
+        $total = array_sum(array_column($items, 'amount'));
+        return $total <= ($input['limit'] ?? 1000);
+    },
+    'Total amount exceeds limit'
+)
+```
+
+## External Library Integration
+
 ```php
 // UUID validation with ramsey/uuid (recommended for production)
 use Ramsey\Uuid\Uuid;
