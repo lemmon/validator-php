@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Documentation
+- Clarified fail-fast behavior per field and schema-level error aggregation in guides and examples
+
 ## [0.11.2] - 2026-01-05
 
 ### Fixed

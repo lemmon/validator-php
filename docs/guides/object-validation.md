@@ -171,7 +171,7 @@ $userSchema = Validator::isAssociative([
     'preferences' => Validator::isObject([
         'theme' => Validator::isString()->oneOf(['light', 'dark'])->default('light'),
         'notifications' => Validator::isBool()->default(true)
-    ])
+    ])->coerce()
 ]);
 
 $userData = [
@@ -341,7 +341,7 @@ $configSchema = Validator::isAssociative([
 ```php
 // Contact form validation
 $contactFormSchema = Validator::isAssociative([
-    'name' => Validator::isString()->required()->trim(),
+    'name' => Validator::isString()->required()->pipe('trim'),
     'email' => Validator::isString()->email()->required(),
     'subject' => Validator::isString()->required()->maxLength(100),
     'message' => Validator::isString()->required()->minLength(10)->maxLength(1000),
@@ -479,7 +479,7 @@ $step1Schema = Validator::isAssociative([
 $step2Schema = Validator::isAssociative([
     'first_name' => Validator::isString()->required(),
     'last_name' => Validator::isString()->required(),
-    'birth_date' => Validator::isString()->datetime('Y-m-d')->required()
+    'birth_date' => Validator::isString()->date('Y-m-d')->required()
 ]);
 
 $step3Schema = Validator::isAssociative([
@@ -532,5 +532,5 @@ $productSchema = Validator::isAssociative([
 
 - Learn about [Custom Validation](custom-validation.md) for business logic
 - Explore [Array Validation](array-validation.md) for complex array validation scenarios
-- Check out [Error Handling](error-handling.md) for comprehensive error management
+- Check out [Error Handling](error-handling.md) for structured error management
 - See [Form Validation Examples](../examples/form-validation.md) for practical examples

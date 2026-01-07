@@ -3,12 +3,13 @@
 ## Core Concepts
 - **Form-Safe Coercion:** `coerce()` converts types but treats empty strings `''` as `null` for `Int`, `Float`, and `Bool` to prevent dangerous defaults (0/false).
 - **Optional by Default:** All fields accept `null` unless `required()` is called.
+- **Fail-Fast Per Field:** Each validator chain stops at the first failing rule; schema validation still aggregates errors across fields.
 - **Null Handling:**
   - **Validations** (`satisfies`, `min`, `email`): Skip `null` values.
   - **Transformations**:
     - `pipe(callable)`: Skips `null` values (type-preserving, expects specific type).
     - `transform(callable)`: Executes on `null` (can handle null and change types).
-- **Pipeline Order:** Operations execute in the exact order defined (e.g., `pipe('trim')->nullifyEmpty()->required()`).
+- **Pipeline Order:** Pipeline steps execute in the exact order defined; `required()` is a flag enforced after the pipeline regardless of position.
 - **Transformation Types:**
   - `pipe(callable)`: Intended for sanitization. Preserves type context and applies type-coercion to result.
   - `transform(callable)`: Intended for type conversion. Updates type context; no coercion.
@@ -20,6 +21,7 @@
 - **Execution:**
   - `validate(mixed $value, string $key = '', array $input = [])` throws `ValidationException`.
   - `tryValidate(mixed $value, string $key = '', mixed $input = null)` returns tuple `[bool $valid, mixed $data, ?array $errors]`.
+- **Fail-Fast:** Each validator chain stops at the first failing rule; schema validators aggregate errors across fields.
 - **Error Structure:** `ValidationException` contains nested array of error messages. Use `getFlattenedErrors()` for API format `[{path: string, message: string}]`.
 - **Null Handling:** Validators skip `null` values unless `required()` is called.
 - **Pipeline:** Supports both validation (`satisfies`) and transformation (`transform`, `pipe`).
@@ -146,7 +148,7 @@ oneOf(array $values, ?string $message = null): static
 
 ## Quick Examples
 ```php
-// Pipeline order: pipe (same type) -> validate -> transform (type change)
+// Pipeline order: pipe -> nullifyEmpty -> required (flag enforced after pipeline) -> date validation -> transform
 Validator::isString()
     ->pipe('trim')  // String operations (preserves type)
     ->nullifyEmpty()

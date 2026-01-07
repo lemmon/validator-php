@@ -241,8 +241,8 @@ $price = $floatValidator->validate(''); // Returns: null (safe!)
 // Safe form validation schema
 $orderValidator = Validator::isAssociative([
     'customer_id' => Validator::isInt()->required(),
-    'quantity' => Validator::isInt()->coerce()->min(1), // Empty → null → validation fails (safe!)
-    'unit_price' => Validator::isFloat()->coerce()->positive(), // Empty → null → validation fails (safe!)
+    'quantity' => Validator::isInt()->coerce()->required()->min(1), // Empty → null → validation fails (safe!)
+    'unit_price' => Validator::isFloat()->coerce()->required()->positive(), // Empty → null → validation fails (safe!)
     'discount' => Validator::isFloat()->coerce()->default(0.0), // Empty → null → 0.0 default (explicit)
 ]);
 
@@ -282,9 +282,10 @@ For even more control over empty string handling, use the `nullifyEmpty()` metho
 // Explicit nullification (same as coerce() behavior for empty strings)
 $explicitValidator = Validator::isInt()
     ->nullifyEmpty() // Empty strings → null
+    ->required()     // Null is not allowed
     ->min(1);        // Validation will fail for null (safe!)
 
-$result = $explicitValidator->validate(''); // Returns: null, then fails min(1)
+$result = $explicitValidator->validate(''); // ❌ "Value is required"
 
 // Combined with defaults for optional numeric fields
 $optionalQuantity = Validator::isInt()
@@ -439,7 +440,7 @@ $price = $precisionValidator->validate(19.99); // Valid
 
 ## Error Handling
 
-Numeric validators collect all validation errors:
+Numeric validators fail fast per rule:
 
 ```php
 $strictValidator = Validator::isInt()
@@ -451,8 +452,7 @@ $strictValidator = Validator::isInt()
 
 // $errors might contain:
 // [
-//     'Value must be at least 10',
-//     'Value must be a multiple of 3'
+//     'Value must be at least 10'
 // ]
 ```
 

@@ -145,10 +145,9 @@ $emailValidator = Validator::isArray()
     ->filterEmpty()                    // Remove empty values first
     ->items(Validator::isString()->email()); // Then validate emails
 
-$emails = ['john@example.com', '', 'jane@example.com', null, 'invalid-email'];
-[$valid, $result, $errors] = $emailValidator->tryValidate($emails);
-// $result would be ['john@example.com', 'jane@example.com'] (filtered)
-// $errors would contain validation error for 'invalid-email'
+$emails = ['john@example.com', '', 'jane@example.com', null];
+$result = $emailValidator->validate($emails);
+// Result: ['john@example.com', 'jane@example.com'] (filtered)
 ```
 
 ### Real-World Use Cases
@@ -166,7 +165,7 @@ $result = $tagsValidator->validate($formTags);
 // CSV-like data processing
 $csvRowValidator = Validator::isArray()
     ->filterEmpty()                     // Remove empty CSV cells
-    ->items(Validator::isString()->trim()); // Clean remaining values
+    ->items(Validator::isString()->pipe('trim')); // Clean remaining values
 
 $csvRow = ['John', '', 'Doe', null, '30', ''];
 $result = $csvRowValidator->validate($csvRow);
@@ -405,7 +404,7 @@ try {
 ### Using tryValidate for Error Handling
 
 ```php
-$validator = Validator::isArray()->items(Validator::isInt());
+$validator = Validator::isArray()->items(Validator::isInt()->coerce());
 
 [$valid, $result, $errors] = $validator->tryValidate(['1', 'invalid', '3']);
 

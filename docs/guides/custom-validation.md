@@ -156,7 +156,7 @@ $productCodeValidator = Validator::isString()->satisfies(
     'Invalid product code format or check digit'
 );
 
-$code = $productCodeValidator->validate('ABC-12347'); // Valid (1+2+3+4=10, 10%10=0, but check digit is 7)
+$code = $productCodeValidator->validate('ABC-12340'); // Valid (1+2+3+4=10, 10%10=0, check digit 0)
 ```
 
 ### Database Uniqueness Check
@@ -252,7 +252,7 @@ $strongPasswordValidator = Validator::isString()
 
 ## Error Collection
 
-Custom validations participate in comprehensive error collection:
+Custom validations follow the same fail-fast behavior as other rules:
 
 ```php
 $validator = Validator::isString()
@@ -264,9 +264,7 @@ $validator = Validator::isString()
 
 // $errors will contain:
 // [
-//     'Value must be at least 8 characters long',
-//     'Custom error 1',
-//     'Custom error 2'
+//     'Value must be at least 8 characters long'
 // ]
 ```
 

@@ -9,7 +9,7 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 ### Core Factory Pattern
 - **`Validator`** - Static factory creating type-specific validators (`isString()`, `isInt()`, `isFloat()`, `isArray()`, `isAssociative()`, `isObject()`, `isBool()`)
 - **`FieldValidator`** - Abstract base class with unified validation interface and shared functionality
-- **`ValidationException`** - Structured exception handling with comprehensive error collection
+- **`ValidationException`** - Structured exception handling with aggregated error reporting
 
 ### Type-Specific Validators
 - **`StringValidator`** - Format validation (email, URL, UUID with version variants, IP with version variants, hostname, domain, time, base64 with variants, hex), length constraints, pattern matching
@@ -29,14 +29,14 @@ A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. 
 - **Static Logical Combinators** - `Validator::allOf()`, `Validator::anyOf()`, `Validator::not()` for complex rule composition and mixed-type validation
 - **New `satisfies*` API** - Enhanced instance logical combinators (`satisfiesAny()`, `satisfiesAll()`, `satisfiesNone()`) with support for mixed validators/callables
 - **Enum-Based Variant Flags** - Type-safe variant selection for IP addresses (`IpVersion`), Base64 encoding (`Base64Variant`), and UUID versions (`UuidVariant`) with consistent API pattern
-- **Smart Null Handling** - Revolutionary null handling system where validations skip `null` unless `required()`, transformations always execute, and order is independent
+- **Smart Null Handling** - Validations skip `null` unless `required()`. `transform()` runs on `null`, while `pipe()` and `nullifyEmpty()` skip `null` for type safety.
 - **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for primitives, empty structures for objects/arrays
 - **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
 - **Type-Aware Transformations** - Revolutionary `transform()` and `pipe()` system with intelligent type context switching
-- **Unified Pipeline Architecture** - Single conceptual pipeline with hybrid execution (error collection for validations, fail-fast for transformations)
+- **Unified Pipeline Architecture** - Single conceptual pipeline with ordered execution and fail-fast behavior per field
 - **Custom Validation** - Enhanced `satisfies()` method accepting `FieldValidator` instances or callables with optional error messages (all internal validators migrated from deprecated `addValidation()`)
 - **Context-Aware Validation** - Custom validators receive `(value, key, input)` parameters
-- **Comprehensive Error Collection** - All validation errors collected, not just the first failure
+- **Fail-Fast Per Field** - Each validator stops at the first failing rule, while schema validation aggregates errors across fields
 - **Smart Type Coercion** - Configurable automatic type conversion with form-friendly defaults
 - **Fluent API with guaranteed execution order** - Chainable method calls that execute in the exact order written
 - **Extensibility Philosophy** - Focus on core validation principles; external libraries encouraged for advanced/specialized validators via `satisfies()`

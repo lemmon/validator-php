@@ -26,22 +26,22 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 **Key Design Principles:**
 
 - **Type-Safe Architecture**: Modern PHP 8.1+ enums provide IDE autocomplete, refactoring safety, and eliminate magic strings throughout the codebase
-- **Smart Null Handling**: Validations skip `null` unless `required()`, transformations always execute, and method order is independent for intuitive behavior
+- **Smart Null Handling**: Validations skip `null` unless `required()`. `transform()` runs on `null`, while `pipe()` and `nullifyEmpty()` skip `null` for type safety.
 - **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
 - **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written -- `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
-- **Comprehensive Error Collection**: All validation errors are collected, not just the first failure
+- **Fail-Fast Per Field**: Each validator stops at the first failing rule, while schema validation still aggregates errors across fields
 - **API-Friendly Error Format**: Flattened errors with field paths (`'_root'` for root-level, dot notation for nested) perfect for frontend consumption
 - **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically
 - **Extensible Architecture**: Generic transformation methods work with any PHP callable or external library
-- **Strict Typing**: All files use `declare(strict_types=1);`, so scalar mismatches raise clear errors; opt into `coerce()` when you need form-friendly conversions.
+- **Strict Typing**: All files use `declare(strict_types=1);`, keeping internal type hints strict; opt into `coerce()` when you need form-friendly conversions.
 
 ## Features
 
 - **Type-safe architecture** - PHP 8.1+ enums with IDE autocomplete, refactoring safety, and zero magic strings
-- **Smart null handling** - validations skip `null` unless `required()`, transformations always execute, order-independent behavior
+- **Smart null handling** - validations skip `null` unless `required()`, `transform()` runs on `null`, `pipe()`/`nullifyEmpty()` skip `null`
 - **Type-safe validation** for strings, integers, floats, arrays, and objects
 - **Fluent, chainable API** with guaranteed execution order -- methods execute exactly as written in the chain
-- **Comprehensive error collection** with detailed, structured feedback
+- **Schema-level error aggregation** with fail-fast behavior per field for clear, early feedback
 - **API-friendly flattened errors** with field paths for easy frontend integration (`getFlattenedErrors()`, `ValidationException::flattenErrors()`)
 - **Intuitive custom validation** with `satisfies()` method and optional error messages
 - **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic

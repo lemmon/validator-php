@@ -123,26 +123,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ### The Problem with Empty Form Fields
 
-HTML forms often submit empty strings for unfilled fields, which can create dangerous scenarios:
+HTML forms often submit empty strings for unfilled fields. In plain PHP casting (or legacy behavior), empty strings can become dangerous defaults:
 
 ```php
-// ❌ DANGEROUS: Without nullifyEmpty()
-$orderValidator = Validator::isAssociative([
-    'quantity' => Validator::isInt()->coerce(), // Empty string → 0 (dangerous!)
-    'price' => Validator::isFloat()->coerce(),  // Empty string → 0.0 (dangerous!)
-    'discount' => Validator::isFloat()->coerce()->default(5.0), // Empty → 0.0, not 5.0!
-]);
-
-// Form data with empty fields
+// ❌ DANGEROUS: Plain PHP casting
 $formData = [
     'quantity' => '', // Empty field from form
     'price' => '',    // Empty field from form
     'discount' => '', // Empty field from form
 ];
 
-$result = $orderValidator->validate($formData);
-// Result: ['quantity' => 0, 'price' => 0.0, 'discount' => 0.0]
-// ❌ All dangerous zero values!
+$quantity = (int) $formData['quantity']; // 0 (dangerous!)
+$price = (float) $formData['price']; // 0.0 (dangerous!)
+$discount = (float) ($formData['discount'] ?? 5.0); // 0.0, not 5.0!
 ```
 
 ### The Solution: Form-Safe Validation
@@ -155,11 +148,13 @@ $safeOrderValidator = Validator::isAssociative([
     'quantity' => Validator::isInt()
         ->coerce()
         ->nullifyEmpty() // Empty strings → null
+        ->required('Quantity is required')
         ->min(1, 'Quantity must be at least 1'), // Validation fails for null (safe!)
 
     'price' => Validator::isFloat()
         ->coerce()
         ->nullifyEmpty() // Empty strings → null
+        ->required('Price is required')
         ->positive('Price must be positive'), // Validation fails for null (safe!)
 
     'discount' => Validator::isFloat()
@@ -329,7 +324,7 @@ class UserRegistrationValidator
             // Demographics
             'date_of_birth' => Validator::isString()
                 ->required('Date of birth is required')
-                ->date('Please enter a valid date (YYYY-MM-DD)')
+                ->date('Y-m-d', 'Please enter a valid date (YYYY-MM-DD)')
                 ->satisfies(
                     function ($date) {
                         $birthDate = new DateTime($date);
@@ -567,7 +562,7 @@ class ProductFormValidator
             'allow_backorder' => Validator::isBool()->coerce()->default(false),
 
             // Categories and Tags
-            'category_ids' => Validator::isArray(
+            'category_ids' => Validator::isArray()->items(
                 Validator::isInt()->positive()
             )
             ->required('At least one category is required')
@@ -580,7 +575,7 @@ class ProductFormValidator
                 'One or more selected categories do not exist'
             ),
 
-            'tags' => Validator::isArray(
+            'tags' => Validator::isArray()->items(
                 Validator::isString()
                     ->minLength(2, 'Tags must be at least 2 characters')
                     ->maxLength(30, 'Tags cannot exceed 30 characters')
@@ -600,7 +595,7 @@ class ProductFormValidator
                 ->default('draft'),
 
             'published_at' => Validator::isString()
-                ->datetime('Please enter a valid date and time')
+                ->datetime('Y-m-d\TH:i:s', 'Please enter a valid date and time')
                 ->satisfies(
                     function ($datetime, $key, $input) {
                         if ($input['status'] === 'active' && !$datetime) {
@@ -627,7 +622,7 @@ class ProductFormValidator
             // Digital Products
             'is_digital' => Validator::isBool()->coerce()->default(false),
 
-            'download_files' => Validator::isArray(
+            'download_files' => Validator::isArray()->items(
                 Validator::isAssociative([
                     'name' => Validator::isString()->required(),
                     'url' => Validator::isString()->url()->required(),
@@ -713,7 +708,7 @@ class MultiStepRegistrationValidator
 
             'date_of_birth' => Validator::isString()
                 ->required('Date of birth is required')
-                ->date('Please enter a valid date')
+                ->date('Y-m-d', 'Please enter a valid date')
         ]);
 
         return $this->validateStep($validator, $data);

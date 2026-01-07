@@ -1,6 +1,6 @@
 # Error Handling Guide
 
-The Lemmon Validator provides comprehensive error handling with detailed feedback, structured error collection, and flexible error reporting patterns.
+The Lemmon Validator provides structured error handling with detailed feedback, schema-level aggregation, and flexible error reporting patterns.
 
 ## Validation Methods
 
@@ -52,7 +52,7 @@ try {
     // Get all error messages as array
     $errors = $e->getErrors();
 
-    // Get exception message (first error or summary)
+    // Get exception message (JSON-encoded error structure)
     $message = $e->getMessage();
 
     // Standard exception properties
@@ -148,11 +148,11 @@ try {
 }
 ```
 
-## Comprehensive Error Collection
+## Fail-Fast Per Field
 
-Unlike many validators that stop at the first error, Lemmon Validator collects **all** validation errors:
+Each validator chain stops at the first failing rule. Schema validation still aggregates errors across fields:
 
-### Single Field Multiple Errors
+### Single Field Fail-Fast
 
 ```php
 $validator = Validator::isString()
@@ -163,11 +163,9 @@ $validator = Validator::isString()
 
 [$valid, $data, $errors] = $validator->tryValidate('AB');
 
-// $errors contains ALL failures:
+// $errors contains the first failure in the chain:
 // [
-//     'Value must be at least 8 characters long',
-//     'Value must be a valid email address',
-//     'Email must start with lowercase letter'
+//     'Value must be at least 8 characters long'
 // ]
 ```
 
@@ -425,7 +423,7 @@ class ApiValidator
 
             'timestamp' => Validator::isString()
                 ->required('Timestamp is required')
-                ->datetime('Timestamp must be valid ISO 8601 format')
+                ->datetime('Y-m-d\TH:i:sP', 'Timestamp must be valid ISO 8601 format')
         ]);
 
         try {
@@ -548,23 +546,24 @@ ValidationDebugger::debugValidation($validator, ['name' => 'A', 'email' => 'inva
 ### Custom Exception Types
 
 ```php
-class UserValidationException extends ValidationException
+class UserValidationException extends Exception
 {
+    private array $errors;
+
     public function __construct(array $errors, string $context = 'user validation')
     {
-        $message = "User validation failed in {$context}: " . implode(', ', $this->flattenErrors($errors));
-        parent::__construct($errors, $message);
+        $this->errors = $errors;
+
+        $flattened = \Lemmon\Validator\ValidationException::flattenErrors($errors);
+        $messages = array_column($flattened, 'message');
+        $message = "User validation failed in {$context}: " . implode(', ', $messages);
+
+        parent::__construct($message);
     }
 
-    private function flattenErrors(array $errors): array
+    public function getErrors(): array
     {
-        $flattened = [];
-        array_walk_recursive($errors, function($error) use (&$flattened) {
-            if (is_string($error)) {
-                $flattened[] = $error;
-            }
-        });
-        return $flattened;
+        return $this->errors;
     }
 }
 ```
@@ -623,7 +622,7 @@ $aggregator
 ### 1. Use Appropriate Validation Method
 
 ```php
-// Use validate() when you want to fail fast
+// Use validate() when you want exceptions
 try {
     $email = Validator::isString()->email()->validate($input);
     sendEmail($email);
@@ -631,7 +630,7 @@ try {
     logError($e->getMessage());
 }
 
-// Use tryValidate() when you need to handle errors gracefully
+// Use tryValidate() when you need to handle errors without exceptions
 [$valid, $data, $errors] = $validator->tryValidate($input);
 if ($valid) {
     processData($data);

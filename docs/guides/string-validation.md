@@ -215,10 +215,13 @@ $customHex = Validator::isString()->hex('Must be a hexadecimal string');
 ### Date and DateTime Validation
 
 ```php
-// DateTime validation (ISO 8601 format)
+// DateTime validation (default format: Y-m-d\TH:i:s)
 $datetimeValidator = Validator::isString()->datetime();
-$datetime = $datetimeValidator->validate('2023-12-25T15:30:00Z');
-$datetime = $datetimeValidator->validate('2023-12-25T15:30:00+02:00');
+$datetime = $datetimeValidator->validate('2023-12-25T15:30:00');
+
+// DateTime validation with timezone offsets
+$offsetValidator = Validator::isString()->datetime('Y-m-d\TH:i:sP');
+$datetime = $offsetValidator->validate('2023-12-25T15:30:00+02:00');
 
 // Date validation (YYYY-MM-DD format)
 $dateValidator = Validator::isString()->date();
@@ -482,7 +485,7 @@ $articleValidator = Validator::isAssociative([
         ->required()
         ->minLength(50, 'Article content must be at least 50 characters'),
 
-    'tags' => Validator::isArray(
+    'tags' => Validator::isArray()->items(
         Validator::isString()
             ->minLength(2)
             ->maxLength(20)
@@ -493,7 +496,7 @@ $articleValidator = Validator::isAssociative([
 
 ## Error Handling
 
-String validators collect all validation errors:
+String validators fail fast per rule:
 
 ```php
 $validator = Validator::isString()
@@ -505,8 +508,7 @@ $validator = Validator::isString()
 
 // $errors will contain:
 // [
-//     'Value must be at least 8 characters long',
-//     'Value must be a valid email address'
+//     'Value must be at least 8 characters long'
 // ]
 ```
 

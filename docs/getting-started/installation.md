@@ -5,7 +5,7 @@
 - **PHP 8.3 or higher**
 - **Composer** for dependency management
 
-> Note: The library ships with `declare(strict_types=1);`. Scalar mismatches will raise a `TypeError`; use `coerce()` if you need form-friendly conversions.
+> Note: The library ships with `declare(strict_types=1);`. Validation failures throw `ValidationException`; use `coerce()` if you need form-friendly conversions.
 
 ## Installation
 

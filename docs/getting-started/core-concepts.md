@@ -97,7 +97,7 @@ Validator::isFloat()
 ### ArrayValidator
 ```php
 Validator::isArray()                    // Plain indexed array
-Validator::isArray($itemValidator)      // With item validation
+Validator::isArray()->items($itemValidator) // With item validation
 ```
 
 ### AssociativeValidator & ObjectValidator
@@ -111,14 +111,13 @@ Validator::isObject($schema)            // stdClass object with schema
 Understanding the validation flow helps debug and optimize your validators:
 
 1. **Input Received** - Raw value passed to validator
-2. **Required Check** - If required and value is null → error
-3. **Default Application** - If optional and value is null → apply default
-4. **Type Coercion** - If coercion enabled → attempt type conversion
-5. **Type Validation** - Check if value matches expected type
-6. **Built-in Rules** - Apply validator-specific rules (email, min, etc.)
-7. **Custom Rules** - Apply user-defined validation functions
-8. **Transformations** - Apply data transformations after successful validation
-9. **Return Result** - Return validated/coerced/transformed value or errors
+2. **Type Coercion** - If enabled, attempt type conversion
+3. **Required Check** - If required and value is null → error
+4. **Type Validation** - Check value type (skipped for null when the pipeline is present)
+5. **Pipeline Execution** - Validations and transformations run in the order written (fail-fast per field)
+6. **Required Re-Check** - If transformations produce null on a required field → error
+7. **Default Application** - If final result is null and a default exists → apply default
+8. **Return Result** - Return validated/coerced/transformed value or errors
 
 ## Data Transformations
 
@@ -225,18 +224,17 @@ $processed = Validator::isArray()
 
 ### Transformation Pipeline Order
 
-All transformation-related methods (`pipe()`, `transform()`, `nullifyEmpty()`, `required()`) execute in their written order:
+Pipeline methods (`pipe()`, `transform()`, `nullifyEmpty()`, `satisfies()`, etc.) execute in their written order. `required()` is a flag, so its position does not change execution order:
 
 ```php
-// Execution order: trim → nullifyEmpty → required
+// Execution order: trim → nullifyEmpty
 $validator = Validator::isString()
     ->pipe('trim')        // 1. Trim whitespace
-    ->nullifyEmpty()      // 2. Convert empty strings to null
-    ->required();         // 3. Check if value is null (fails if so)
+    ->nullifyEmpty();     // 2. Convert empty strings to null
 
 // Input: '    ' (spaces only)
-$validator->validate('    '); // ❌ Throws "Value is required"
-// Flow: '    ' → '' → null → ValidationException
+$validator->validate('    '); // Returns: null
+// Flow: '    ' → '' → null
 ```
 
 ### Order Matters - Different Results
@@ -244,19 +242,19 @@ $validator->validate('    '); // ❌ Throws "Value is required"
 The same methods in different orders produce different results:
 
 ```php
-// Case 1: required() BEFORE nullifyEmpty()
+// Case 1: trim() BEFORE nullifyEmpty()
 $validator1 = Validator::isString()
-    ->required()          // 1. Check if empty string is null (passes)
-    ->nullifyEmpty();     // 2. Convert empty string to null
+    ->pipe('trim')        // 1. Trim whitespace
+    ->nullifyEmpty();     // 2. Convert empty strings to null
 
-$result1 = $validator1->validate(''); // Returns: null
+$result1 = $validator1->validate('   '); // Returns: null
 
-// Case 2: nullifyEmpty() BEFORE required()
+// Case 2: nullifyEmpty() BEFORE trim()
 $validator2 = Validator::isString()
-    ->nullifyEmpty()      // 1. Convert empty string to null
-    ->required();         // 2. Check if null value is null (fails)
+    ->nullifyEmpty()      // 1. Convert empty strings to null
+    ->pipe('trim');       // 2. Trim whitespace
 
-$validator2->validate(''); // ❌ Throws "Value is required"
+$validator2->validate('   '); // Returns: '' (empty string)
 ```
 
 ### Real-World Form Validation Example
@@ -285,21 +283,21 @@ $nameValidator->validate('    ');     // ❌ "Name is required" (trimmed to empt
 ->pipe('trim')->nullifyEmpty()->required()
 ```
 
-You expect: trim → nullify → require, and that's exactly what happens.
+You expect: trim → nullify → required check, and that's exactly what happens. `required()` is a flag and is enforced after the pipeline regardless of where it appears in the chain.
 
 **Flexibility**: Different orders enable different behaviors for different use cases:
 
 ```php
-// Scenario A: Allow empty after trimming (optional field)
-->pipe('trim')->required()->nullifyEmpty()
+// Scenario A: Trim first, then nullify (whitespace-only becomes null)
+->pipe('trim')->nullifyEmpty()
 
-// Scenario B: Require non-empty after trimming (required field)
-->pipe('trim')->nullifyEmpty()->required()
+// Scenario B: Nullify first, then trim (whitespace-only becomes empty string)
+->nullifyEmpty()->pipe('trim')
 ```
 
 ## Error Collection Strategy
 
-The library uses **comprehensive error collection** rather than fail-fast:
+The library **fails fast per validator chain**. Schema validation still aggregates errors across fields:
 
 ```php
 $validator = Validator::isString()
@@ -307,15 +305,12 @@ $validator = Validator::isString()
     ->minLength(5)
     ->email();
 
-// Instead of stopping at first error, collects ALL errors:
+// Stops at the first failing rule in this chain:
 [$valid, $data, $errors] = $validator->tryValidate('ab');
 // $errors = [
-//     'Value must be at least 5 characters long',
-//     'Value must be a valid email address'
+//     'Value must be at least 5 characters long'
 // ]
 ```
-
-This provides better user experience by showing all validation issues at once.
 
 ## Context-Aware Validation
 
@@ -437,7 +432,7 @@ Schema validation works recursively:
 $schema = Validator::isAssociative([
     'user' => Validator::isObject([
         'name' => Validator::isString()->required(),
-        'contacts' => Validator::isArray(
+        'contacts' => Validator::isArray()->items(
             Validator::isAssociative([
                 'type' => Validator::isString()->oneOf(['email', 'phone']),
                 'value' => Validator::isString()->required()

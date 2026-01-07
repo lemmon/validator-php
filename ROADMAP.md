@@ -8,6 +8,10 @@ This roadmap outlines the strategic development plan for future releases, priori
 
 **Core Principle:** Validate first, transform with the best tools available.
 
+## Current Behavior Notes
+
+- Validation fails fast per field; schema validation still aggregates errors across fields.
+
 ## Recently Completed
 
 ### Flattened Errors for API Consumption (Current)

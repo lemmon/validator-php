@@ -5,7 +5,7 @@ The `Validator` class serves as the main entry point and factory for creating va
 ## Class Overview
 
 ```php
-namespace Lemmon;
+namespace Lemmon\Validator;
 
 class Validator
 {
@@ -13,7 +13,7 @@ class Validator
     public static function isString(): StringValidator
     public static function isInt(): IntValidator
     public static function isFloat(): FloatValidator
-    public static function isArray(?FieldValidator $itemValidator = null): ArrayValidator
+    public static function isArray(): ArrayValidator
     public static function isAssociative(array $schema = []): AssociativeValidator
     public static function isObject(array $schema = []): ObjectValidator
     public static function isBool(): BoolValidator
@@ -79,7 +79,7 @@ $percentageValidator = Validator::isFloat()->min(0.0)->max(100.0);
 
 ---
 
-### `isArray(?FieldValidator $itemValidator = null): ArrayValidator`
+### `isArray(): ArrayValidator`
 
 Creates a validator for indexed arrays.
 
@@ -89,7 +89,7 @@ $validator = Validator::isArray();
 $result = $validator->validate([1, 2, 3]); // Returns: [1, 2, 3]
 
 // Array with item validation
-$numbersValidator = Validator::isArray(
+$numbersValidator = Validator::isArray()->items(
     Validator::isInt()->positive()
 );
 $numbers = $numbersValidator->validate([1, 2, 3]); // Each item validated as positive int
@@ -99,9 +99,6 @@ $emailsValidator = Validator::isArray()->items(
     Validator::isString()->email()
 );
 ```
-
-**Parameters:**
-- `$itemValidator` (optional): `FieldValidator` instance to validate each array item
 
 **Returns:** `ArrayValidator` instance with array-specific validation methods.
 
@@ -242,7 +239,7 @@ $orderValidator = Validator::isAssociative([
         'email' => Validator::isString()->email()->required(),
         'phone' => Validator::isString()->pattern('/^\+?[1-9]\d{1,14}$/')
     ])->required(),
-    'items' => Validator::isArray(
+    'items' => Validator::isArray()->items(
         Validator::isAssociative([
             'product_id' => Validator::isInt()->positive()->required(),
             'quantity' => Validator::isInt()->min(1)->required(),

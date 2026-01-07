@@ -136,9 +136,10 @@ $result = $optional->validate('John');    // Returns: 'John'
 $safeQuantity = Validator::isInt()
     ->coerce()
     ->nullifyEmpty()     // Empty strings → null (not dangerous 0)
+    ->required('Quantity is required')
     ->min(1, 'Quantity must be at least 1');
 
-$result = $safeQuantity->validate(''); // Validation fails (safe!)
+$result = $safeQuantity->validate(''); // ❌ "Quantity is required" (safe!)
 $result = $safeQuantity->validate('5'); // Returns: 5
 ```
 
@@ -150,23 +151,21 @@ $result = $safeQuantity->validate('5'); // Returns: 5
 
 ### Execution Order Matters
 
-**Critical**: Methods execute in the **exact order written**. This is especially important when combining transformations with `required()`:
+**Critical**: Pipeline steps execute in the **exact order written**. This matters for `pipe()`, `transform()`, and `nullifyEmpty()`. `required()` is a flag, so its position does not change execution order.
 
 ```php
-// CORRECT: Trim → nullify → require (fails on empty input)
-$requiredName = Validator::isString()
+// Order matters for transformations
+$trimThenNullify = Validator::isString()
     ->pipe('trim')        // 1. Remove whitespace
-    ->nullifyEmpty()      // 2. Empty strings → null
-    ->required('Name is required'); // 3. Reject null values
+    ->nullifyEmpty();     // 2. Empty strings → null
 
-$requiredName->validate('    '); // ❌ "Name is required" (correct!)
+$trimThenNullify->validate('    '); // Returns: null
 
-// ❌ DIFFERENT BEHAVIOR: Require → nullify (allows empty input)
-$differentBehavior = Validator::isString()
-    ->required('Name is required') // 1. Check if empty string is null (passes)
-    ->nullifyEmpty();              // 2. Convert to null
+$nullifyThenTrim = Validator::isString()
+    ->nullifyEmpty()      // 1. Empty strings → null (only if already empty)
+    ->pipe('trim');       // 2. Trim whitespace
 
-$differentBehavior->validate(''); // Returns: null (different result!)
+$nullifyThenTrim->validate('    '); // Returns: '' (empty string)
 ```
 
 **Real-world form validation pattern:**
@@ -241,7 +240,7 @@ $validConfig = $configSchema->validate($config);
 ### Plain Arrays
 
 ```php
-$numbersValidator = Validator::isArray(
+$numbersValidator = Validator::isArray()->items(
     Validator::isInt()->min(0) // Each item must be a non-negative integer
 );
 
@@ -251,7 +250,7 @@ $validNumbers = $numbersValidator->validate($numbers);
 
 ## Error Handling
 
-Validation errors are collected comprehensively:
+Validation fails fast per field. Schema validation still collects errors across fields:
 
 ```php
 $validator = Validator::isString()
@@ -263,8 +262,7 @@ $validator = Validator::isString()
 
 // $errors might contain:
 // [
-//     'Value must be at least 5 characters long',
-//     'Value must be a valid email address'
+//     'Value must be at least 5 characters long'
 // ]
 ```
 
