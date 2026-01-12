@@ -43,6 +43,23 @@ trait NumericConstraintsTrait
     }
 
     /**
+     * Validates that the value falls within the provided inclusive range.
+     *
+     * @param int|float $min The minimum value.
+     * @param int|float $max The maximum value.
+     * @param ?string $message Custom error message.
+     * @return static
+     */
+    public function between(int|float $min, int|float $max, null|string $message = null): static
+    {
+        if ($message === null) {
+            return $this->min($min)->max($max);
+        }
+
+        return $this->min($min, $message)->max($max, $message);
+    }
+
+    /**
      * Validates that the value is greater than the given threshold.
      *
      * @param int|float $threshold The minimum exclusive value.

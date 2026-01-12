@@ -82,6 +82,7 @@ date(string $format = 'Y-m-d', ?string $message = null): static
 minLength(int $min, ?string $message = null): static
 maxLength(int $max, ?string $message = null): static
 length(int $exact, ?string $message = null): static
+between(int $min, int $max, ?string $message = null): static
 notEmpty(?string $message = null): static
 oneOf(array $values, ?string $message = null): static
 ```
@@ -91,6 +92,7 @@ oneOf(array $values, ?string $message = null): static
 ```php
 min(int|float $min, ?string $message = null): static
 max(int|float $max, ?string $message = null): static
+between(int|float $min, int|float $max, ?string $message = null): static
 gt(int|float $threshold, ?string $message = null): static
 gte(int|float $threshold, ?string $message = null): static
 lt(int|float $threshold, ?string $message = null): static

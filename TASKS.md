@@ -11,9 +11,6 @@ Public repo; keep this list short (about 7) and up to date. Rules: no numbering 
 - `in()` alias for `oneOf()`
   - Add `in()` method as an alias for `oneOf()` for more intuitive API (`->in(['active', 'inactive'])` reads better than `->oneOf()`).
 
-- `between()` convenience methods
-  - Add `between(min, max)` shorthand for strings (length) and numerics (range) to reduce boilerplate (`->between(3, 50)` vs `->minLength(3)->maxLength(50)`).
-
 - Mutation testing pilot
   - Wire Infection (or similar) to the test suite, add baseline config, and document how to run it locally for enhanced test quality verification.
 

@@ -144,6 +144,15 @@ class StringValidator extends FieldValidator
         );
     }
 
+    public function between(int $min, int $max, null|string $message = null): static
+    {
+        if ($message === null) {
+            return $this->minLength($min)->maxLength($max);
+        }
+
+        return $this->minLength($min, $message)->maxLength($max, $message);
+    }
+
     public function notEmpty(null|string $message = null): static
     {
         return $this->minLength(1, $message ?? 'Value must not be empty');

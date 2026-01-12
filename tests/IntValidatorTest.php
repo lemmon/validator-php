@@ -35,6 +35,26 @@ it('should validate integer ranges', function () {
     $rangeValidator->validate(5);
 })->throws(ValidationException::class, 'Value must be at least 10');
 
+it('should validate integers between bounds', function () {
+    $validator = Validator::isInt()->between(10, 20);
+
+    expect($validator->validate(10))->toBe(10);
+    expect($validator->validate(15))->toBe(15);
+    expect($validator->validate(20))->toBe(20);
+
+    $validator->validate(9);
+})->throws(ValidationException::class, 'Value must be at least 10');
+
+it('should reject integers above the between range', function () {
+    $validator = Validator::isInt()->between(10, 20);
+    $validator->validate(21);
+})->throws(ValidationException::class, 'Value must be at most 20');
+
+it('should use custom error message for integer between validation', function () {
+    $validator = Validator::isInt()->between(1, 5, 'Out of range');
+    $validator->validate(0);
+})->throws(ValidationException::class, 'Out of range');
+
 it('should validate integer multiples', function () {
     $multipleValidator = Validator::isInt()->multipleOf(5);
 

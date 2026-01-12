@@ -262,6 +262,17 @@ $result = $exactLengthValidator->validate('Hello'); // Valid (exactly 5 chars)
 // $exactLengthValidator->validate('Too Long'); // ❌ ValidationException (8 chars)
 ```
 
+### Length Between Bounds
+
+Use `between(min, max)` as a shorthand for `minLength()` + `maxLength()`:
+
+```php
+$validator = Validator::isString()->between(3, 8);
+$validator->validate('Hello'); // Valid
+// $validator->validate('Hi'); // ❌ ValidationException (too short)
+// $validator->validate('Too long'); // ❌ ValidationException (too long)
+```
+
 ### Non-Empty Strings
 
 Use `notEmpty()` as a clearer alternative to `minLength(1)` when you only want to reject empty strings.

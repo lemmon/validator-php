@@ -100,6 +100,24 @@ it('should validate exact length constraints', function () {
     $exactValidator->validate('hi');
 })->throws(ValidationException::class, 'Value must be exactly 5 characters long');
 
+it('should validate string length between bounds', function () {
+    $validator = Validator::isString()->between(2, 4);
+
+    expect($validator->validate('hey'))->toBe('hey');
+
+    $validator->validate('h');
+})->throws(ValidationException::class, 'Value must be at least 2 characters long');
+
+it('should reject strings longer than the between range', function () {
+    $validator = Validator::isString()->between(2, 4);
+    $validator->validate('hello');
+})->throws(ValidationException::class, 'Value must be at most 4 characters long');
+
+it('should use custom error message for between length validation', function () {
+    $validator = Validator::isString()->between(2, 4, 'Length out of range');
+    $validator->validate('');
+})->throws(ValidationException::class, 'Length out of range');
+
 it('should validate non-empty strings', function () {
     $validator = Validator::isString()->notEmpty();
 

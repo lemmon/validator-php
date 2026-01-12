@@ -46,6 +46,26 @@ it('should validate float ranges', function () {
     $rangeValidator->validate(5);
 })->throws(ValidationException::class);
 
+it('should validate floats between bounds', function () {
+    $validator = Validator::isFloat()->between(1.5, 2.5);
+
+    expect($validator->validate(1.5))->toBe(1.5);
+    expect($validator->validate(2.0))->toBe(2.0);
+    expect($validator->validate(2.5))->toBe(2.5);
+
+    $validator->validate(1.4);
+})->throws(ValidationException::class, 'Value must be at least 1.5');
+
+it('should reject floats above the between range', function () {
+    $validator = Validator::isFloat()->between(1.5, 2.5);
+    $validator->validate(2.6);
+})->throws(ValidationException::class, 'Value must be at most 2.5');
+
+it('should use custom error message for float between validation', function () {
+    $validator = Validator::isFloat()->between(1.5, 2.5, 'Out of range');
+    $validator->validate(3.0);
+})->throws(ValidationException::class, 'Out of range');
+
 it('should validate float multiples', function () {
     $multipleValidator = Validator::isFloat()->multipleOf(5);
 

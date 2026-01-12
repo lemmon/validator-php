@@ -107,6 +107,13 @@ $rangeValidator = Validator::isInt()->min(1)->max(10);
 $rating = $rangeValidator->validate(8); // Valid
 ```
 
+Use `between(min, max)` as a shorthand for the inclusive range:
+
+```php
+$rangeValidator = Validator::isInt()->between(1, 10);
+$rating = $rangeValidator->validate(8); // Valid
+```
+
 ### Sign Constraints
 
 ```php
