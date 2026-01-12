@@ -42,6 +42,17 @@ class ArrayValidator extends FieldValidator
     }
 
     /**
+     * Validates that the array is not empty.
+     *
+     * @param null|string $message Custom error message
+     * @return $this
+     */
+    public function notEmpty(null|string $message = null): static
+    {
+        return $this->minItems(1, $message ?? 'Value must not be empty');
+    }
+
+    /**
      * Validates that the array has at least the specified number of items.
      *
      * @param int $min Minimum number of items required

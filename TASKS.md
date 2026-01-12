@@ -14,9 +14,6 @@ Public repo; keep this list short (about 7) and up to date. Rules: no numbering 
 - `between()` convenience methods
   - Add `between(min, max)` shorthand for strings (length) and numerics (range) to reduce boilerplate (`->between(3, 50)` vs `->minLength(3)->maxLength(50)`).
 
-- `notEmpty()` validation method
-  - Add explicit `notEmpty()` method for validating non-empty strings/arrays; clearer than custom validation for common use case.
-
 - Mutation testing pilot
   - Wire Infection (or similar) to the test suite, add baseline config, and document how to run it locally for enhanced test quality verification.
 

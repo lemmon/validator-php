@@ -82,6 +82,7 @@ date(string $format = 'Y-m-d', ?string $message = null): static
 minLength(int $min, ?string $message = null): static
 maxLength(int $max, ?string $message = null): static
 length(int $exact, ?string $message = null): static
+notEmpty(?string $message = null): static
 oneOf(array $values, ?string $message = null): static
 ```
 
@@ -112,6 +113,7 @@ port(?string $message = null): static // 1-65535
 ```php
 items(FieldValidator $validator): static
 filterEmpty(): static (removes null/'', reindexes)
+notEmpty(?string $message = null): static
 minItems(int $min, ?string $message = null): static
 maxItems(int $max, ?string $message = null): static
 contains(mixed|FieldValidator $valueOrValidator, ?string $message = null): static

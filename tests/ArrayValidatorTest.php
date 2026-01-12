@@ -66,6 +66,19 @@ it('should validate plain arrays', function () {
     expect($data)->toBe([]);
 });
 
+it('should validate non-empty arrays', function () {
+    $validator = Validator::isArray()->notEmpty();
+
+    expect($validator->validate(['value']))->toBe(['value']);
+
+    $validator->validate([]);
+})->throws(ValidationException::class, 'Value must not be empty');
+
+it('should use custom error message for notEmpty array validation', function () {
+    $validator = Validator::isArray()->notEmpty('Array cannot be empty');
+    $validator->validate([]);
+})->throws(ValidationException::class, 'Array cannot be empty');
+
 it('should reject associative arrays', function () {
     $validator = Validator::isArray();
 

@@ -69,6 +69,7 @@ Each validator handles a specific PHP type and provides relevant methods:
 ### StringValidator
 ```php
 Validator::isString()
+    ->notEmpty()       // Non-empty string
     ->minLength(3)      // Minimum length
     ->maxLength(100)    // Maximum length
     ->email()           // Email format
@@ -97,6 +98,7 @@ Validator::isFloat()
 ### ArrayValidator
 ```php
 Validator::isArray()                    // Plain indexed array
+Validator::isArray()->notEmpty()        // At least one item
 Validator::isArray()->items($itemValidator) // With item validation
 ```
 

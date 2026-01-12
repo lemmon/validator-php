@@ -549,6 +549,23 @@ $result = $tagsValidator->validate($formTags); // Result: ['php', 'javascript', 
 
 ---
 
+#### `notEmpty(?string $message = null): ArrayValidator`
+
+Ensures the array contains at least one item. This is a convenience alias for `minItems(1)` with a clearer default message.
+
+```php
+$validator = Validator::isArray()->notEmpty();
+$validator->validate([1]); // Valid
+$validator->validate([]); // Throws ValidationException
+```
+
+**Parameters:**
+- `$message` (optional): Custom error message when the array is empty
+
+**Returns:** `ArrayValidator` instance with non-empty validation enabled.
+
+---
+
 ## Universal Methods
 
 All validators created by the factory methods inherit these universal methods from `FieldValidator`:

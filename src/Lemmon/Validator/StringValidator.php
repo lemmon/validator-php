@@ -144,6 +144,11 @@ class StringValidator extends FieldValidator
         );
     }
 
+    public function notEmpty(null|string $message = null): static
+    {
+        return $this->minLength(1, $message ?? 'Value must not be empty');
+    }
+
     public function pattern(string $regex, null|string $message = null): static
     {
         return $this->satisfies(

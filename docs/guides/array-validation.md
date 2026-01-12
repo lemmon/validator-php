@@ -229,6 +229,23 @@ $validator->validate(null); // Throws ValidationException
 
 ## Array Length Constraints
 
+### Non-Empty Arrays
+
+Use `notEmpty()` as a clearer alternative to `minItems(1)` when you just need at least one item.
+
+```php
+$validator = Validator::isArray()->notEmpty();
+$validator->validate([1]); // Valid
+$validator->validate([]); // Throws ValidationException
+```
+
+To ignore empty values first, combine it with `filterEmpty()`:
+
+```php
+$validator = Validator::isArray()->filterEmpty()->notEmpty();
+$validator->validate(['', null]); // Throws ValidationException (becomes [])
+```
+
 ### Minimum and Maximum Items
 
 Use `minItems()` and `maxItems()` to validate array length, similar to `minLength()` and `maxLength()` for strings:

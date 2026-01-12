@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `notEmpty()` convenience method for `StringValidator` and `ArrayValidator` to reject empty strings/arrays
+
 ### Documentation
 - Clarified fail-fast behavior per field and schema-level error aggregation in guides and examples
 

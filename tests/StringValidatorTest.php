@@ -100,6 +100,19 @@ it('should validate exact length constraints', function () {
     $exactValidator->validate('hi');
 })->throws(ValidationException::class, 'Value must be exactly 5 characters long');
 
+it('should validate non-empty strings', function () {
+    $validator = Validator::isString()->notEmpty();
+
+    expect($validator->validate('hello'))->toBe('hello');
+
+    $validator->validate('');
+})->throws(ValidationException::class, 'Value must not be empty');
+
+it('should use custom error message for notEmpty string validation', function () {
+    $validator = Validator::isString()->notEmpty('String cannot be empty');
+    $validator->validate('');
+})->throws(ValidationException::class, 'String cannot be empty');
+
 it('should validate regex patterns', function () {
     $phoneValidator = Validator::isString()->pattern('/^\d{3}-\d{3}-\d{4}$/');
     expect($phoneValidator->validate('123-456-7890'))->toBe('123-456-7890');
