@@ -13,7 +13,10 @@ class ValidationException extends \Exception
         private array $errors,
     ) {
         $message = json_encode($errors, JSON_PRETTY_PRINT);
-        parent::__construct($message ?? 'JSON encoding of errors failed');
+        if ($message === false) {
+            $message = 'JSON encoding of errors failed';
+        }
+        parent::__construct($message);
     }
 
     /**

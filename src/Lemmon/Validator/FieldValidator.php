@@ -96,15 +96,13 @@ abstract class FieldValidator
         callable|FieldValidator $validation,
         null|string $message = null,
     ): self {
-        $rule = $validation;
-
-        if ($validation instanceof FieldValidator) {
+        $rule = $validation instanceof FieldValidator
             // Convert FieldValidator to callable
-            $rule = static function ($value, $key = null, $input = null) use ($validation) {
+            ? static function ($value, $key = null, $input = null) use ($validation) {
                 [$valid] = $validation->tryValidate($value, $key, $input);
                 return $valid;
-            };
-        }
+            }
+            : $validation;
 
         $this->pipeline[] = [
             'type' => PipelineType::VALIDATION,
@@ -353,7 +351,7 @@ abstract class FieldValidator
             foreach ($this->pipeline as $step) {
                 $operation = $step['operation'];
                 $type = $step['type'];
-                $skipNull = $step['skipNull'] ?? false;
+                $skipNull = $step['skipNull'];
 
                 // Smart null handling: validations always skip null, transformations skip based on skipNull flag
                 // pipe() transformations skip null (type-preserving, expect specific type)
@@ -492,13 +490,16 @@ abstract class FieldValidator
         foreach ($this->pipeline as $step) {
             $operation = $step['operation'];
             if ($operation instanceof \Closure) {
-                $operation = $operation->bindTo($this);
+                $boundOperation = $operation->bindTo($this);
+                if ($boundOperation !== null) {
+                    $operation = $boundOperation;
+                }
             }
 
             $rebuiltPipeline[] = [
                 'type' => $step['type'],
                 'operation' => $operation,
-                'skipNull' => $step['skipNull'] ?? false,
+                'skipNull' => $step['skipNull'],
             ];
         }
 
