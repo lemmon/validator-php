@@ -146,11 +146,13 @@ class StringValidator extends FieldValidator
 
     public function between(int $min, int $max, null|string $message = null): static
     {
-        if ($message === null) {
-            return $this->minLength($min)->maxLength($max);
-        }
-
-        return $this->minLength($min, $message)->maxLength($max, $message);
+        return $this->satisfies(
+            static fn ($value, $key = null, $input = null) => (
+                mb_strlen($value) >= $min
+                && mb_strlen($value) <= $max
+            ),
+            $message ?? "Value must be between {$min} and {$max} characters long",
+        );
     }
 
     public function notEmpty(null|string $message = null): static

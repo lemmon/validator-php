@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - `notEmpty()` convenience method for `StringValidator` and `ArrayValidator` to reject empty strings/arrays
-- `between()` shorthand for string length and numeric range constraints
+- `between()` shorthand for string length and numeric range constraints with unified error messages
 - `in()` alias for `oneOf()` on primitive validators for clearer allowed-value validation
 
 ### Deprecated

@@ -106,12 +106,12 @@ it('should validate string length between bounds', function () {
     expect($validator->validate('hey'))->toBe('hey');
 
     $validator->validate('h');
-})->throws(ValidationException::class, 'Value must be at least 2 characters long');
+})->throws(ValidationException::class, 'Value must be between 2 and 4 characters long');
 
 it('should reject strings longer than the between range', function () {
     $validator = Validator::isString()->between(2, 4);
     $validator->validate('hello');
-})->throws(ValidationException::class, 'Value must be at most 4 characters long');
+})->throws(ValidationException::class, 'Value must be between 2 and 4 characters long');
 
 it('should use custom error message for between length validation', function () {
     $validator = Validator::isString()->between(2, 4, 'Length out of range');

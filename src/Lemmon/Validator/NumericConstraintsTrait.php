@@ -52,11 +52,10 @@ trait NumericConstraintsTrait
      */
     public function between(int|float $min, int|float $max, null|string $message = null): static
     {
-        if ($message === null) {
-            return $this->min($min)->max($max);
-        }
-
-        return $this->min($min, $message)->max($max, $message);
+        return $this->satisfies(
+            static fn ($value, $key = null, $input = null) => $value >= $min && $value <= $max,
+            $message ?? "Value must be between {$min} and {$max}",
+        );
     }
 
     /**

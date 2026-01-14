@@ -107,11 +107,16 @@ $rangeValidator = Validator::isInt()->min(1)->max(10);
 $rating = $rangeValidator->validate(8); // Valid
 ```
 
-Use `between(min, max)` as a shorthand for the inclusive range:
+Use `between(min, max)` to validate that a number falls within an inclusive range. This provides a unified error message showing both bounds:
 
 ```php
 $rangeValidator = Validator::isInt()->between(1, 10);
 $rating = $rangeValidator->validate(8); // Valid
+// $rangeValidator->validate(0); // ❌ ValidationException: "Value must be between 1 and 10"
+// $rangeValidator->validate(11); // ❌ ValidationException: "Value must be between 1 and 10"
+
+// Custom error message
+$customRange = Validator::isFloat()->between(0.0, 100.0, 'Percentage must be between 0 and 100');
 ```
 
 ### Sign Constraints

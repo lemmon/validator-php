@@ -54,12 +54,12 @@ it('should validate floats between bounds', function () {
     expect($validator->validate(2.5))->toBe(2.5);
 
     $validator->validate(1.4);
-})->throws(ValidationException::class, 'Value must be at least 1.5');
+})->throws(ValidationException::class, 'Value must be between 1.5 and 2.5');
 
 it('should reject floats above the between range', function () {
     $validator = Validator::isFloat()->between(1.5, 2.5);
     $validator->validate(2.6);
-})->throws(ValidationException::class, 'Value must be at most 2.5');
+})->throws(ValidationException::class, 'Value must be between 1.5 and 2.5');
 
 it('should use custom error message for float between validation', function () {
     $validator = Validator::isFloat()->between(1.5, 2.5, 'Out of range');

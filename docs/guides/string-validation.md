@@ -264,13 +264,16 @@ $result = $exactLengthValidator->validate('Hello'); // Valid (exactly 5 chars)
 
 ### Length Between Bounds
 
-Use `between(min, max)` as a shorthand for `minLength()` + `maxLength()`:
+Use `between(min, max)` to validate that a string's length falls within an inclusive range. This provides a unified error message showing both bounds:
 
 ```php
 $validator = Validator::isString()->between(3, 8);
 $validator->validate('Hello'); // Valid
-// $validator->validate('Hi'); // ❌ ValidationException (too short)
-// $validator->validate('Too long'); // ❌ ValidationException (too long)
+// $validator->validate('Hi'); // ❌ ValidationException: "Value must be between 3 and 8 characters long"
+// $validator->validate('Too long'); // ❌ ValidationException: "Value must be between 3 and 8 characters long"
+
+// Custom error message
+$customBetween = Validator::isString()->between(3, 8, 'Length must be 3-8 characters');
 ```
 
 ### Non-Empty Strings
