@@ -12,7 +12,7 @@ it('should validate a correct payload', function () {
         'forced' => Validator::isString()->default('Hello!'),
         'level' => Validator::isInt()
             ->coerce()
-            ->oneOf([3, 5, 8])
+            ->in([3, 5, 8])
             ->default(3),
         'override' => Validator::isBool()->coerce()->default(false),
     ])->coerceAll();
@@ -35,7 +35,7 @@ it('should validate a correct payload', function () {
 it('should throw a validation exception for invalid payload', function () {
     $schema = Validator::isAssociative([
         'required' => Validator::isString()->required(),
-        'level' => Validator::isInt()->oneOf([3, 5, 8]),
+        'level' => Validator::isInt()->in([3, 5, 8]),
     ]);
 
     $input = [

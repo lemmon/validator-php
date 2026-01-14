@@ -331,7 +331,7 @@ $validator = Validator::isArray()->satisfies(
 $result = $validator->validate([1, 2]); // Valid
 $validator->validate([1, 2, 3]); // Throws ValidationException
 
-// Note: oneOf() is not available on ArrayValidator as it doesn't make semantic sense for complex types
+// Note: in() is not available on ArrayValidator as it doesn't make semantic sense for complex types
 ```
 
 ### Empty Array Handling
@@ -582,7 +582,7 @@ $fileValidator = Validator::isArray()->items(
     Validator::isAssociative([
         'name' => Validator::isString()->required(),
         'size' => Validator::isInt()->min(1)->max(10485760), // Max 10MB
-        'type' => Validator::isString()->oneOf([
+        'type' => Validator::isString()->in([
             'image/jpeg', 'image/png', 'image/gif'
         ])
     ])

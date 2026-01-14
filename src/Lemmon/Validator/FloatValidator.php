@@ -7,7 +7,7 @@ namespace Lemmon\Validator;
 class FloatValidator extends FieldValidator
 {
     use NumericConstraintsTrait;
-    use OneOfTrait;
+    use AllowedValuesTrait;
 
     /**
      * @inheritDoc

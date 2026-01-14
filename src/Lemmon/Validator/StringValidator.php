@@ -6,7 +6,7 @@ namespace Lemmon\Validator;
 
 class StringValidator extends FieldValidator
 {
-    use OneOfTrait;
+    use AllowedValuesTrait;
 
     /**
      * @inheritDoc

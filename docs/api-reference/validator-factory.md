@@ -373,7 +373,7 @@ class UserSchemas
     private static function preferences(): AssociativeValidator
     {
         return Validator::isAssociative([
-            'theme' => Validator::isString()->oneOf(['light', 'dark'])->default('light'),
+            'theme' => Validator::isString()->in(['light', 'dark'])->default('light'),
             'notifications' => Validator::isBool()->default(true)
         ]);
     }
@@ -468,7 +468,7 @@ $result2 = $notEmail->validate(123); // Valid (not an email)
 
 // User status that cannot be banned or suspended
 $validStatus = Validator::not(
-    Validator::isString()->oneOf(['banned', 'suspended']),
+    Validator::isString()->in(['banned', 'suspended']),
     'User cannot have banned or suspended status'
 );
 
@@ -663,27 +663,29 @@ $result = $validator->validate(''); // Returns: 'N/A'
 
 ---
 
-### `oneOf(array $values, ?string $message = null): self`
+### `in(array $values, ?string $message = null): self`
 
 **Available on:** `StringValidator`, `IntValidator`, `FloatValidator`, `BoolValidator` only
 
 Restricts the value to one of the specified allowed values. This method is implemented as a transformation and respects the fluent API execution order.
 
+**Deprecated alias:** `oneOf()` (use `in()` instead)
+
 ```php
 // String with allowed values
 $status = Validator::isString()
-    ->oneOf(['active', 'inactive', 'pending'], 'Invalid status')
+    ->in(['active', 'inactive', 'pending'], 'Invalid status')
     ->validate('active'); // Valid
 
 // Integer with allowed values
 $priority = Validator::isInt()
-    ->oneOf([1, 2, 3, 4, 5], 'Priority must be 1-5')
+    ->in([1, 2, 3, 4, 5], 'Priority must be 1-5')
     ->validate(3); // Valid
 
 // Execution order matters
 $validator = Validator::isString()
     ->pipe('trim', 'strtolower')  // Transform first
-    ->oneOf(['yes', 'no'])        // Then validate allowed values
+    ->in(['yes', 'no'])        // Then validate allowed values
     ->validate('  YES  '); // Valid (becomes 'yes' after transformation)
 ```
 

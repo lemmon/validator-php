@@ -45,7 +45,7 @@ All validators extend `FieldValidator`, which provides:
 - `required(): static` - Makes the field mandatory
 - `default(mixed $value): static` - Sets default value for null inputs
 - `coerce(): static` - Enables automatic type conversion
-- `oneOf(array $values): static` - Restricts to specific values (primitive validators only)
+- `in(array $values): static` - Restricts to specific values (primitive validators only)
 
 ### Custom Validation
 - `satisfies(callable|FieldValidator $rule, ?string $message = null): static` - Enhanced custom validation accepting validators or callables
@@ -436,7 +436,7 @@ $schema = Validator::isAssociative([
         'name' => Validator::isString()->required(),
         'contacts' => Validator::isArray()->items(
             Validator::isAssociative([
-                'type' => Validator::isString()->oneOf(['email', 'phone']),
+                'type' => Validator::isString()->in(['email', 'phone']),
                 'value' => Validator::isString()->required()
             ])
         )

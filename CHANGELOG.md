@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 - `notEmpty()` convenience method for `StringValidator` and `ArrayValidator` to reject empty strings/arrays
 - `between()` shorthand for string length and numeric range constraints
+- `in()` alias for `oneOf()` on primitive validators for clearer allowed-value validation
+
+### Deprecated
+- `oneOf()` in favor of `in()` (alias retained for backward compatibility)
 
 ### Documentation
 - Clarified fail-fast behavior per field and schema-level error aggregation in guides and examples

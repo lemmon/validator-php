@@ -106,7 +106,7 @@ $conditionalValidator = Validator::isString()->satisfies(
 $accountSchema = Validator::isAssociative([
     'account_type' => Validator::isString()
         ->required()
-        ->oneOf(['personal', 'business']),
+        ->in(['personal', 'business']),
     'company_name' => $conditionalValidator
 ]);
 ```
@@ -215,7 +215,7 @@ $discountValidator = Validator::isFloat()->satisfies(
 );
 
 $orderSchema = Validator::isAssociative([
-    'customer_tier' => Validator::isString()->oneOf(['bronze', 'silver', 'gold', 'platinum']),
+    'customer_tier' => Validator::isString()->in(['bronze', 'silver', 'gold', 'platinum']),
     'order_total' => Validator::isFloat()->positive()->required(),
     'discount_amount' => $discountValidator
 ]);

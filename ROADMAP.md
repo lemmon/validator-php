@@ -308,7 +308,7 @@ $stringValidator = Validator::isString()
 
 ### Real-World Validation Gaps (For Consideration)
 - [x] **`notEmpty()` method** - Explicit validation that value is not empty string/array (clearer than custom validation)
-- [ ] **`in()` alias for `oneOf()`** - More intuitive method name (`->in(['active', 'inactive'])`)
+- [x] **`in()` alias for `oneOf()`** - More intuitive method name (`->in(['active', 'inactive'])`)
 - [x] **`between(min, max)` for strings** - Length validation shorthand (`->between(3, 50)` instead of `->minLength(3)->maxLength(50)`)
 - [x] **`between(min, max)` for numerics** - Range validation shorthand (`->between(1, 100)` instead of `->min(1)->max(100)`)
 - [ ] **`filled()` method** - Requires non-null AND non-empty (stricter than required())

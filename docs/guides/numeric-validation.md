@@ -424,7 +424,7 @@ $temperatureValidator = Validator::isFloat()
 $temperatureSchema = Validator::isAssociative([
     'value' => $temperatureValidator->required(),
     'unit' => Validator::isString()
-        ->oneOf(['celsius', 'fahrenheit', 'kelvin'])
+        ->in(['celsius', 'fahrenheit', 'kelvin'])
         ->default('celsius')
 ]);
 ```

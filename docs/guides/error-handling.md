@@ -416,7 +416,7 @@ class ApiValidator
         $schema = Validator::isAssociative([
             'status' => Validator::isString()
                 ->required('Status is required')
-                ->oneOf(['success', 'error'], 'Status must be success or error'),
+                ->in(['success', 'error'], 'Status must be success or error'),
 
             'data' => Validator::isAssociative()
                 ->required('Data is required'),
@@ -460,7 +460,7 @@ class ConfigValidator
             ])->required('Database configuration is required'),
 
             'cache' => Validator::isAssociative([
-                'driver' => Validator::isString()->oneOf(['redis', 'memcached', 'file'])->default('file'),
+                'driver' => Validator::isString()->in(['redis', 'memcached', 'file'])->default('file'),
                 'ttl' => Validator::isInt()->positive()->default(3600)
             ])->default([]),
 

@@ -143,7 +143,7 @@ it('should work with required and default values', function () {
     $validator->validate(null, 'test', []);
 })->throws(ValidationException::class);
 
-// Note: oneOf() is not available on ArrayValidator as array comparison doesn't make logical sense.
+// Note: in() is not available on ArrayValidator as array comparison doesn't make logical sense.
 // Use satisfies() for custom array validation logic if needed.
 
 it('should handle null correctly with coercion', function () {

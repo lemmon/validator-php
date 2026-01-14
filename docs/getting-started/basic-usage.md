@@ -194,7 +194,7 @@ $formValidator = Validator::isAssociative([
 ### Allowed Values
 
 ```php
-$restricted = Validator::isString()->oneOf(['red', 'green', 'blue']);
+$restricted = Validator::isString()->in(['red', 'green', 'blue']);
 
 $result = $restricted->validate('red'); // Valid
 $result = $restricted->validate('yellow'); // ❌ ValidationException

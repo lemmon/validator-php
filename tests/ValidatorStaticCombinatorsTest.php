@@ -164,7 +164,7 @@ describe('Validator Static Logical Combinators', function () {
         });
 
         it('should work with complex validators', function () {
-            $validator = Validator::not(Validator::isString()->oneOf(['banned', 'suspended']));
+            $validator = Validator::not(Validator::isString()->in(['banned', 'suspended']));
 
             expect($validator->validate('active'))->toBe('active');
             expect($validator->validate('pending'))->toBe('pending');
@@ -174,7 +174,7 @@ describe('Validator Static Logical Combinators', function () {
 
         it('should use custom error message', function () {
             $validator = Validator::not(
-                Validator::isString()->oneOf(['admin', 'root']),
+                Validator::isString()->in(['admin', 'root']),
                 'Username cannot be admin or root',
             );
 
@@ -229,7 +229,7 @@ describe('Validator Static Logical Combinators', function () {
                     Validator::isString()->maxLength(50),
                 ]),
                 'status' => Validator::not(
-                    Validator::isString()->oneOf(['banned', 'suspended']),
+                    Validator::isString()->in(['banned', 'suspended']),
                     'User cannot have banned or suspended status',
                 ),
             ]);

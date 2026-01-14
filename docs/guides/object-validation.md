@@ -169,7 +169,7 @@ $userSchema = Validator::isAssociative([
         'website' => Validator::isString()->url()
     ]),
     'preferences' => Validator::isObject([
-        'theme' => Validator::isString()->oneOf(['light', 'dark'])->default('light'),
+        'theme' => Validator::isString()->in(['light', 'dark'])->default('light'),
         'notifications' => Validator::isBool()->default(true)
     ])->coerce()
 ]);
@@ -214,7 +214,7 @@ $result = $schema->validate($input);
 
 ```php
 $schema = Validator::isAssociative([
-    'level' => Validator::isInt()->oneOf([3, 5, 8]),
+    'level' => Validator::isInt()->in([3, 5, 8]),
     'override' => Validator::isBool()
 ])->coerceAll(); // Enables coercion for all fields
 
@@ -257,7 +257,7 @@ $result = $objectSchema->validate($array);
 
 ```php
 $schema = Validator::isAssociative([
-    'type' => Validator::isString()->oneOf(['user', 'admin'])->required(),
+    'type' => Validator::isString()->in(['user', 'admin'])->required(),
     'permissions' => Validator::isArray()->satisfies(
         function ($value, $key, $input) {
             // Only require permissions for admin users
@@ -277,7 +277,7 @@ $schema = Validator::isAssociative([
 $productSchema = Validator::isAssociative([
     'name' => Validator::isString()->required()->minLength(3),
     'price' => Validator::isFloat()->positive()->multipleOf(0.01),
-    'category' => Validator::isString()->oneOf(['electronics', 'clothing', 'books']),
+    'category' => Validator::isString()->in(['electronics', 'clothing', 'books']),
     'tags' => Validator::isArray()->items(Validator::isString()),
     'metadata' => Validator::isAssociative([
         'weight' => Validator::isFloat()->positive(),
@@ -330,7 +330,7 @@ $configSchema = Validator::isAssociative([
         'database' => Validator::isString()->required()
     ]),
     'cache' => Validator::isAssociative([
-        'driver' => Validator::isString()->oneOf(['redis', 'memcached', 'file'])->default('file'),
+        'driver' => Validator::isString()->in(['redis', 'memcached', 'file'])->default('file'),
         'ttl' => Validator::isInt()->positive()->default(3600)
     ])
 ]);
@@ -485,7 +485,7 @@ $step2Schema = Validator::isAssociative([
 $step3Schema = Validator::isAssociative([
     'company' => Validator::isString(),
     'job_title' => Validator::isString(),
-    'industry' => Validator::isString()->oneOf([
+    'industry' => Validator::isString()->in([
         'technology', 'finance', 'healthcare', 'education', 'other'
     ])
 ]);
@@ -504,7 +504,7 @@ $productSchema = Validator::isAssociative([
     'pricing' => Validator::isAssociative([
         'price' => Validator::isFloat()->positive()->multipleOf(0.01)->required(),
         'sale_price' => Validator::isFloat()->positive()->multipleOf(0.01),
-        'currency' => Validator::isString()->oneOf(['USD', 'EUR', 'GBP'])->default('USD')
+        'currency' => Validator::isString()->in(['USD', 'EUR', 'GBP'])->default('USD')
     ]),
     'inventory' => Validator::isAssociative([
         'stock_quantity' => Validator::isInt()->min(0)->required(),
@@ -518,7 +518,7 @@ $productSchema = Validator::isAssociative([
             'width' => Validator::isFloat()->positive(),
             'height' => Validator::isFloat()->positive()
         ]),
-        'shipping_class' => Validator::isString()->oneOf(['standard', 'heavy', 'fragile'])
+        'shipping_class' => Validator::isString()->in(['standard', 'heavy', 'fragile'])
     ]),
     'seo' => Validator::isAssociative([
         'meta_title' => Validator::isString()->maxLength(60),

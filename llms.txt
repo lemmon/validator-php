@@ -84,7 +84,8 @@ maxLength(int $max, ?string $message = null): static
 length(int $exact, ?string $message = null): static
 between(int $min, int $max, ?string $message = null): static
 notEmpty(?string $message = null): static
-oneOf(array $values, ?string $message = null): static
+in(array $values, ?string $message = null): static
+oneOf(array $values, ?string $message = null): static // Deprecated alias for in()
 ```
 
 ### IntValidator / FloatValidator
@@ -103,7 +104,8 @@ negative(?string $message = null): static
 nonPositive(?string $message = null): static
 nonNegative(?string $message = null): static
 clampToRange(int|float $min, int|float $max): static // Transformation, not validation
-oneOf(array $values, ?string $message = null): static
+in(array $values, ?string $message = null): static
+oneOf(array $values, ?string $message = null): static // Deprecated alias for in()
 ```
 *IntValidator Only:*
 ```php
@@ -132,7 +134,8 @@ coerceAll(): static // Recursively enables coercion on schema fields
 
 ### BoolValidator
 ```php
-oneOf(array $values, ?string $message = null): static
+in(array $values, ?string $message = null): static
+oneOf(array $values, ?string $message = null): static // Deprecated alias for in()
 // Coercion handles: 'true','on','1' -> true; 'false','off','0' -> false
 ```
 

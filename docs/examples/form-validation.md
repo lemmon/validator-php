@@ -187,7 +187,7 @@ class ProductFormValidator
 
             'category' => Validator::isString()
                 ->required('Category is required')
-                ->oneOf(['electronics', 'clothing', 'books', 'home'], 'Invalid category'),
+                ->in(['electronics', 'clothing', 'books', 'home'], 'Invalid category'),
 
             // Optional fields with form-safe handling
             'description' => Validator::isString()
@@ -336,7 +336,7 @@ class UserRegistrationValidator
                 ),
 
             'gender' => Validator::isString()
-                ->oneOf(['male', 'female', 'other', 'prefer_not_to_say'], 'Please select a valid gender option')
+                ->in(['male', 'female', 'other', 'prefer_not_to_say'], 'Please select a valid gender option')
                 ->default('prefer_not_to_say'),
 
             // Address (optional)
@@ -591,7 +591,7 @@ class ProductFormValidator
 
             // Status and Visibility
             'status' => Validator::isString()
-                ->oneOf(['draft', 'active', 'archived'], 'Invalid product status')
+                ->in(['draft', 'active', 'archived'], 'Invalid product status')
                 ->default('draft'),
 
             'published_at' => Validator::isString()
@@ -878,7 +878,7 @@ class FileUploadValidator
 
             'type' => Validator::isString()
                 ->required()
-                ->oneOf(['image/jpeg', 'image/png', 'image/gif'], 'Invalid file type')
+                ->in(['image/jpeg', 'image/png', 'image/gif'], 'Invalid file type')
         ]);
 
         return $validator->tryValidate($file);
