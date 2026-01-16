@@ -279,6 +279,7 @@ $customBetween = Validator::isString()->between(3, 8, 'Length must be 3-8 charac
 ### Non-Empty Strings
 
 Use `notEmpty()` as a clearer alternative to `minLength(1)` when you only want to reject empty strings.
+By default it skips `null`; add `required()` if `null` should fail.
 
 ```php
 $validator = Validator::isString()->notEmpty();

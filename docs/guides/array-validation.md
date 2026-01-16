@@ -232,6 +232,7 @@ $validator->validate(null); // Throws ValidationException
 ### Non-Empty Arrays
 
 Use `notEmpty()` as a clearer alternative to `minItems(1)` when you just need at least one item.
+By default it skips `null`; add `required()` if `null` should fail.
 
 ```php
 $validator = Validator::isArray()->notEmpty();

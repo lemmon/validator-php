@@ -8,9 +8,6 @@ Public repo; keep this list short (about 7) and up to date. Rules: no numbering 
 - Structured error codes
   - Add programmatic error codes to validation errors (e.g., 'STRING_TOO_SHORT', 'INVALID_EMAIL') for better error handling and i18n support; keep backward compatibility.
 
-- `filled()` method
-  - Require non-null AND non-empty values; document how it interacts with `required()`, `nullifyEmpty()`, and `coerce()`.
-
 - Mutation testing pilot
   - Wire Infection (or similar) to the test suite, add baseline config, and document how to run it locally for enhanced test quality verification.
 
