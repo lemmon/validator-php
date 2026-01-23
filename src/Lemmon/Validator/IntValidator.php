@@ -45,7 +45,7 @@ class IntValidator extends FieldValidator
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function port(null|string $message = null): static
+    public function port(?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => (

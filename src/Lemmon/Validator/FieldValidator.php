@@ -10,7 +10,7 @@ abstract class FieldValidator
     protected bool $hasDefault = false;
     protected bool $coerce = false;
     protected bool $required = false;
-    protected null|string $requiredMessage = null;
+    protected ?string $requiredMessage = null;
 
     /**
      * Creates a deep copy of the validator, including pipeline closures bound to the clone.
@@ -29,7 +29,7 @@ abstract class FieldValidator
     /**
      * Current type context for transformations (null = original validator type)
      */
-    protected null|string $currentType = null;
+    protected ?string $currentType = null;
 
     /**
      * Marks the field as required.
@@ -37,7 +37,7 @@ abstract class FieldValidator
      * @param string|null $message Custom error message for required validation
      * @return $this
      */
-    public function required(null|string $message = null): self
+    public function required(?string $message = null): self
     {
         $this->required = true;
         $this->requiredMessage = $message ?? 'Value is required';
@@ -92,10 +92,8 @@ abstract class FieldValidator
      * @param ?string $message Optional custom error message. If not provided, a generic message is used.
      * @return $this
      */
-    public function satisfies(
-        callable|FieldValidator $validation,
-        null|string $message = null,
-    ): self {
+    public function satisfies(callable|FieldValidator $validation, ?string $message = null): self
+    {
         $rule = $validation instanceof FieldValidator
             // Convert FieldValidator to callable
             ? static function ($value, $key = null, $input = null) use ($validation) {
@@ -135,7 +133,7 @@ abstract class FieldValidator
      * @param ?string $message Custom error message.
      * @return $this
      */
-    public function satisfiesAll(array $validations, null|string $message = null): self
+    public function satisfiesAll(array $validations, ?string $message = null): self
     {
         return $this->satisfies(static function ($value, $key = null, $input = null) use (
             $validations,
@@ -161,7 +159,7 @@ abstract class FieldValidator
      * @deprecated Use satisfiesAll() instead. Will be removed in v1.0.0.
      * @param array<FieldValidator|callable> $validators
      */
-    public function allOf(array $validators, null|string $message = null): self
+    public function allOf(array $validators, ?string $message = null): self
     {
         return $this->satisfiesAll($validators, $message);
     }
@@ -173,7 +171,7 @@ abstract class FieldValidator
      * @param ?string $message Custom error message.
      * @return $this
      */
-    public function satisfiesAny(array $validations, null|string $message = null): self
+    public function satisfiesAny(array $validations, ?string $message = null): self
     {
         return $this->satisfies(static function ($value, $key = null, $input = null) use (
             $validations,
@@ -199,7 +197,7 @@ abstract class FieldValidator
      * @deprecated Use satisfiesAny() instead. Will be removed in v1.0.0.
      * @param array<FieldValidator|callable> $validators
      */
-    public function anyOf(array $validators, null|string $message = null): self
+    public function anyOf(array $validators, ?string $message = null): self
     {
         return $this->satisfiesAny($validators, $message);
     }
@@ -211,7 +209,7 @@ abstract class FieldValidator
      * @param ?string $message Custom error message.
      * @return $this
      */
-    public function satisfiesNone(array $validations, null|string $message = null): self
+    public function satisfiesNone(array $validations, ?string $message = null): self
     {
         return $this->satisfies(
             static function ($value, $key = null, $input = null) use ($validations) {
@@ -237,7 +235,7 @@ abstract class FieldValidator
     /**
      * @deprecated Use satisfiesNone() instead. Will be removed in v1.0.0.
      */
-    public function not(FieldValidator $validator, null|string $message = null): self
+    public function not(FieldValidator $validator, ?string $message = null): self
     {
         return $this->satisfiesNone(
             [$validator],
@@ -250,9 +248,10 @@ abstract class FieldValidator
      * Can change the type - subsequent operations work with the new type.
      *
      * @param callable $transformer The transformation function that receives the validated value.
+     * @param bool $skipNull Whether to skip null values (default: true). Set to false to process null values.
      * @return $this
      */
-    public function transform(callable $transformer): self
+    public function transform(callable $transformer, bool $skipNull = true): self
     {
         $this->pipeline[] = [
             'type' => PipelineType::TRANSFORMATION,
@@ -264,7 +263,7 @@ abstract class FieldValidator
 
                 return $result; // No coercion - transform can change type
             },
-            'skipNull' => false, // transform() should execute on null (can handle null and change types)
+            'skipNull' => $skipNull,
         ];
         return $this;
     }

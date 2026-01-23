@@ -6,7 +6,7 @@ namespace Lemmon\Validator;
 
 class ArrayValidator extends FieldValidator
 {
-    private null|FieldValidator $itemValidator = null;
+    private ?FieldValidator $itemValidator = null;
     private bool $filterEmpty = false;
 
     /**
@@ -47,7 +47,7 @@ class ArrayValidator extends FieldValidator
      * @param null|string $message Custom error message
      * @return $this
      */
-    public function notEmpty(null|string $message = null): static
+    public function notEmpty(?string $message = null): static
     {
         return $this->minItems(1, $message ?? 'Value must not be empty');
     }
@@ -59,7 +59,7 @@ class ArrayValidator extends FieldValidator
      * @param null|string $message Custom error message
      * @return $this
      */
-    public function minItems(int $min, null|string $message = null): static
+    public function minItems(int $min, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => count($value) >= $min,
@@ -74,7 +74,7 @@ class ArrayValidator extends FieldValidator
      * @param null|string $message Custom error message
      * @return $this
      */
-    public function maxItems(int $max, null|string $message = null): static
+    public function maxItems(int $max, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => count($value) <= $max,
@@ -89,7 +89,7 @@ class ArrayValidator extends FieldValidator
      * @param null|string $message Custom error message
      * @return $this
      */
-    public function contains(mixed $valueOrValidator, null|string $message = null): static
+    public function contains(mixed $valueOrValidator, ?string $message = null): static
     {
         return $this->satisfies(
             static function ($value, $key = null, $input = null) use ($valueOrValidator) {

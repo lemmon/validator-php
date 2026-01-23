@@ -25,7 +25,7 @@ trait AllowedValuesTrait
      * @param ?string $message Optional custom error message.
      * @return $this
      */
-    public function in(array $values, null|string $message = null): self
+    public function in(array $values, ?string $message = null): self
     {
         return $this->satisfies(
             static fn ($value) => in_array($value, $values, true),
@@ -43,7 +43,7 @@ trait AllowedValuesTrait
      *
      * @deprecated Use in() instead.
      */
-    public function oneOf(array $values, null|string $message = null): self
+    public function oneOf(array $values, ?string $message = null): self
     {
         return $this->in($values, $message);
     }

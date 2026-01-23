@@ -305,7 +305,7 @@ $count = Validator::isString()
 
 - **Use `pipe()`** for same-type operations (string → string, array → array)
 - **Use `transform()`** for type changes (string → array, array → int)
-- **Null handling** - `pipe()` skips null values to avoid type errors, `transform()` runs on null so you can map it to a new value
+- **Null handling** - `pipe()` skips null values to avoid type errors, `transform()` skips null by default. Use `transform($fn, skipNull: false)` to process null values.
 
 ```php
 // Correct usage
@@ -314,6 +314,16 @@ $result = Validator::isArray()
     ->transform(fn($v) => implode(',', $v))    // Array → String (type change)
     ->pipe('trim', 'strtoupper')               // String operations (same type)
     ->validate(['a', 'b', 'a']); // Returns: "A,B"
+
+// Null handling: default behavior (skips null)
+$date = Validator::isString()
+    ->transform(fn($v) => DateTime::createFromFormat('Y-m-d', $v))
+    ->validate(null); // Returns: null (transform skipped, safe)
+
+// Null handling: explicit processing when needed
+$withFallback = Validator::isString()
+    ->transform(fn($v) => $v ?? 'Not provided', skipNull: false)
+    ->validate(null); // Returns: 'Not provided' (transform executed)
 ```
 
 ## Next Steps

@@ -33,8 +33,18 @@ it('should skip pipe transformations on null values', function () {
     expect($result)->toBeNull();
 });
 
-it('should execute transform on null values', function () {
-    $validator = Validator::isString()->transform(fn ($value) => $value ?? 'fallback');
+it('should skip transform on null values by default', function () {
+    $validator = Validator::isString()->transform(strtoupper(...));
+
+    $result = $validator->validate(null);
+    expect($result)->toBeNull();
+});
+
+it('should execute transform on null values when skipNull is false', function () {
+    $validator = Validator::isString()->transform(
+        fn ($value) => $value ?? 'fallback',
+        skipNull: false,
+    );
 
     $result = $validator->validate(null);
     expect($result)->toBe('fallback');

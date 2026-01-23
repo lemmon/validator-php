@@ -59,7 +59,7 @@ class ValidationException extends \Exception
      * @param array<array-key, mixed>|null $errors The error structure to flatten (null returns empty array)
      * @return array<int, array{path: string, message: string}>
      */
-    public static function flattenErrors(null|array $errors): array
+    public static function flattenErrors(?array $errors): array
     {
         if ($errors === null) {
             return [];

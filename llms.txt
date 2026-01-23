@@ -8,7 +8,7 @@
   - **Validations** (`satisfies`, `min`, `email`): Skip `null` values.
   - **Transformations**:
     - `pipe(callable)`: Skips `null` values (type-preserving, expects specific type).
-    - `transform(callable)`: Executes on `null` (can handle null and change types).
+    - `transform(callable, bool $skipNull = true)`: Skips `null` by default (most type conversions don't need null). Set `$skipNull = false` to process null values.
 - **Pipeline Order:** Pipeline steps execute in the exact order defined; `required()` is a flag enforced after the pipeline regardless of position.
 - **Transformation Types:**
   - `pipe(callable)`: Intended for sanitization. Preserves type context and applies type-coercion to result.
@@ -60,7 +60,7 @@ satisfiesAll(array<callable|FieldValidator> $rules, ?string $message = null): st
 satisfiesNone(array<callable|FieldValidator> $rules, ?string $message = null): static
 
 // Transformation
-transform(callable $fn): static (can change type)
+transform(callable $fn, bool $skipNull = true): static (can change type, skips null by default)
 pipe(callable ...$fns): static (preserves type, skips null)
 ```
 

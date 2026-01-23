@@ -85,7 +85,7 @@ class Validator
      * @param ?string $message Custom error message.
      * @return FieldValidator
      */
-    public static function anyOf(array $validators, null|string $message = null): FieldValidator
+    public static function anyOf(array $validators, ?string $message = null): FieldValidator
     {
         return (new class() extends FieldValidator {
             protected function coerceValue(mixed $value): mixed
@@ -112,7 +112,7 @@ class Validator
      * @param ?string $message Custom error message.
      * @return FieldValidator
      */
-    public static function allOf(array $validators, null|string $message = null): FieldValidator
+    public static function allOf(array $validators, ?string $message = null): FieldValidator
     {
         return (new class() extends FieldValidator {
             protected function coerceValue(mixed $value): mixed
@@ -139,10 +139,8 @@ class Validator
      * @param ?string $message Custom error message.
      * @return FieldValidator
      */
-    public static function not(
-        FieldValidator $validator,
-        null|string $message = null,
-    ): FieldValidator {
+    public static function not(FieldValidator $validator, ?string $message = null): FieldValidator
+    {
         return (new class() extends FieldValidator {
             protected function coerceValue(mixed $value): mixed
             {

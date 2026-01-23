@@ -19,7 +19,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function min(int|float $min, null|string $message = null): static
+    public function min(int|float $min, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value >= $min,
@@ -34,7 +34,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function max(int|float $max, null|string $message = null): static
+    public function max(int|float $max, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value <= $max,
@@ -50,7 +50,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function between(int|float $min, int|float $max, null|string $message = null): static
+    public function between(int|float $min, int|float $max, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value >= $min && $value <= $max,
@@ -65,7 +65,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function gt(int|float $threshold, null|string $message = null): static
+    public function gt(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value > $threshold,
@@ -80,7 +80,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function gte(int|float $threshold, null|string $message = null): static
+    public function gte(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value >= $threshold,
@@ -95,7 +95,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function lt(int|float $threshold, null|string $message = null): static
+    public function lt(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value < $threshold,
@@ -110,7 +110,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function lte(int|float $threshold, null|string $message = null): static
+    public function lte(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value <= $threshold,
@@ -125,7 +125,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function multipleOf(int|float $divisor, null|string $message = null): static
+    public function multipleOf(int|float $divisor, ?string $message = null): static
     {
         return $this->satisfies(
             static function ($value, $key = null, $input = null) use ($divisor) {
@@ -148,7 +148,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function positive(null|string $message = null): static
+    public function positive(?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value > 0,
@@ -162,7 +162,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function negative(null|string $message = null): static
+    public function negative(?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => $value < 0,
@@ -176,7 +176,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function nonNegative(null|string $message = null): static
+    public function nonNegative(?string $message = null): static
     {
         return $this->gte(0, $message ?? 'Value must be non-negative');
     }
@@ -187,7 +187,7 @@ trait NumericConstraintsTrait
      * @param ?string $message Custom error message.
      * @return static
      */
-    public function nonPositive(null|string $message = null): static
+    public function nonPositive(?string $message = null): static
     {
         return $this->lte(0, $message ?? 'Value must be non-positive');
     }

@@ -35,7 +35,7 @@ class StringValidator extends FieldValidator
         return $value;
     }
 
-    public function email(null|string $message = null): static
+    public function email(?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => (
@@ -45,7 +45,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function url(null|string $message = null): static
+    public function url(?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => (
@@ -55,10 +55,8 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function uuid(
-        UuidVariant $variant = UuidVariant::Any,
-        null|string $message = null,
-    ): static {
+    public function uuid(UuidVariant $variant = UuidVariant::Any, ?string $message = null): static
+    {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => match ($variant) {
                 UuidVariant::Any => preg_match(
@@ -102,7 +100,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function ip(IpVersion $version = IpVersion::Any, null|string $message = null): static
+    public function ip(IpVersion $version = IpVersion::Any, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => match ($version) {
@@ -120,7 +118,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function minLength(int $min, null|string $message = null): static
+    public function minLength(int $min, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => mb_strlen($value) >= $min,
@@ -128,7 +126,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function maxLength(int $max, null|string $message = null): static
+    public function maxLength(int $max, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => mb_strlen($value) <= $max,
@@ -136,7 +134,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function length(int $exact, null|string $message = null): static
+    public function length(int $exact, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => mb_strlen($value) === $exact,
@@ -144,7 +142,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function between(int $min, int $max, null|string $message = null): static
+    public function between(int $min, int $max, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => (
@@ -155,12 +153,12 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function notEmpty(null|string $message = null): static
+    public function notEmpty(?string $message = null): static
     {
         return $this->minLength(1, $message ?? 'Value must not be empty');
     }
 
-    public function pattern(string $regex, null|string $message = null): static
+    public function pattern(string $regex, ?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => preg_match($regex, $value) === 1,
@@ -168,7 +166,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function datetime(string $format = 'Y-m-d\TH:i:s', null|string $message = null): static
+    public function datetime(string $format = 'Y-m-d\TH:i:s', ?string $message = null): static
     {
         return $this->satisfies(
             static function ($value, $key = null, $input = null) use ($format) {
@@ -179,7 +177,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function date(string $format = 'Y-m-d', null|string $message = null): static
+    public function date(string $format = 'Y-m-d', ?string $message = null): static
     {
         return $this->satisfies(
             static function ($value, $key = null, $input = null) use ($format) {
@@ -190,7 +188,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function hostname(null|string $message = null): static
+    public function hostname(?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => (
@@ -200,7 +198,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function domain(null|string $message = null): static
+    public function domain(?string $message = null): static
     {
         return $this->satisfies(
             static function ($value, $key = null, $input = null) {
@@ -214,7 +212,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function time(null|string $message = null): static
+    public function time(?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => (
@@ -226,7 +224,7 @@ class StringValidator extends FieldValidator
 
     public function base64(
         Base64Variant $variant = Base64Variant::Standard,
-        null|string $message = null,
+        ?string $message = null,
     ): static {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => match ($variant) {
@@ -254,7 +252,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function hex(null|string $message = null): static
+    public function hex(?string $message = null): static
     {
         return $this->satisfies(
             static fn ($value, $key = null, $input = null) => (
@@ -265,7 +263,7 @@ class StringValidator extends FieldValidator
         );
     }
 
-    public function regex(string $pattern, null|string $message = null): static
+    public function regex(string $pattern, ?string $message = null): static
     {
         return $this->pattern($pattern, $message);
     }

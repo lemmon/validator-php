@@ -4,16 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **BREAKING**: `transform()` now skips `null` values by default (was executing on null)
+  - **Rationale**: Most type conversions don't need null handling, making this safer and more efficient by default
+  - **Migration**: Use `transform($fn, skipNull: false)` if you need to process null values (e.g., `transform(fn($v) => $v ?? 'fallback', skipNull: false)`)
+  - **Impact**: Existing code that relied on `transform()` executing on null will need to explicitly set `skipNull: false`
+  - **Real-World Benefit**: Prevents errors when null values reach type conversions like `DateTime::createFromFormat()`, `explode()`, `strlen()`, etc.
+
 ### Added
 - `notEmpty()` convenience method for `StringValidator` and `ArrayValidator` to reject empty strings/arrays
 - `between()` shorthand for string length and numeric range constraints with unified error messages
 - `in()` alias for `oneOf()` on primitive validators for clearer allowed-value validation
+- `transform()` method now accepts optional `$skipNull` parameter (default: `true`) to configure null handling
 
 ### Deprecated
 - `oneOf()` in favor of `in()` (alias retained for backward compatibility)
 
 ### Documentation
 - Clarified fail-fast behavior per field and schema-level error aggregation in guides and examples
+- Updated transformation documentation to reflect new null handling behavior
 
 ## [0.11.2] - 2026-01-05
 

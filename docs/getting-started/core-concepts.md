@@ -141,7 +141,26 @@ $result = Validator::isString()
 - **Changes type context** - Updates internal type tracking
 - **No type coercion** - Returns exactly what the transformer produces
 - **Enables type switching** - Subsequent `pipe()` operations work with the new type
-- **Null handling** - `transform()` runs even when the current value is null so you can map null to a new value or type
+- **Null handling** - `transform()` skips null by default (most type conversions don't need null). Use `transform($fn, skipNull: false)` to process null values.
+
+**Null Handling Examples:**
+
+```php
+// Default behavior: skips null (most common case)
+$result = Validator::isString()
+    ->transform(fn($v) => DateTime::createFromFormat('Y-m-d', $v))
+    ->validate(null); // Returns: null (transform skipped, no error)
+
+// Explicit null processing: when you need to handle null
+$result = Validator::isString()
+    ->transform(fn($v) => $v ?? 'N/A', skipNull: false)
+    ->validate(null); // Returns: 'N/A' (transform executed on null)
+
+// Converting null to empty array
+$result = Validator::isArray()
+    ->transform(fn($v) => $v === null ? [] : $v, skipNull: false)
+    ->validate(null); // Returns: [] (null converted to empty array)
+```
 
 #### `pipe()` - Type-Preserving Transformations
 
