@@ -155,13 +155,14 @@ oneOf(array $values, ?string $message = null): static // Deprecated alias for in
 
 ## Quick Examples
 ```php
-// Pipeline order: pipe -> nullifyEmpty -> required (flag enforced after pipeline) -> date validation -> transform
+// Pipeline order demonstration: shows value transformation at each step
 Validator::isString()
-    ->pipe('trim')  // String operations (preserves type)
-    ->nullifyEmpty()
-    ->required()
-    ->date('Y-m-d')
-    ->transform(fn($s) => DateTime::createFromFormat('Y-m-d', $s)); // String → DateTime
+    ->pipe('trim')  // Transformation: "  \n  " → "" (preserves string type, skips null)
+    ->nullifyEmpty()  // Transformation: "" → null (converts empty string/array to null)
+    ->required()  // Validation flag: enforced after pipeline, throws if value is null
+    ->date('Y-m-d')  // Validation: checks format Y-m-d (skips null, but required() ensures non-null)
+    ->transform(fn($s) => DateTime::createFromFormat('Y-m-d', $s)); // Transformation: String → DateTime (receives validated string)
+// With valid input "2024-01-15": "2024-01-15" → trim → "2024-01-15" → nullifyEmpty (no-op) → date validation → transform receives "2024-01-15" → DateTime
 
 // Form-safe coercion: '' -> null (not 0/false)
 Validator::isInt()->coerce()->validate(''); // null (if not required)
