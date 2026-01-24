@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-01-24
+
 ### Changed
 - **BREAKING**: `transform()` now skips `null` values by default (was executing on null)
   - **Rationale**: Most type conversions don't need null handling, making this safer and more efficient by default
