@@ -22,7 +22,7 @@
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.48",
-        "pestphp/pest": "^2.0",
+        "pestphp/pest": "^4.3",
         "phpstan/phpstan": "^2.1",
         "symfony/error-handler": "^7.0",
         "symfony/var-dumper": "^7.0"

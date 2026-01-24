@@ -224,7 +224,6 @@ it('should clone validators without sharing pipeline state', function () {
     expect($result)->toBe('c-b-a');
 
     $currentType = new ReflectionProperty($original, 'currentType');
-    $currentType->setAccessible(true);
 
     expect($currentType->getValue($original))->toBeNull(); // Original instance untouched
 });
@@ -237,13 +236,11 @@ it('should deep clone nested schemas for associative validators', function () {
     $clone = $original->clone();
 
     $schemaProperty = new ReflectionProperty($clone, 'schema');
-    $schemaProperty->setAccessible(true);
     $cloneSchema = $schemaProperty->getValue($clone);
 
     $cloneSchema['nickname']->default('buddy');
 
     $originalSchemaProperty = new ReflectionProperty($original, 'schema');
-    $originalSchemaProperty->setAccessible(true);
     $originalSchema = $originalSchemaProperty->getValue($original);
 
     expect($cloneSchema['nickname'])->not->toBe($originalSchema['nickname']); // No shared instances
