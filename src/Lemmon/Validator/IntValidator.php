@@ -48,11 +48,7 @@ class IntValidator extends FieldValidator
     public function port(?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => (
-                is_int($value)
-                && $value >= 1
-                && $value <= 65535
-            ),
+            static fn($value, $key = null, $input = null) => is_int($value) && $value >= 1 && $value <= 65_535,
             $message ?? 'Value must be a valid port number (1-65535)',
         );
     }

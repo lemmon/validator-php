@@ -133,7 +133,7 @@ it('should validate port numbers', function () {
     expect($validator->validate(80))->toBe(80);
     expect($validator->validate(443))->toBe(443);
     expect($validator->validate(3000))->toBe(3000);
-    expect($validator->validate(65535))->toBe(65535);
+    expect($validator->validate(65_535))->toBe(65_535);
     expect($validator->validate(1))->toBe(1);
 
     // Invalid: out of range
@@ -147,7 +147,7 @@ it('should validate port numbers with coercion', function () {
     expect($validator->validate('80'))->toBe(80);
     expect($validator->validate('443'))->toBe(443);
     expect($validator->validate('3000'))->toBe(3000);
-    expect($validator->validate('65535'))->toBe(65535);
+    expect($validator->validate('65535'))->toBe(65_535);
 });
 
 it('should reject port 0', function () {
@@ -157,7 +157,7 @@ it('should reject port 0', function () {
 
 it('should reject ports above 65535', function () {
     $validator = Validator::isInt()->port();
-    $validator->validate(65536);
+    $validator->validate(65_536);
 })->throws(ValidationException::class);
 
 it('should reject negative ports', function () {

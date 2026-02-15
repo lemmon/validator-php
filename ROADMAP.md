@@ -13,7 +13,8 @@ Focused on core validation primitives, consistent pipelines, and extensibility v
 
 ## Next Minor Release
 
-- [ ] Universal allowed-value validators: `enum()` and `const()`
+- [ ] Universal allowed-value validators: `enum()` (PHP BackedEnum) and `const()` (single allowed value)
+- [ ] Schema output key remapping: `outputKey(string $key)`
 - [ ] Structured error codes in validation errors (backward compatible)
 - [ ] ArrayValidator `uniqueField(string $fieldName, ?string $message = null)`
 - [ ] Mutation testing pilot (Infection + baseline)
@@ -22,7 +23,8 @@ Focused on core validation primitives, consistent pipelines, and extensibility v
 ## Future (Schema and Structure)
 
 - [ ] Schema composition: `partial()`, `pick()`, `omit()`, `merge()`
-- [ ] Unknown key handling: `additionalProperties()`, `passthrough()`
+- [ ] Unknown key policies: `strict()` (reject undeclared keys) and `passthrough()` (preserve undeclared keys)
+- [ ] Explicit key deny-listing: `forbidKeys(array $keys, ?string $message = null)`
 - [ ] Key validation: `patternProperties()`, `propertyNames()`
 - [ ] Cross-field dependencies: `dependencies()`
 - [ ] Tuple validation / `additionalItems()` for arrays

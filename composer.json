@@ -21,6 +21,7 @@
         "php": "^8.3"
     },
     "require-dev": {
+        "carthage-software/mago": "^1.8",
         "ergebnis/composer-normalize": "^2.48",
         "pestphp/pest": "^4.3",
         "phpstan/phpstan": "^2.1",
@@ -39,14 +40,19 @@
     },
     "config": {
         "allow-plugins": {
+            "carthage-software/mago": true,
             "ergebnis/composer-normalize": true,
             "pestphp/pest-plugin": true
+        },
+        "platform": {
+            "php": "8.3.0"
         }
     },
     "scripts": {
         "analyse": "phpstan analyse",
-        "fix": "mago format",
+        "format": "mago format",
         "lint": "mago lint",
+        "platform-check": "composer check-platform-reqs",
         "test": "vendor/bin/pest"
     }
 }

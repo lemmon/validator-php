@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- GitHub Actions CI: lint, platform-check, static analysis, tests on PHP 8.3
+
+### Changed
+- Applied Mago formatting and new linter rules across the codebase (readable-literal, no-isset); updated mago.toml (print-width 120, preserve-breaking-* options)
+- Renamed `composer fix` script to `composer format` for Mago formatting
+- Mago now a dev dependency (carthage-software/mago) instead of global installation
+- Added `config.platform.php: "8.3.0"` so dependency resolution targets PHP 8.3; `composer update`/`install` will not add packages requiring PHP above 8.3
+- Added `composer platform-check` script to verify platform requirements
+
 ## [0.12.0] - 2026-01-24
 
 ### Changed

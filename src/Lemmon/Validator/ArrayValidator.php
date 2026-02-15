@@ -62,7 +62,7 @@ class ArrayValidator extends FieldValidator
     public function minItems(int $min, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => count($value) >= $min,
+            static fn($value, $key = null, $input = null) => count($value) >= $min,
             $message ?? "Value must contain at least {$min} items",
         );
     }
@@ -77,7 +77,7 @@ class ArrayValidator extends FieldValidator
     public function maxItems(int $max, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => count($value) <= $max,
+            static fn($value, $key = null, $input = null) => count($value) <= $max,
             $message ?? "Value must contain at most {$max} items",
         );
     }
@@ -157,7 +157,7 @@ class ArrayValidator extends FieldValidator
         if ($this->filterEmpty) {
             $value = array_values(array_filter(
                 $value,
-                static fn ($item) => $item !== '' && $item !== null,
+                static fn($item) => $item !== '' && $item !== null,
             ));
         }
 

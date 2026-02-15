@@ -1,135 +1,57 @@
-# Lemmon Validator - Project Overview
+# Lemmon Validator
 
-A comprehensive, fluent validation library for PHP inspired by Valibot and Zod. This project provides type-safe validation with a symmetrical API for handling different data structures, advanced validation capabilities, and enterprise-grade documentation.
+PHP validation library inspired by Valibot and Zod. Type-safe, fluent API for primitives, arrays, and objects.
+
+## Project Context
+
+Core validation logic lives in `src/Lemmon/Validator/`. Tests in `tests/` follow `XValidatorTest.php` naming. Key project files:
+- `llms.txt` - Technical spec for external/consumer use; API signatures, null handling, transformation types
+- `ROADMAP.md` - Strategic planning and checkboxes
+- `TASKS.md` - Immediate task pool (keep short, no numbering)
+- `CHANGELOG` - Completed work
+- `IDEAS` - Exploration
 
 ## Architecture
 
-- **Root Namespace** - Runtime classes live under `Lemmon\Validator`; tests use `Lemmon\Tests`
+- **Namespace:** `Lemmon\Validator` (runtime), `Lemmon\Tests` (tests)
+- **Core:** `Validator` static factory; `FieldValidator` base; `ValidationException` for errors
+- **Validators:** `isString`, `isInt`, `isFloat`, `isBool`, `isArray`, `isAssociative`, `isObject`
+- **Shared:** `NumericConstraintsTrait` (min, max, multipleOf, etc.); `PipelineType` enum; variant enums `IpVersion`, `Base64Variant`, `UuidVariant` for format methods
+- **String formats:** email, URL, UUID, IP, hostname, domain, time, base64, hex, regex, datetime, date
+- **Schema validation:** AssociativeValidator/ObjectValidator with nested error aggregation
+- **Logical combinators:** `Validator::allOf`, `anyOf`, `not`; instance `satisfiesAny`, `satisfiesAll`, `satisfiesNone`
+- **Behavior:** Optional by default (null allowed unless `required()`); form-safe coercion (empty string → null, not 0/false); pipeline order guaranteed; fail-fast per field; `satisfies()` accepts validators or callables with `(value, key, input)`; extend via `satisfies()`, not custom validators
 
-### Core Factory Pattern
-- **`Validator`** - Static factory creating type-specific validators (`isString()`, `isInt()`, `isFloat()`, `isArray()`, `isAssociative()`, `isObject()`, `isBool()`)
-- **`FieldValidator`** - Abstract base class with unified validation interface and shared functionality
-- **`ValidationException`** - Structured exception handling with aggregated error reporting
+## Build, Test, and Development Commands
 
-### Type-Specific Validators
-- **`StringValidator`** - Format validation (email, URL, UUID with version variants, IP with version variants, hostname, domain, time, base64 with variants, hex), length constraints, pattern matching
-- **`IntValidator`** / **`FloatValidator`** - Numeric constraints via shared `NumericConstraintsTrait` (includes port validation for IntValidator)
-- **`ArrayValidator`** - Indexed array validation with optional item validation
-- **`AssociativeValidator`** / **`ObjectValidator`** - Schema-based validation for complex structures
-- **`BoolValidator`** - Boolean validation with intelligent coercion
+- `composer test` - Run Pest test suite
+- `composer lint` / `composer format` - Mago linting and formatting (dev dependency)
+- `composer analyse` - PHPStan at max level
+- `composer platform-check` - Verify PHP 8.3 and extension requirements
 
-### Shared Components
-- **`NumericConstraintsTrait`** - Common numeric validations (`min()`, `max()`, `multipleOf()`, `positive()`, `negative()`, comparison helpers)
-- **`PipelineType`** - Type-safe enum for pipeline operations (`VALIDATION`, `TRANSFORMATION`) with IDE support and refactoring safety
-- **Variant Enums** - `IpVersion`, `Base64Variant`, and `UuidVariant` enums for type-safe variant selection in format validators
+`config.platform.php` is set to `8.3.0` so dependency resolution targets PHP 8.3; `composer update`/`install` will not add packages that require PHP above 8.3.
 
-## Advanced Features
+Dev tooling: symfony/var-dumper, symfony/error-handler, ergebnis/composer-normalize.
 
-### Validation Capabilities
-- **Static Logical Combinators** - `Validator::allOf()`, `Validator::anyOf()`, `Validator::not()` for complex rule composition and mixed-type validation
-- **New `satisfies*` API** - Enhanced instance logical combinators (`satisfiesAny()`, `satisfiesAll()`, `satisfiesNone()`) with support for mixed validators/callables
-- **Enum-Based Variant Flags** - Type-safe variant selection for IP addresses (`IpVersion`), Base64 encoding (`Base64Variant`), and UUID versions (`UuidVariant`) with consistent API pattern
-- **Smart Null Handling** - Validations skip `null` unless `required()`. `transform()` runs on `null`, while `pipe()` and `nullifyEmpty()` skip `null` for type safety.
-- **Form-Safe Coercion** - Empty strings convert to `null` (not dangerous `0`/`0.0`/`false`) for primitives, empty structures for objects/arrays
-- **Array Filtering** - `filterEmpty()` method removes empty values while maintaining indexed array structure
-- **Type-Aware Transformations** - Revolutionary `transform()` and `pipe()` system with intelligent type context switching
-- **Unified Pipeline Architecture** - Single conceptual pipeline with ordered execution and fail-fast behavior per field
-- **Custom Validation** - Enhanced `satisfies()` method accepting `FieldValidator` instances or callables with optional error messages (all internal validators migrated from deprecated `addValidation()`)
-- **Context-Aware Validation** - Custom validators receive `(value, key, input)` parameters
-- **Fail-Fast Per Field** - Each validator stops at the first failing rule, while schema validation aggregates errors across fields
-- **Smart Type Coercion** - Configurable automatic type conversion with form-friendly defaults
-- **Fluent API with guaranteed execution order** - Chainable method calls that execute in the exact order written
-- **Extensibility Philosophy** - Focus on core validation principles; external libraries encouraged for advanced/specialized validators via `satisfies()`
+## Coding Style & Formatting
 
-### Developer Experience
-- **Dual Validation Methods** - `validate()` (exception-based) and `tryValidate()` (tuple-based)
-- **Schema Validation** - Nested structure validation with hierarchical error reporting
-- **Comprehensive Documentation** - Complete guides, API reference, and real-world examples
+PSR-12 for PHP. Mago for lint/format (`composer lint`, `composer format`). Prettier (`.prettierrc`) for YAML, JSON, Markdown. Add PHPDoc where behavior is non-obvious. Stick to ASCII punctuation in code and docs (e.g. `--` not em dash) so diffs stay predictable. Emojis sparingly.
 
-## Documentation Structure
+## Commit Message Guidelines
 
-### AI Agent Resources
-- **`llms.txt`** - Complete technical specification with full API signatures, method parameters, and core concepts. This is the authoritative reference for AI agents working with the library. Contains complete method signatures, null handling behavior, transformation types, and quick examples.
-
-### Getting Started
-- **Installation & Setup** - Requirements, installation, verification
-- **Basic Usage** - Fundamental patterns, validation methods, common use cases
-- **Core Concepts** - Architecture understanding, validation flow, performance considerations
-
-### Focused Guides
-- **String Validation** - Complete format validation suite (email, URL, UUID, IP, hostname, domain, time, base64, hex) with enum-based variants and practical examples
-- **Numeric Validation** - Integer and float validation with shared constraints, including port validation
-- **Array Validation** - Indexed array validation with filtering and item validation
-- **Object Validation** - Schema-based validation for complex structures
-- **Custom Validation** - Business logic integration, context-aware validation, and external library integration patterns
-- **Error Handling** - Exception vs tuple patterns, structured error reporting
-
-### API Reference
-- **Validator Factory** - Complete factory method documentation with usage patterns
-- **Type-Specific APIs** - Detailed method references for each validator type
-
-### Practical Examples
-- **Form Validation** - Contact forms, user registration, e-commerce products
-- **Multi-Step Forms** - Complex validation workflows with session handling
-- **Real-World Schemas** - Business logic validation patterns
-
-## Development Workflow
-
-### Code Quality
-- **Testing** - Pest PHP with organized, focused test suite
-- **Static Analysis** - PHPStan at maximum level for type safety
-- **Code Style** - Mago for linting/formatting; scripts map `composer lint`/`composer fix` to Mago
-- **Performance** - Optimized validation logic with eliminated code duplication
-
-### Development Guidelines
-- **Documentation** - Add concise PHPDoc blocks where behavior is not immediately obvious, especially for helpers touching I/O streams
-- **ASCII Punctuation** - Stick to ASCII punctuation in code and docs (prefer -- over em dashes) so diffs stay predictable
-- **Emoji Usage** - Reserve emojis for rare emphasis; moderate use is fine for emphasis, but skip emoji-driven lists
-- **Task Tracking** - Use GitHub-style checkboxes (`- [ ]` for pending, `- [x]` for completed) in ROADMAP.md for clear progress tracking
-- **Task Pool** - Maintain immediate priorities in `TASKS.md`; keep it short, prune completed items, and avoid numbering to minimize churn
-- **Commit Standards** - Follow Conventional Commits spec (e.g., `fix:`, `refactor:`, `docs:`)
-- **Commit Scope** - Each commit should address a single concern; tests and implementation can ship together, but unrelated formatting belongs elsewhere
-- **Commit Format** - Use concise Conventional Commit summaries: `<type>(<scope>): <short action>`. Avoid verbose release blurbs in commit messages; keep release notes in CHANGELOG/release tagging.
-- **Git Tags** - Prefer annotated tags for releases (author, date, message/signing) over lightweight tags
-- **Tag Format** - Annotated tags should use `vX.Y.Z - <concise headline>`; keep detailed notes in CHANGELOG/releases
-
-### Development Tools
-- **Debugging** - `symfony/var-dumper` integration
-- **Error Handling** - `symfony/error-handler` for development
-- **Composer Normalization** - `ergebnis/composer-normalize` for consistent composer.json formatting
-- **Composer Scripts** - `test`, `lint`, `fix`, `analyse` commands
-
-### Test Organization
-```
-tests/
-├── AssociativeValidatorTest.php     # Schema validation
-├── ObjectValidatorTest.php          # stdClass validation
-├── ArrayValidatorTest.php           # Indexed arrays
-├── StringValidatorTest.php          # String formats
-├── IntValidatorTest.php             # Integer constraints
-├── FloatValidatorTest.php           # Float constraints
-├── BoolValidatorTest.php            # Boolean validation
-├── FieldValidatorTest.php           # Base functionality
-├── NumericConstraintsTraitTest.php  # Shared numeric logic
-└── ValidatorStaticCombinatorsTest.php # Static logical combinators
-```
-
-## Architecture Overview
-
-### Core Components
-- **8 validator types** covering all PHP data types
-- **Unified pipeline architecture** with smart null handling and execution order guarantees
-- **Type-safe internal structure** using modern PHP 8.1+ enums
-- **Comprehensive test coverage** across all validator types
-- **Enterprise-grade documentation** with practical examples and complete API reference
-
-## Vision & Roadmap
-
-This library aims to be the definitive validation solution for PHP applications, providing:
-- **Developer Productivity** -- Intuitive API with excellent documentation
-- **Type Safety** -- Leveraging PHP's type system for robust validation
-- **Performance** -- Optimized validation logic for high-throughput applications
-- **Extensibility** -- Custom validation support for business-specific requirements
-- **Enterprise Ready** -- Comprehensive error handling and structured feedback
-
-The project maintains a clear separation between completed features (CHANGELOG), strategic planning (ROADMAP), and innovative ideas (IDEAS), ensuring focused development and clear project management.
+- Commit messages must follow Conventional Commits
+- Subject format: `<type>(<scope>): <summary>`; use `<type>: <summary>` when scope is omitted
+- Allowed `type` values: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`, `chore`, `revert`
+- `scope` is optional but recommended when it narrows the area (e.g. `StringValidator`, `FieldValidator`, `AssociativeValidator`)
+- Write summary lines in imperative mood, keep them concise (around 72 characters when practical), and omit trailing periods
+- Keep each commit focused on one concern; include related tests or validation updates in the same commit when applicable
+- Prefer bullet lists in commit bodies for concrete changes, with one logical change per bullet
+- Commit body bullets should start with a capitalized imperative verb and omit trailing periods
+- Avoid unnecessary noise in commit bodies; include only explicit, intentional, non-obvious updates
+- Do not call out secondary artifact changes (for example lockfile refreshes) unless they carry non-obvious impact
+- Add a short prose paragraph only when extra context is needed (rationale, tradeoffs, migration notes, risks, or non-obvious impact)
+- Separate subject, body, and footers with blank lines
+- Use optional footers in `Key: Value` format; preferred keys: `Refs`, `Closes`, `Fixes`, `PR`, `BREAKING CHANGE`
+- Breaking changes must include a `BREAKING CHANGE:` footer
+- Release notes belong in CHANGELOG, not commit body. Tag format: annotated `vX.Y.Z - <headline>`; details in CHANGELOG/releases
+- Quick templates: `fix(scope): <imperative summary>` and `feat(scope): <imperative summary>`

@@ -28,7 +28,7 @@ trait AllowedValuesTrait
     public function in(array $values, ?string $message = null): self
     {
         return $this->satisfies(
-            static fn ($value) => in_array($value, $values, true),
+            static fn($value) => in_array($value, $values, true),
             $message ?? 'Value must be one of: ' . json_encode($values),
         );
     }

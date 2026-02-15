@@ -22,7 +22,7 @@ trait NumericConstraintsTrait
     public function min(int|float $min, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value >= $min,
+            static fn($value, $key = null, $input = null) => $value >= $min,
             $message ?? "Value must be at least {$min}",
         );
     }
@@ -37,7 +37,7 @@ trait NumericConstraintsTrait
     public function max(int|float $max, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value <= $max,
+            static fn($value, $key = null, $input = null) => $value <= $max,
             $message ?? "Value must be at most {$max}",
         );
     }
@@ -53,7 +53,7 @@ trait NumericConstraintsTrait
     public function between(int|float $min, int|float $max, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value >= $min && $value <= $max,
+            static fn($value, $key = null, $input = null) => $value >= $min && $value <= $max,
             $message ?? "Value must be between {$min} and {$max}",
         );
     }
@@ -68,7 +68,7 @@ trait NumericConstraintsTrait
     public function gt(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value > $threshold,
+            static fn($value, $key = null, $input = null) => $value > $threshold,
             $message ?? "Value must be greater than {$threshold}",
         );
     }
@@ -83,7 +83,7 @@ trait NumericConstraintsTrait
     public function gte(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value >= $threshold,
+            static fn($value, $key = null, $input = null) => $value >= $threshold,
             $message ?? "Value must be at least {$threshold}",
         );
     }
@@ -98,7 +98,7 @@ trait NumericConstraintsTrait
     public function lt(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value < $threshold,
+            static fn($value, $key = null, $input = null) => $value < $threshold,
             $message ?? "Value must be less than {$threshold}",
         );
     }
@@ -113,7 +113,7 @@ trait NumericConstraintsTrait
     public function lte(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value <= $threshold,
+            static fn($value, $key = null, $input = null) => $value <= $threshold,
             $message ?? "Value must be at most {$threshold}",
         );
     }
@@ -151,7 +151,7 @@ trait NumericConstraintsTrait
     public function positive(?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value > 0,
+            static fn($value, $key = null, $input = null) => $value > 0,
             $message ?? 'Value must be positive',
         );
     }
@@ -165,7 +165,7 @@ trait NumericConstraintsTrait
     public function negative(?string $message = null): static
     {
         return $this->satisfies(
-            static fn ($value, $key = null, $input = null) => $value < 0,
+            static fn($value, $key = null, $input = null) => $value < 0,
             $message ?? 'Value must be negative',
         );
     }

@@ -77,9 +77,7 @@ abstract class FieldValidator
     {
         $this->pipeline[] = [
             'type' => PipelineType::TRANSFORMATION,
-            'operation' => static fn ($value) => $value === '' || is_array($value) && $value === []
-                ? null
-                : $value,
+            'operation' => static fn($value) => $value === '' || is_array($value) && $value === [] ? null : $value,
             'skipNull' => true, // nullifyEmpty() should skip null (only operates on empty strings/arrays)
         ];
         return $this;
@@ -104,10 +102,7 @@ abstract class FieldValidator
 
         $this->pipeline[] = [
             'type' => PipelineType::VALIDATION,
-            'operation' => static function ($value, $key = null, $input = null) use (
-                $rule,
-                $message,
-            ) {
+            'operation' => static function ($value, $key = null, $input = null) use ($rule, $message) {
                 if (!$rule($value, $key, $input)) {
                     throw new ValidationException([$message ?? 'Custom validation failed']);
                 }
@@ -135,9 +130,7 @@ abstract class FieldValidator
      */
     public function satisfiesAll(array $validations, ?string $message = null): self
     {
-        return $this->satisfies(static function ($value, $key = null, $input = null) use (
-            $validations,
-        ) {
+        return $this->satisfies(static function ($value, $key = null, $input = null) use ($validations) {
             foreach ($validations as $validation) {
                 if ($validation instanceof FieldValidator) {
                     [$valid] = $validation->tryValidate($value, $key, $input);
@@ -173,9 +166,7 @@ abstract class FieldValidator
      */
     public function satisfiesAny(array $validations, ?string $message = null): self
     {
-        return $this->satisfies(static function ($value, $key = null, $input = null) use (
-            $validations,
-        ) {
+        return $this->satisfies(static function ($value, $key = null, $input = null) use ($validations) {
             foreach ($validations as $validation) {
                 if ($validation instanceof FieldValidator) {
                     [$valid] = $validation->tryValidate($value, $key, $input);

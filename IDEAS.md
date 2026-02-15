@@ -6,6 +6,7 @@ This document captures innovative ideas and suggestions for potential future enh
 
 ### Advanced Type Conversions
 **Concept**: Built-in transformations for common type conversions.
+**Philosophy note**: May conflict with extensibility-over-reinvention; current approach prefers `transform()` with external libraries. Evaluate against core scope before implementing.
 ```php
 Validator::isString()
     ->datetime()
@@ -96,6 +97,7 @@ $report = $profiler->getReport(); // Identify bottlenecks
 
 ### Validation Middleware
 **Concept**: Framework-agnostic validation middleware pattern.
+**Philosophy note**: Likely better as separate package (e.g. `lemmon/validator-middleware`) to keep core framework-agnostic.
 ```php
 $middleware = ValidationMiddleware::create($schema);
 $app->use($middleware); // Auto-validate requests
@@ -118,8 +120,29 @@ $openApi = $schema->toOpenApiSchema(); // Generate API documentation
 - Schema-driven development
 - Frontend SDK generation
 
+### Contract-First Schema Export
+**Concept**: Treat each validator schema as the single source of truth for runtime validation/transformation and machine-readable request/response contracts.
+```php
+$schema = Validator::isAssociative([
+    'service_id' => Validator::isString()->uuid()
+        ->transform(fn (string $id) => $serviceRepo->find($id))
+        ->outputKey('service'),
+])->strict();
+
+$requestSpec = $schema->toOpenApiRequestSchema();
+$responseSpec = $schema->toOpenApiResponseSchema([
+    'extensions' => true, // Includes x-lemmon-* metadata for runtime-only behavior
+]);
+```
+**Benefits**:
+- One schema drives validation, normalization, and API contracts
+- Separate input/output specs from one definition
+- Vendor extension metadata for runtime-only transforms and coercion rules
+- Reduced drift between implementation, docs, and generated SDKs/tests
+
 ### Database Schema Validation
 **Concept**: Validate data against database schema constraints.
+**Philosophy note**: DB coupling may conflict with lightweight core; consider separate package (e.g. `lemmon/validator-doctrine`).
 ```php
 $validator = Validator::fromDatabaseTable('users');
 $user = $validator->validate($userData); // Respects DB constraints
@@ -130,27 +153,20 @@ $user = $validator->validate($userData); // Respects DB constraints
 - Reduced schema maintenance overhead
 
 ### Async Validation Support
-**Concept**: Support for asynchronous validation operations using PHP async libraries.
+**Concept**: Support for asynchronous validation operations using PHP async libraries (ReactPHP, Amp).
 ```php
-// Using ReactPHP or Amp for async operations
+// Hypothetical API: satisfies() with async callable, or new validateAsync() entry point
 $validator = Validator::isString()
-    ->addAsyncValidation(
-        function($value) use ($httpClient) {
-            return $httpClient->validateEmailDeliverability($value); // Returns Promise
-        },
+    ->satisfies(
+        fn($value) => $httpClient->validateEmailDeliverability($value), // Returns Promise
         'Email address is not deliverable'
     );
 
-// ReactPHP style
+// Hypothetical: validateAsync() returns Promise
 $promise = $validator->validateAsync($email);
-$promise->then(function($result) {
-    // Handle valid result
-}, function($error) {
-    // Handle validation error
-});
+$promise->then(fn($result) => /* handle */, fn($error) => /* handle */);
 
-// Or with Amp
-$result = yield $validator->validateAsync($email);
+// Or with Amp: yield $validator->validateAsync($email);
 ```
 **Benefits**:
 - External service integration without blocking
