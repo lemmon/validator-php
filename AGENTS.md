@@ -40,13 +40,15 @@ PSR-12 for PHP. Mago for lint/format (`composer lint`, `composer format`). Prett
 ## Commit Message Guidelines
 
 - Commit messages must follow Conventional Commits
+- Write messages so they make sense for commit-by-commit development: each commit describes the actual state change from the previous shipped state. Do not mention intermediate or throwaway steps (e.g. classes created and removed in the same session). Describe what the commit delivers, not the path taken to get there
 - Subject format: `<type>(<scope>): <summary>`; use `<type>: <summary>` when scope is omitted
 - Allowed `type` values: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`, `chore`, `revert`
 - `scope` is optional but recommended when it narrows the area (e.g. `StringValidator`, `FieldValidator`, `AssociativeValidator`)
-- Write summary lines in imperative mood, keep them concise (around 72 characters when practical), and omit trailing periods
+- Write summary lines in imperative mood, keep them concise (around 72 characters recommended, not strict), and omit trailing periods
 - Keep each commit focused on one concern; include related tests or validation updates in the same commit when applicable
 - Prefer bullet lists in commit bodies for concrete changes, with one logical change per bullet
 - Commit body bullets should start with a capitalized imperative verb and omit trailing periods
+- Never artificially break lines anywhere in a commit message; tools wrap naturally
 - Avoid unnecessary noise in commit bodies; include only explicit, intentional, non-obvious updates
 - Do not call out secondary artifact changes (for example lockfile refreshes) unless they carry non-obvious impact
 - Add a short prose paragraph only when extra context is needed (rationale, tradeoffs, migration notes, risks, or non-obvious impact)
