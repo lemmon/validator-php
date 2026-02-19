@@ -50,6 +50,7 @@ static not(FieldValidator $validator, ?string $message = null): FieldValidator
 required(?string $message = null): static
 default(mixed $value): static
 coerce(): static
+outputKey(string $key): static (schema fields only: output under different key, e.g. input service_id -> output service)
 nullifyEmpty(): static (transforms '' or [] to null)
 clone(): static (deep copy with bound closures)
 

@@ -203,3 +203,22 @@ it('should reject non-empty strings even with coerce enabled', function () {
     expect(fn() => $schema->validate('not-empty'))
         ->toThrow(ValidationException::class, 'Input must be an object');
 });
+
+it('should remap output key with outputKey when field is provided', function () {
+    $schema = Validator::isObject([
+        'service_id' => Validator::isString()->uuid()->outputKey('service'),
+        'user_id' => Validator::isString()->uuid()->outputKey('user'),
+    ]);
+
+    $input = (object) [
+        'service_id' => '550e8400-e29b-41d4-a716-446655440000',
+        'user_id' => '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    ];
+
+    $data = $schema->validate($input);
+
+    expect($data)->toHaveProperty('service', '550e8400-e29b-41d4-a716-446655440000');
+    expect($data)->toHaveProperty('user', '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+    expect($data)->not->toHaveProperty('service_id');
+    expect($data)->not->toHaveProperty('user_id');
+});

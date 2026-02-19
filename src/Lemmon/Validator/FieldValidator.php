@@ -11,6 +11,7 @@ abstract class FieldValidator
     protected bool $coerce = false;
     protected bool $required = false;
     protected ?string $requiredMessage = null;
+    protected ?string $outputKey = null;
 
     /**
      * Creates a deep copy of the validator, including pipeline closures bound to the clone.
@@ -65,6 +66,19 @@ abstract class FieldValidator
     public function coerce(): self
     {
         $this->coerce = true;
+        return $this;
+    }
+
+    /**
+     * Sets the output key for schema fields. When used in AssociativeValidator or ObjectValidator,
+     * the validated value is stored under this key instead of the input field key.
+     *
+     * @param string $key The key to use in the output structure
+     * @return $this
+     */
+    public function outputKey(string $key): self
+    {
+        $this->outputKey = $key;
         return $this;
     }
 

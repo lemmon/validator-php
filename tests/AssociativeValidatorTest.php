@@ -235,3 +235,57 @@ it('should reject non-empty strings even with coerce enabled', function () {
     expect(fn() => $schema->validate('not-empty'))
         ->toThrow(ValidationException::class, 'Input must be an associative array');
 });
+
+it('should remap output key with outputKey when field is provided', function () {
+    $schema = Validator::isAssociative([
+        'service_id' => Validator::isString()->uuid()->outputKey('service'),
+        'user_id' => Validator::isString()->uuid()->outputKey('user'),
+    ]);
+
+    $input = [
+        'service_id' => '550e8400-e29b-41d4-a716-446655440000',
+        'user_id' => '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    ];
+
+    $data = $schema->validate($input);
+
+    expect($data)->toBe([
+        'service' => '550e8400-e29b-41d4-a716-446655440000',
+        'user' => '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    ]);
+    expect($data)->not->toHaveKey('service_id');
+    expect($data)->not->toHaveKey('user_id');
+});
+
+it('should remap output key with outputKey combined with transform', function () {
+    $schema = Validator::isAssociative([
+        'service_id' => Validator::isString()
+            ->uuid()
+            ->transform(fn(string $id) => ['id' => $id, 'type' => 'service'])
+            ->outputKey('service'),
+    ]);
+
+    $input = [
+        'service_id' => '550e8400-e29b-41d4-a716-446655440000',
+    ];
+
+    $data = $schema->validate($input);
+
+    expect($data)->toBe([
+        'service' => ['id' => '550e8400-e29b-41d4-a716-446655440000', 'type' => 'service'],
+    ]);
+});
+
+it('should remap output key for fields with default values', function () {
+    $schema = Validator::isAssociative([
+        'level' => Validator::isInt()
+            ->coerce()
+            ->default(3)
+            ->outputKey('tier'),
+    ])->coerceAll();
+
+    $data = $schema->validate([]);
+
+    expect($data)->toBe(['tier' => 3]);
+    expect($data)->not->toHaveKey('level');
+});

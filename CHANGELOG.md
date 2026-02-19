@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `outputKey(string $key)` on `FieldValidator` for schema fields: output validated values under a different key than the input field (e.g. input `service_id` -> output `service` after transform); works with `Validator::isAssociative()` and `Validator::isObject()`
 - GitHub Actions CI: lint, platform-check, static analysis, tests on PHP 8.3
 
 ### Changed

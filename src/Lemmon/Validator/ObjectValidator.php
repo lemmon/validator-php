@@ -84,7 +84,8 @@ class ObjectValidator extends FieldValidator
             $hasDefault = $validator->hasDefault ?? false;
 
             if ($wasProvided || $hasDefault) {
-                $data->{$fieldKey} = $validatedFieldValue;
+                $dataKey = $validator->outputKey ?? $fieldKey;
+                $data->{$dataKey} = $validatedFieldValue;
             }
         }
 

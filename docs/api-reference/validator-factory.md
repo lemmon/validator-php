@@ -663,6 +663,28 @@ $result = $validator->validate(''); // Returns: 'N/A'
 
 ---
 
+### `outputKey(string $key): self`
+
+**Schema fields only.** Emits the validated value under a different key than the input field. Only applies when the validator is used inside `Validator::isAssociative()` or `Validator::isObject()`.
+
+```php
+$schema = Validator::isAssociative([
+    'service_id' => Validator::isString()->uuid()->outputKey('service'),
+]);
+
+$result = $schema->validate(['service_id' => '550e8400-e29b-41d4-a716-446655440000']);
+// Result: ['service' => '550e8400-...'] (not 'service_id')
+```
+
+**Parameters:**
+- `$key`: The key to use in the output structure
+
+**Returns:** Same validator instance for method chaining.
+
+**See Also:** [Object & Schema Validation Guide](../guides/object-validation.md#output-key-remapping)
+
+---
+
 ### `in(array $values, ?string $message = null): self`
 
 **Available on:** `StringValidator`, `IntValidator`, `FloatValidator`, `BoolValidator` only

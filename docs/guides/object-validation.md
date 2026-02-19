@@ -7,6 +7,7 @@ This guide covers validation of structured data using `AssociativeValidator` (fo
 - [Associative Array Validation](#associative-array-validation)
 - [Object Validation](#object-validation)
 - [Schema Definition](#schema-definition)
+- [Output Key Remapping](#output-key-remapping)
 - [Type Coercion](#type-coercion)
 - [Advanced Features](#advanced-features)
 - [Common Patterns](#common-patterns)
@@ -120,6 +121,38 @@ $input = ['name' => 'John'];
 $result = $schema->validate($input);
 // Result: ['name' => 'John', 'status' => 'active', 'priority' => 1]
 ```
+
+### Output Key Remapping
+
+Use `outputKey()` on schema fields to emit validated values under a different key than the input field. This is useful when the input uses snake_case or IDs while the output should use different property names (e.g. for API responses or after transforming IDs to entities).
+
+```php
+$schema = Validator::isAssociative([
+    'service_id' => Validator::isString()->uuid()->outputKey('service'),
+    'user_id' => Validator::isString()->uuid()->outputKey('user'),
+]);
+
+$input = [
+    'service_id' => '550e8400-e29b-41d4-a716-446655440000',
+    'user_id' => '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+];
+
+$result = $schema->validate($input);
+// Result: ['service' => '550e8400-...', 'user' => '6ba7b810-...']
+// Note: 'service_id' and 'user_id' are not in the result
+```
+
+Works with `transform()` for ID-to-entity resolution:
+
+```php
+$schema = Validator::isAssociative([
+    'service_id' => Validator::isString()->uuid()
+        ->transform(fn(string $id) => $serviceRepo->find($id))
+        ->outputKey('service'),
+]);
+```
+
+Works with both `Validator::isAssociative()` and `Validator::isObject()`.
 
 ### Field Inclusion Behavior
 
