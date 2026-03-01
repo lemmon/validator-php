@@ -25,30 +25,31 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 
 **Key Design Principles:**
 
-- **Type-Safe Architecture**: Modern PHP 8.1+ enums provide IDE autocomplete, refactoring safety, and eliminate magic strings throughout the codebase
-- **Smart Null Handling**: Validations skip `null` unless `required()`. `transform()` runs on `null`, while `pipe()` and `nullifyEmpty()` skip `null` for type safety.
-- **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
-- **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written -- `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
-- **Fail-Fast Per Field**: Each validator stops at the first failing rule, while schema validation still aggregates errors across fields
-- **API-Friendly Error Format**: Flattened errors with field paths (`'_root'` for root-level, dot notation for nested) perfect for frontend consumption
-- **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically
-- **Extensible Architecture**: Generic transformation methods work with any PHP callable or external library
-- **Strict Typing**: All files use `declare(strict_types=1);`, keeping internal type hints strict; opt into `coerce()` when you need form-friendly conversions.
+-   **Type-Safe Architecture**: Modern PHP 8.1+ enums provide IDE autocomplete, refactoring safety, and eliminate magic strings throughout the codebase
+-   **Smart Null Handling**: Validations skip `null` unless `required()`. `transform()` runs on `null`, while `pipe()` and `nullifyEmpty()` skip `null` for type safety.
+-   **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
+-   **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written -- `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
+-   **Fail-Fast Per Field**: Each validator stops at the first failing rule, while schema validation still aggregates errors across fields
+-   **API-Friendly Error Format**: Flattened errors with field paths (`'_root'` for root-level, dot notation for nested) perfect for frontend consumption
+-   **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically
+-   **Extensible Architecture**: Generic transformation methods work with any PHP callable or external library
+-   **Strict Typing**: All files use `declare(strict_types=1);`, keeping internal type hints strict; opt into `coerce()` when you need form-friendly conversions.
 
 ## Features
 
-- **Type-safe architecture** - PHP 8.1+ enums with IDE autocomplete, refactoring safety, and zero magic strings
-- **Smart null handling** - validations skip `null` unless `required()`, `transform()` runs on `null`, `pipe()`/`nullifyEmpty()` skip `null`
-- **Type-safe validation** for strings, integers, floats, arrays, and objects
-- **Fluent, chainable API** with guaranteed execution order -- methods execute exactly as written in the chain
-- **Schema-level error aggregation** with fail-fast behavior per field for clear, early feedback
-- **API-friendly flattened errors** with field paths for easy frontend integration (`getFlattenedErrors()`, `ValidationException::flattenErrors()`)
-- **Intuitive custom validation** with `satisfies()` method and optional error messages
-- **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
-- **Form-safe coercion** - empty strings become `null` (not dangerous `0`/`false`) for real-world safety
-- **Accurate schema validation** - results only include provided fields and fields with defaults (no unexpected properties)
-- **Universal transformations** (`transform()`, `pipe()`) for post-validation data processing
-- **Null-safe operations** with `nullifyEmpty()` method for consistent empty value handling
+-   **Type-safe architecture** - PHP 8.1+ enums with IDE autocomplete, refactoring safety, and zero magic strings
+-   **Smart null handling** - validations skip `null` unless `required()`, `transform()` runs on `null`, `pipe()`/`nullifyEmpty()` skip `null`
+-   **Type-safe validation** for strings, integers, floats, arrays, and objects
+-   **Fluent, chainable API** with guaranteed execution order -- methods execute exactly as written in the chain
+-   **Schema-level error aggregation** with fail-fast behavior per field for clear, early feedback
+-   **API-friendly flattened errors** with field paths for easy frontend integration (`getFlattenedErrors()`, `ValidationException::flattenErrors()`)
+-   **Intuitive custom validation** with `satisfies()` method and optional error messages
+-   **Single-value validation** with `const()` for exact value matching (available on all validators)
+-   **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
+-   **Form-safe coercion** - empty strings become `null` (not dangerous `0`/`false`) for real-world safety
+-   **Accurate schema validation** - results only include provided fields and fields with defaults (no unexpected properties)
+-   **Universal transformations** (`transform()`, `pipe()`) for post-validation data processing
+-   **Null-safe operations** with `nullifyEmpty()` method for consistent empty value handling
 
 ## Quick Start
 
@@ -90,26 +91,31 @@ try {
 ## Documentation
 
 ### Getting Started
-- [Installation & Setup](docs/getting-started/installation.md)
-- [Basic Usage](docs/getting-started/basic-usage.md)
-- [Core Concepts](docs/getting-started/core-concepts.md)
+
+-   [Installation & Setup](docs/getting-started/installation.md)
+-   [Basic Usage](docs/getting-started/basic-usage.md)
+-   [Core Concepts](docs/getting-started/core-concepts.md)
 
 ### Validation Guides
-- [String Validation](docs/guides/string-validation.md) -- Email, URL, patterns, length constraints
-- [Numeric Validation](docs/guides/numeric-validation.md) -- Integers, floats, ranges, constraints
-- [Array Validation](docs/guides/array-validation.md) -- Indexed arrays and item validation
-- [Object & Schema Validation](docs/guides/object-validation.md) -- Complex nested structures
-- [Custom Validation](docs/guides/custom-validation.md) -- User-defined functions and business logic
-- [Error Handling](docs/guides/error-handling.md) -- Working with validation errors
+
+-   [String Validation](docs/guides/string-validation.md) -- Email, URL, patterns, length constraints
+-   [Numeric Validation](docs/guides/numeric-validation.md) -- Integers, floats, ranges, constraints
+-   [Array Validation](docs/guides/array-validation.md) -- Indexed arrays and item validation
+-   [Object & Schema Validation](docs/guides/object-validation.md) -- Complex nested structures
+-   [Custom Validation](docs/guides/custom-validation.md) -- User-defined functions and business logic
+-   [Error Handling](docs/guides/error-handling.md) -- Working with validation errors
 
 ### API Reference
-- [Validator Factory](docs/api-reference/validator-factory.md)
+
+-   [Validator Factory](docs/api-reference/validator-factory.md)
 
 ### Examples
-- [Form Validation](docs/examples/form-validation.md)
+
+-   [Form Validation](docs/examples/form-validation.md)
 
 ### For AI Agents
-- **`llms.txt`** - Complete technical specification with full API signatures, method parameters, and core concepts. Download this file and provide it to your AI agent for accurate code generation and assistance with the library.
+
+-   **`llms.txt`** - Complete technical specification with full API signatures, method parameters, and core concepts. Download this file and provide it to your AI agent for accurate code generation and assistance with the library.
 
 ## Contributing
 
@@ -121,7 +127,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Links
 
-- [Packagist](https://packagist.org/packages/lemmon/validator)
-- [GitHub Repository](https://github.com/lemmon/validator-php)
-- [Issue Tracker](https://github.com/lemmon/validator-php/issues)
-- [Changelog](CHANGELOG.md)
+-   [Packagist](https://packagist.org/packages/lemmon/validator)
+-   [GitHub Repository](https://github.com/lemmon/validator-php)
+-   [Issue Tracker](https://github.com/lemmon/validator-php/issues)
+-   [Changelog](CHANGELOG.md)

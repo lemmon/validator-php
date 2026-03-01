@@ -59,6 +59,7 @@ satisfies(callable|FieldValidator $rule, ?string $message = null): static
 satisfiesAny(array<callable|FieldValidator> $rules, ?string $message = null): static
 satisfiesAll(array<callable|FieldValidator> $rules, ?string $message = null): static
 satisfiesNone(array<callable|FieldValidator> $rules, ?string $message = null): static
+const(mixed $value, ?string $message = null): static // Restrict to exactly one value (strict ===)
 
 // Transformation
 transform(callable $fn, bool $skipNull = true): static (can change type, skips null by default)

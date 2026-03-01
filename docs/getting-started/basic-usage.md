@@ -144,10 +144,11 @@ $result = $safeQuantity->validate('5'); // Returns: 5
 ```
 
 **When to use `nullifyEmpty()`:**
-- **Form validation** where empty fields should be `null`
-- **Optional fields** with meaningful defaults
-- **Database schemas** preferring `NULL` over empty strings
-- **API endpoints** normalizing empty strings to `null`
+
+-   **Form validation** where empty fields should be `null`
+-   **Optional fields** with meaningful defaults
+-   **Database schemas** preferring `NULL` over empty strings
+-   **API endpoints** normalizing empty strings to `null`
 
 ### Execution Order Matters
 
@@ -194,10 +195,16 @@ $formValidator = Validator::isAssociative([
 ### Allowed Values
 
 ```php
+// Multiple allowed values
 $restricted = Validator::isString()->in(['red', 'green', 'blue']);
 
 $result = $restricted->validate('red'); // Valid
 $result = $restricted->validate('yellow'); // ❌ ValidationException
+
+// Single allowed value (use const() instead of in([x]))
+$exact = Validator::isString()->const('active');
+$result = $exact->validate('active'); // Valid
+$result = $exact->validate('pending'); // ❌ ValidationException
 ```
 
 ## Schema Validation
@@ -303,9 +310,9 @@ $count = Validator::isString()
 
 ### When to Use Each Method
 
-- **Use `pipe()`** for same-type operations (string → string, array → array)
-- **Use `transform()`** for type changes (string → array, array → int)
-- **Null handling** - `pipe()` skips null values to avoid type errors, `transform()` skips null by default. Use `transform($fn, skipNull: false)` to process null values.
+-   **Use `pipe()`** for same-type operations (string → string, array → array)
+-   **Use `transform()`** for type changes (string → array, array → int)
+-   **Null handling** - `pipe()` skips null values to avoid type errors, `transform()` skips null by default. Use `transform($fn, skipNull: false)` to process null values.
 
 ```php
 // Correct usage
@@ -328,7 +335,7 @@ $withFallback = Validator::isString()
 
 ## Next Steps
 
-- [Core Concepts](core-concepts.md) -- Understand the architecture
-- [String Validation Guide](../guides/string-validation.md) -- Detailed string validation
-- [Numeric Validation Guide](../guides/numeric-validation.md) -- Integer and float validation
-- [Custom Validation Guide](../guides/custom-validation.md) -- Create your own validation rules
+-   [Core Concepts](core-concepts.md) -- Understand the architecture
+-   [String Validation Guide](../guides/string-validation.md) -- Detailed string validation
+-   [Numeric Validation Guide](../guides/numeric-validation.md) -- Integer and float validation
+-   [Custom Validation Guide](../guides/custom-validation.md) -- Create your own validation rules

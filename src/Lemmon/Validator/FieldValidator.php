@@ -249,6 +249,22 @@ abstract class FieldValidator
     }
 
     /**
+     * Restricts the value to exactly one allowed constant.
+     * Uses strict comparison (===).
+     *
+     * @param mixed $value The single allowed value.
+     * @param ?string $message Optional custom error message.
+     * @return $this
+     */
+    public function const(mixed $value, ?string $message = null): self
+    {
+        return $this->satisfies(
+            static fn($v) => $v === $value,
+            $message ?? 'Value must be ' . (is_scalar($value) ? var_export($value, true) : json_encode($value)),
+        );
+    }
+
+    /**
      * Adds a transformation function to be applied after successful validation.
      * Can change the type - subsequent operations work with the new type.
      *

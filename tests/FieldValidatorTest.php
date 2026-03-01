@@ -448,6 +448,49 @@ it('should support satisfiesNone() with single forbidden condition', function ()
     $validator->validate('this is spam content');
 })->throws(ValidationException::class, 'Must not contain spam');
 
+it('should validate string const() - valid value passes', function () {
+    $validator = Validator::isString()->const('active');
+
+    expect($validator->validate('active'))->toBe('active');
+});
+
+it('should validate string const() - invalid value fails', function () {
+    $validator = Validator::isString()->const('active');
+
+    $validator->validate('pending');
+})->throws(ValidationException::class, "Value must be 'active'");
+
+it('should validate int const() with coercion', function () {
+    $validator = Validator::isInt()->coerce()->const(1);
+
+    expect($validator->validate('1'))->toBe(1);
+});
+
+it('should validate int const() - wrong value fails', function () {
+    $validator = Validator::isInt()->const(1);
+
+    $validator->validate(2);
+})->throws(ValidationException::class, 'Value must be 1');
+
+it('should validate bool const()', function () {
+    $validator = Validator::isBool()->coerce()->const(true);
+
+    expect($validator->validate('true'))->toBe(true);
+    $validator->validate('false');
+})->throws(ValidationException::class, 'Value must be true');
+
+it('should use custom message for const()', function () {
+    $validator = Validator::isString()->const('draft', 'Status must be draft');
+
+    $validator->validate('published');
+})->throws(ValidationException::class, 'Status must be draft');
+
+it('should skip const() validation for null when optional', function () {
+    $validator = Validator::isString()->const('active');
+
+    expect($validator->validate(null))->toBeNull();
+});
+
 it('should use custom error message for required() method', function () {
     $validator = Validator::isString()->required('Name is mandatory');
 
