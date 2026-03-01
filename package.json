@@ -1,0 +1,19 @@
+{
+  "name": "lemmon/validator",
+  "private": true,
+  "devDependencies": {
+    "husky": "^9.1",
+    "lint-staged": "^15.2",
+    "prettier": "^3.4"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "composer check",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{yml,yaml,json,md}": "prettier --check",
+    "llms.txt": "prettier --check"
+  }
+}

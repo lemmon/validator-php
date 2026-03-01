@@ -1,5 +1,8 @@
 {
   "editor.formatOnSave": true,
+  "files.associations": {
+    "llms.txt": "markdown"
+  },
   "files.exclude": {
     "composer.lock": true,
     "vendor": true

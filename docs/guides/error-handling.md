@@ -122,13 +122,14 @@ try {
 ```
 
 JSON output example:
+
 ```json
 {
   "success": false,
   "errors": [
-    {"path": "name", "message": "Value is required"},
-    {"path": "email", "message": "Value must be a valid email address"},
-    {"path": "user.profile.phone", "message": "Invalid phone format"}
+    { "path": "name", "message": "Value is required" },
+    { "path": "email", "message": "Value must be a valid email address" },
+    { "path": "user.profile.phone", "message": "Invalid phone format" }
   ]
 }
 ```

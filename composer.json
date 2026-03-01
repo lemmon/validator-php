@@ -50,6 +50,14 @@
     },
     "scripts": {
         "analyse": "phpstan analyse",
+        "check": [
+            "@platform-check",
+            "mago format --check",
+            "@lint",
+            "npm run format:check",
+            "@test",
+            "@analyse"
+        ],
         "format": "mago format",
         "lint": "mago lint",
         "platform-check": "composer check-platform-reqs",

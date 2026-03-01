@@ -6,29 +6,33 @@ PHP validation library inspired by Valibot and Zod. Type-safe, fluent API for pr
 
 Core validation logic lives in `src/Lemmon/Validator/`. Tests in `tests/` follow `XValidatorTest.php` naming. Key project files:
 
--   `llms.txt` - Technical spec for external/consumer use; API signatures, null handling, transformation types
--   `ROADMAP.md` - Strategic planning and checkboxes
--   `TASKS.md` - Immediate task pool (keep short, no numbering)
--   `CHANGELOG` - Completed work
--   `IDEAS` - Exploration
+- `llms.txt` - Technical spec for external/consumer use; API signatures, null handling, transformation types
+- `ROADMAP.md` - Strategic planning and checkboxes
+- `TASKS.md` - Immediate task pool (keep short, no numbering)
+- `CHANGELOG` - Completed work
+- `IDEAS` - Exploration
 
 ## Architecture
 
--   **Namespace:** `Lemmon\Validator` (runtime), `Lemmon\Tests` (tests)
--   **Core:** `Validator` static factory; `FieldValidator` base; `ValidationException` for errors
--   **Validators:** `isString`, `isInt`, `isFloat`, `isBool`, `isArray`, `isAssociative`, `isObject`
--   **Shared:** `NumericConstraintsTrait` (min, max, multipleOf, etc.); `PipelineType` enum; variant enums `IpVersion`, `Base64Variant`, `UuidVariant` for format methods
--   **String formats:** email, URL, UUID, IP, hostname, domain, time, base64, hex, regex, datetime, date
--   **Schema validation:** AssociativeValidator/ObjectValidator with nested error aggregation
--   **Logical combinators:** `Validator::allOf`, `anyOf`, `not`; instance `satisfiesAny`, `satisfiesAll`, `satisfiesNone`; `const()` for single allowed value; `enum()` for BackedEnum
--   **Behavior:** Optional by default (null allowed unless `required()`); form-safe coercion (empty string → null, not 0/false); pipeline order guaranteed; fail-fast per field; `satisfies()` accepts validators or callables with `(value, key, input)`; extend via `satisfies()`, not custom validators
+- **Namespace:** `Lemmon\Validator` (runtime), `Lemmon\Tests` (tests)
+- **Core:** `Validator` static factory; `FieldValidator` base; `ValidationException` for errors
+- **Validators:** `isString`, `isInt`, `isFloat`, `isBool`, `isArray`, `isAssociative`, `isObject`
+- **Shared:** `NumericConstraintsTrait` (min, max, multipleOf, etc.); `PipelineType` enum; variant enums `IpVersion`, `Base64Variant`, `UuidVariant` for format methods
+- **String formats:** email, URL, UUID, IP, hostname, domain, time, base64, hex, regex, datetime, date
+- **Schema validation:** AssociativeValidator/ObjectValidator with nested error aggregation
+- **Logical combinators:** `Validator::allOf`, `anyOf`, `not`; instance `satisfiesAny`, `satisfiesAll`, `satisfiesNone`; `const()` for single allowed value; `enum()` for BackedEnum
+- **Behavior:** Optional by default (null allowed unless `required()`); form-safe coercion (empty string → null, not 0/false); pipeline order guaranteed; fail-fast per field; `satisfies()` accepts validators or callables with `(value, key, input)`; extend via `satisfies()`, not custom validators
 
 ## Build, Test, and Development Commands
 
--   `composer test` - Run Pest test suite
--   `composer lint` / `composer format` - Mago linting and formatting (dev dependency)
--   `composer analyse` - PHPStan at max level
--   `composer platform-check` - Verify PHP 8.3 and extension requirements
+- `composer test` - Run Pest test suite
+- `composer lint` / `composer format` - Mago linting and formatting (dev dependency)
+- `composer analyse` - PHPStan at max level
+- `composer platform-check` - Verify PHP 8.3 and extension requirements
+- `composer check` - Run all checks (platform, format, lint, Prettier, test, analyse); use before PR
+- `npm run format` - Prettier for YAML, JSON, Markdown
+- `npm run check` - Alias for `composer check`
+- Pre-commit hook (Husky): Prettier check, Mago format --staged, Mago lint --staged
 
 `config.platform.php` is set to `8.3.0` so dependency resolution targets PHP 8.3; `composer update`/`install` will not add packages that require PHP above 8.3.
 
@@ -40,21 +44,21 @@ PSR-12 for PHP. Mago for lint/format (`composer lint`, `composer format`). Prett
 
 ## Commit Message Guidelines
 
--   Commit messages must follow Conventional Commits
--   Write messages so they make sense for commit-by-commit development: each commit describes the actual state change from the previous shipped state. Do not mention intermediate or throwaway steps (e.g. classes created and removed in the same session). Describe what the commit delivers, not the path taken to get there
--   Subject format: `<type>(<scope>): <summary>`; use `<type>: <summary>` when scope is omitted
--   Allowed `type` values: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`, `chore`, `revert`
--   `scope` is optional but recommended when it narrows the area (e.g. `StringValidator`, `FieldValidator`, `AssociativeValidator`)
--   Write summary lines in imperative mood, keep them concise (around 72 characters recommended, not strict), and omit trailing periods
--   Keep each commit focused on one concern; include related tests or validation updates in the same commit when applicable
--   Prefer bullet lists in commit bodies for concrete changes, with one logical change per bullet
--   Commit body bullets should start with a capitalized imperative verb and omit trailing periods
--   Never artificially break lines anywhere in a commit message; tools wrap naturally
--   Avoid unnecessary noise in commit bodies; include only explicit, intentional, non-obvious updates
--   Do not call out secondary artifact changes (for example lockfile refreshes) unless they carry non-obvious impact
--   Add a short prose paragraph only when extra context is needed (rationale, tradeoffs, migration notes, risks, or non-obvious impact)
--   Separate subject, body, and footers with blank lines
--   Use optional footers in `Key: Value` format; preferred keys: `Refs`, `Closes`, `Fixes`, `PR`, `BREAKING CHANGE`
--   Breaking changes must include a `BREAKING CHANGE:` footer
--   Release notes belong in CHANGELOG, not commit body. Tag format: annotated `vX.Y.Z - <headline>`; details in CHANGELOG/releases
--   Quick templates: `fix(scope): <imperative summary>` and `feat(scope): <imperative summary>`
+- Commit messages must follow Conventional Commits
+- Write messages so they make sense for commit-by-commit development: each commit describes the actual state change from the previous shipped state. Do not mention intermediate or throwaway steps (e.g. classes created and removed in the same session). Describe what the commit delivers, not the path taken to get there
+- Subject format: `<type>(<scope>): <summary>`; use `<type>: <summary>` when scope is omitted
+- Allowed `type` values: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`, `chore`, `revert`
+- `scope` is optional but recommended when it narrows the area (e.g. `StringValidator`, `FieldValidator`, `AssociativeValidator`)
+- Write summary lines in imperative mood, keep them concise (around 72 characters recommended, not strict), and omit trailing periods
+- Keep each commit focused on one concern; include related tests or validation updates in the same commit when applicable
+- Prefer bullet lists in commit bodies for concrete changes, with one logical change per bullet
+- Commit body bullets should start with a capitalized imperative verb and omit trailing periods
+- Never artificially break lines anywhere in a commit message; tools wrap naturally
+- Avoid unnecessary noise in commit bodies; include only explicit, intentional, non-obvious updates
+- Do not call out secondary artifact changes (for example lockfile refreshes) unless they carry non-obvious impact
+- Add a short prose paragraph only when extra context is needed (rationale, tradeoffs, migration notes, risks, or non-obvious impact)
+- Separate subject, body, and footers with blank lines
+- Use optional footers in `Key: Value` format; preferred keys: `Refs`, `Closes`, `Fixes`, `PR`, `BREAKING CHANGE`
+- Breaking changes must include a `BREAKING CHANGE:` footer
+- Release notes belong in CHANGELOG, not commit body. Tag format: annotated `vX.Y.Z - <headline>`; details in CHANGELOG/releases
+- Quick templates: `fix(scope): <imperative summary>` and `feat(scope): <imperative summary>`

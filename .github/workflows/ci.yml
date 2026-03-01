@@ -1,55 +1,55 @@
 name: CI
 
 on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
-    workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-    ci:
-        name: Lint, Analyse, Test
-        runs-on: ubuntu-latest
-        timeout-minutes: 15
+  ci:
+    name: Lint, Analyse, Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Setup PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  php-version: "8.3"
-                  tools: composer:v2
-                  coverage: none
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
 
-            - name: Get Composer cache directory
-              id: composer-cache
-              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
-            - name: Cache Composer packages
-              uses: actions/cache@v4
-              with:
-                  path: ${{ steps.composer-cache.outputs.dir }}
-                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-composer-
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
-            - name: Validate Composer
-              run: composer validate --strict --no-check-publish
+      - name: Validate Composer
+        run: composer validate --strict --no-check-publish
 
-            - name: Install dependencies
-              run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
 
-            - name: Platform check
-              run: composer platform-check
+      - name: Platform check
+        run: composer platform-check
 
-            - name: Lint
-              run: composer lint
+      - name: Lint
+        run: composer lint
 
-            - name: Static analysis
-              run: composer analyse
+      - name: Static analysis
+        run: composer analyse
 
-            - name: Tests
-              run: composer test
+      - name: Tests
+        run: composer test

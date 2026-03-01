@@ -5,8 +5,10 @@ This document captures innovative ideas and suggestions for potential future enh
 ## Core Enhancement Ideas
 
 ### Advanced Type Conversions
+
 **Concept**: Built-in transformations for common type conversions.
 **Philosophy note**: May conflict with extensibility-over-reinvention; current approach prefers `transform()` with external libraries. Evaluate against core scope before implementing.
+
 ```php
 Validator::isString()
     ->datetime()
@@ -18,13 +20,17 @@ Validator::isString()
     ->toArray() // Built-in JSON parsing
     ->validate('{"name": "John"}'); // Returns array
 ```
+
 **Benefits**:
+
 - Common conversions as first-class methods
 - Type-safe transformations with proper error handling
 - Reduced boilerplate for frequent operations
 
 ### Schema Manipulation Utilities
+
 **Concept**: Advanced schema composition and manipulation methods.
+
 ```php
 $userSchema = Validator::isAssociative([...]);
 
@@ -33,24 +39,32 @@ $partialUser = $userSchema->partial(); // All fields optional (PATCH requests)
 $publicUser = $userSchema->omit(['password', 'internal_id']);
 $extendedUser = $userSchema->merge($additionalFields);
 ```
+
 **Benefits**:
+
 - Schema reusability and DRY principles
 - API versioning support
 - Reduced boilerplate for schema variations
 
 ### Enhanced Error Context
+
 **Concept**: Full path error reporting for nested structures.
+
 ```php
 // Instead of: ['street' => ['Value is required']]
 // Provide: ['user.address.street' => ['Value is required']]
 ```
+
 **Benefits**:
+
 - Improved debugging for complex nested data
 - Better user experience in form validation
 - Easier error handling in frontend applications
 
 ### Programmatic Error Codes
+
 **Concept**: Structured error codes for programmatic error handling.
+
 ```php
 try {
     $validator->validate($data);
@@ -64,7 +78,9 @@ try {
     }
 }
 ```
+
 **Benefits**:
+
 - Better integration with error tracking systems
 - Internationalization support
 - Programmatic error handling capabilities
@@ -72,37 +88,49 @@ try {
 ## Developer Experience Ideas
 
 ### Schema Serialization
+
 **Concept**: Export/import validation schemas for cross-platform use.
+
 ```php
 $schema = Validator::isAssociative([...]);
 $json = $schema->toJson(); // Export for frontend
 $recreated = Validator::fromJson($json); // Recreate from config
 ```
+
 **Benefits**:
+
 - Frontend/backend schema synchronization
 - Configuration-driven validation
 - Schema documentation generation
 
 ### Performance Profiling
+
 **Concept**: Optional performance monitoring for complex validation chains.
+
 ```php
 $profiler = new ValidationProfiler();
 $result = $validator->withProfiler($profiler)->validate($data);
 $report = $profiler->getReport(); // Identify bottlenecks
 ```
+
 **Benefits**:
+
 - Performance optimization guidance
 - Bottleneck identification in complex schemas
 - Production performance monitoring
 
 ### Validation Middleware
+
 **Concept**: Framework-agnostic validation middleware pattern.
 **Philosophy note**: Likely better as separate package (e.g. `lemmon/validator-middleware`) to keep core framework-agnostic.
+
 ```php
 $middleware = ValidationMiddleware::create($schema);
 $app->use($middleware); // Auto-validate requests
 ```
+
 **Benefits**:
+
 - Framework integration simplification
 - Consistent validation across application layers
 - Reduced boilerplate in controllers
@@ -110,18 +138,24 @@ $app->use($middleware); // Auto-validate requests
 ## Integration Ideas
 
 ### OpenAPI Schema Generation
+
 **Concept**: Generate OpenAPI specifications from validation schemas.
+
 ```php
 $schema = Validator::isAssociative([...]);
 $openApi = $schema->toOpenApiSchema(); // Generate API documentation
 ```
+
 **Benefits**:
+
 - Automatic API documentation
 - Schema-driven development
 - Frontend SDK generation
 
 ### Contract-First Schema Export
+
 **Concept**: Treat each validator schema as the single source of truth for runtime validation/transformation and machine-readable request/response contracts.
+
 ```php
 $schema = Validator::isAssociative([
     'service_id' => Validator::isString()->uuid()
@@ -134,26 +168,34 @@ $responseSpec = $schema->toOpenApiResponseSchema([
     'extensions' => true, // Includes x-lemmon-* metadata for runtime-only behavior
 ]);
 ```
+
 **Benefits**:
+
 - One schema drives validation, normalization, and API contracts
 - Separate input/output specs from one definition
 - Vendor extension metadata for runtime-only transforms and coercion rules
 - Reduced drift between implementation, docs, and generated SDKs/tests
 
 ### Database Schema Validation
+
 **Concept**: Validate data against database schema constraints.
 **Philosophy note**: DB coupling may conflict with lightweight core; consider separate package (e.g. `lemmon/validator-doctrine`).
+
 ```php
 $validator = Validator::fromDatabaseTable('users');
 $user = $validator->validate($userData); // Respects DB constraints
 ```
+
 **Benefits**:
+
 - Database-driven validation rules
 - Consistency between application and database layers
 - Reduced schema maintenance overhead
 
 ### Async Validation Support
+
 **Concept**: Support for asynchronous validation operations using PHP async libraries (ReactPHP, Amp).
+
 ```php
 // Hypothetical API: satisfies() with async callable, or new validateAsync() entry point
 $validator = Validator::isString()
@@ -168,7 +210,9 @@ $promise->then(fn($result) => /* handle */, fn($error) => /* handle */);
 
 // Or with Amp: yield $validator->validateAsync($email);
 ```
+
 **Benefits**:
+
 - External service integration without blocking
 - Compatible with ReactPHP/Amp async ecosystems
 - Enhanced validation capabilities for I/O operations
@@ -176,7 +220,9 @@ $promise->then(fn($result) => /* handle */, fn($error) => /* handle */);
 ## Advanced Features
 
 ### Conditional Schema Selection
+
 **Concept**: Dynamic schema selection based on input data.
+
 ```php
 $validator = Validator::conditional(
     fn($data) => $data['type'] ?? 'user',
@@ -187,19 +233,25 @@ $validator = Validator::conditional(
     ]
 );
 ```
+
 **Benefits**:
+
 - Polymorphic data validation
 - Reduced schema complexity
 - Dynamic validation logic
 
 ### Validation Caching
+
 **Concept**: Cache validation results for expensive operations.
+
 ```php
 $validator = Validator::isString()
     ->satisfies($expensiveValidation)
     ->withCache($cacheAdapter, ttl: 3600);
 ```
+
 **Benefits**:
+
 - Performance optimization for expensive validations
 - Reduced external service calls
 - Scalability improvements
@@ -207,19 +259,25 @@ $validator = Validator::isString()
 ## Analytics Ideas
 
 ### Validation Analytics
+
 **Concept**: Collect validation metrics for insights.
+
 ```php
 $analytics = new ValidationAnalytics();
 $validator->withAnalytics($analytics);
 // Track: most common errors, validation performance, usage patterns
 ```
+
 **Benefits**:
+
 - Data-driven validation improvements
 - User behavior insights
 - Quality metrics tracking
 
 ### A/B Testing for Validation Rules
+
 **Concept**: Test different validation strategies.
+
 ```php
 $validator = Validator::isString()
     ->abTest('email_validation', [
@@ -227,7 +285,9 @@ $validator = Validator::isString()
         'lenient' => fn($v) => $lenientEmailValidator->validate($v)
     ]);
 ```
+
 **Benefits**:
+
 - Validation rule optimization
 - User experience testing
 - Data-driven decision making
@@ -237,21 +297,25 @@ $validator = Validator::isString()
 These ideas are organized by potential impact and implementation complexity:
 
 **High Impact, Low Complexity**:
+
 - Schema Manipulation Utilities
 - Enhanced Error Context
 - Programmatic Error Codes
 
 **High Impact, Medium Complexity**:
+
 - Schema Serialization
 - Performance Profiling
 - OpenAPI Schema Generation
 
 **High Impact, High Complexity**:
+
 - Async Validation Support
 - Database Schema Validation
 - Conditional Schema Selection
 
 **Research & Exploration**:
+
 - Validation Analytics
 - A/B Testing for Validation Rules
 - Validation Caching

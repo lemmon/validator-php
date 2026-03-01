@@ -11,6 +11,7 @@ To get started, you will need to have PHP 8.3+ and Composer installed.
 
     ```bash
     composer install
+    npm install
     ```
 
 3.  Run the tests:
@@ -21,6 +22,6 @@ To get started, you will need to have PHP 8.3+ and Composer installed.
 
 ## Pull Requests
 
--   Please ensure that the tests are passing before submitting a pull request.
--   Please follow the existing code style: Mago for PHP (`composer lint` / `composer format`); Prettier for YAML, JSON, Markdown (`.prettierrc`).
--   Please add a clear description of the changes you have made.
+- Please ensure that `composer check` passes before submitting a pull request (runs platform check, format, lint, Prettier, tests, and PHPStan).
+- Please follow the existing code style: Mago for PHP (`composer lint` / `composer format`); Prettier for YAML, JSON, Markdown (`npm run format`). A pre-commit hook runs Prettier check, Mago format, and Mago lint on staged files; run `npm run format` and `composer format` if checks fail.
+- Please add a clear description of the changes you have made.

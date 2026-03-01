@@ -1,6 +1,7 @@
 # Lemmon/Validator Technical Spec
 
 ## Core Concepts
+
 - **Form-Safe Coercion:** `coerce()` converts types but treats empty strings `''` as `null` for `Int`, `Float`, and `Bool` to prevent dangerous defaults (0/false).
 - **Optional by Default:** All fields accept `null` unless `required()` is called.
 - **Fail-Fast Per Field:** Each validator chain stops at the first failing rule; schema validation still aggregates errors across fields.
@@ -15,6 +16,7 @@
   - `transform(callable)`: Intended for type conversion. Updates type context; no coercion.
 
 ## Core Patterns
+
 - **Namespace:** `Lemmon\Validator`
 - **Entry Point:** `Validator` static factory (e.g., `Validator::isString()`).
 - **Fluency:** Validators are mutable during configuration but used sequentially.
@@ -31,6 +33,7 @@
 ## API Reference
 
 ### Factory (`Lemmon\Validator\Validator`)
+
 ```php
 static isString(): StringValidator
 static isInt(): IntValidator
@@ -45,7 +48,9 @@ static not(FieldValidator $validator, ?string $message = null): FieldValidator
 ```
 
 ### Base API (`FieldValidator`)
-*Available on all validators*
+
+_Available on all validators_
+
 ```php
 required(?string $message = null): static
 default(mixed $value): static
@@ -68,6 +73,7 @@ pipe(callable ...$fns): static (preserves type, skips null)
 ```
 
 ### StringValidator
+
 ```php
 email(?string $message = null): static
 url(?string $message = null): static
@@ -92,7 +98,9 @@ oneOf(array $values, ?string $message = null): static // Deprecated alias for in
 ```
 
 ### IntValidator / FloatValidator
-*Both support NumericConstraintsTrait*
+
+_Both support NumericConstraintsTrait_
+
 ```php
 min(int|float $min, ?string $message = null): static
 max(int|float $max, ?string $message = null): static
@@ -110,13 +118,17 @@ clampToRange(int|float $min, int|float $max): static // Transformation, not vali
 in(array $values, ?string $message = null): static
 oneOf(array $values, ?string $message = null): static // Deprecated alias for in()
 ```
-*IntValidator Only:*
+
+_IntValidator Only:_
+
 ```php
 port(?string $message = null): static // 1-65535
 ```
 
 ### ArrayValidator (`Validator::isArray()`)
-*Indexed arrays / Lists*
+
+_Indexed arrays / Lists_
+
 ```php
 items(FieldValidator $validator): static
 filterEmpty(): static (removes null/'', reindexes)
@@ -129,13 +141,16 @@ contains(mixed|FieldValidator $valueOrValidator, ?string $message = null): stati
 **Cross-Item Validation:** Use `satisfies()` on array validator for uniqueness/relationships. Structure errors as `[index => [field => [message]]]` to get field-level paths (e.g., `symlinks.2.destination`). Runs after item validation, receives validated data structure.
 
 ### AssociativeValidator / ObjectValidator
-*Schema validation*
+
+_Schema validation_
+
 ```php
 // Constructor accepts array<string, FieldValidator>
 coerceAll(): static // Recursively enables coercion on schema fields
 ```
 
 ### BoolValidator
+
 ```php
 in(array $values, ?string $message = null): static
 oneOf(array $values, ?string $message = null): static // Deprecated alias for in()
@@ -145,18 +160,23 @@ oneOf(array $values, ?string $message = null): static // Deprecated alias for in
 ## Enums
 
 ### IpVersion
+
 `Any`, `IPv4`, `IPv6`
 
 ### UuidVariant
+
 `Any`, `V1`, `V2`, `V3`, `V4`, `V5`, `V7`
 
 ### Base64Variant
+
 `Standard`, `UrlSafe`, `Any`
 
 ### PipelineType
+
 `VALIDATION`, `TRANSFORMATION`
 
 ## Quick Examples
+
 ```php
 // Pipeline order demonstration: shows value transformation at each step
 Validator::isString()

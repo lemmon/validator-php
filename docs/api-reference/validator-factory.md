@@ -131,7 +131,7 @@ $user = $userValidator->validate([
 
 **Parameters:**
 
--   `$schema` (optional): Array mapping field names to `FieldValidator` instances
+- `$schema` (optional): Array mapping field names to `FieldValidator` instances
 
 **Returns:** `AssociativeValidator` instance with schema validation capabilities.
 
@@ -166,7 +166,7 @@ $validConfig = $configValidator->validate($config);
 
 **Parameters:**
 
--   `$schema` (optional): Array mapping property names to `FieldValidator` instances
+- `$schema` (optional): Array mapping property names to `FieldValidator` instances
 
 **Returns:** `ObjectValidator` instance with schema validation capabilities.
 
@@ -412,8 +412,8 @@ $mixedArray = Validator::isArray()->items(
 
 **Parameters:**
 
--   `$validators`: Array of `FieldValidator` instances, at least one must pass
--   `$message` (optional): Custom error message if all validators fail
+- `$validators`: Array of `FieldValidator` instances, at least one must pass
+- `$message` (optional): Custom error message if all validators fail
 
 **Returns:** `FieldValidator` instance that accepts any type matching at least one validator.
 
@@ -449,8 +449,8 @@ $userSchema = Validator::isAssociative([
 
 **Parameters:**
 
--   `$validators`: Array of `FieldValidator` instances that must all pass
--   `$message` (optional): Custom error message if any validator fails
+- `$validators`: Array of `FieldValidator` instances that must all pass
+- `$message` (optional): Custom error message if any validator fails
 
 **Returns:** `FieldValidator` instance that requires all validators to pass.
 
@@ -482,8 +482,8 @@ $result4 = $validStatus->validate('pending'); // Valid
 
 **Parameters:**
 
--   `$validator`: The `FieldValidator` instance that must fail
--   `$message` (optional): Custom error message if the validator passes
+- `$validator`: The `FieldValidator` instance that must fail
+- `$message` (optional): Custom error message if the validator passes
 
 **Returns:** `FieldValidator` instance that passes when the provided validator fails.
 
@@ -519,7 +519,7 @@ $userArray = Validator::isArray()->items(
 
 **Parameters:**
 
--   `$validator`: `FieldValidator` instance to apply to each array item
+- `$validator`: `FieldValidator` instance to apply to each array item
 
 **Returns:** `ArrayValidator` instance with item validation configured.
 
@@ -567,7 +567,7 @@ $validator->validate([]); // Throws ValidationException
 
 **Parameters:**
 
--   `$message` (optional): Custom error message when the array is empty
+- `$message` (optional): Custom error message when the array is empty
 
 **Returns:** `ArrayValidator` instance with non-empty validation enabled.
 
@@ -601,9 +601,9 @@ $validator = Validator::isString()
 
 **Why This Matters:**
 
--   **Form Safety**: Prevents empty form fields from becoming dangerous defaults (0, false)
--   **Database Integrity**: NULL values are often more appropriate than empty strings
--   **Business Logic**: Distinguishes between "no value provided" (null) and "empty value provided" ('')
+- **Form Safety**: Prevents empty form fields from becoming dangerous defaults (0, false)
+- **Database Integrity**: NULL values are often more appropriate than empty strings
+- **Business Logic**: Distinguishes between "no value provided" (null) and "empty value provided" ('')
 
 **Returns:** Same validator instance for method chaining.
 
@@ -615,7 +615,7 @@ Marks the field as required, meaning it cannot be `null` or missing.
 
 **Parameters:**
 
--   `$message` (optional): Custom error message for required validation
+- `$message` (optional): Custom error message for required validation
 
 ```php
 // Required string validation with default message
@@ -687,7 +687,7 @@ $result = $schema->validate(['service_id' => '550e8400-e29b-41d4-a716-4466554400
 
 **Parameters:**
 
--   `$key`: The key to use in the output structure
+- `$key`: The key to use in the output structure
 
 **Returns:** Same validator instance for method chaining.
 
@@ -715,8 +715,8 @@ $priority->validate('2'); // Valid (coerced to 2)
 
 **Parameters:**
 
--   `$enumClass`: Fully qualified BackedEnum class name (e.g. `StatusEnum::class`)
--   `$message` (optional): Custom error message for invalid values
+- `$enumClass`: Fully qualified BackedEnum class name (e.g. `StatusEnum::class`)
+- `$message` (optional): Custom error message for invalid values
 
 **Returns:** Same validator instance for method chaining.
 
@@ -746,8 +746,8 @@ $draft = Validator::isString()->const('draft', 'Status must be draft');
 
 **Parameters:**
 
--   `$value`: The single allowed value (compared using strict equality)
--   `$message` (optional): Custom error message for invalid values
+- `$value`: The single allowed value (compared using strict equality)
+- `$message` (optional): Custom error message for invalid values
 
 **Returns:** Same validator instance for method chaining.
 
@@ -781,8 +781,8 @@ $validator = Validator::isString()
 
 **Parameters:**
 
--   `$values`: Array of allowed values (compared using strict equality)
--   `$message` (optional): Custom error message for invalid values
+- `$values`: Array of allowed values (compared using strict equality)
+- `$message` (optional): Custom error message for invalid values
 
 **Note:** This method is not available on `ArrayValidator` or `ObjectValidator` as it doesn't make semantic sense for complex types.
 
@@ -876,8 +876,8 @@ $passwordConfirm = Validator::isString()
 
 ## See Also
 
--   [String Validation Guide](../guides/string-validation.md) - String-specific methods and examples
--   [Numeric Validation Guide](../guides/numeric-validation.md) - Integer and float methods and examples
--   [Array Validation Guide](../guides/array-validation.md) - Array validation methods and examples
--   [Object & Schema Validation Guide](../guides/object-validation.md) - Object and schema validation methods
--   [Getting Started Guide](../getting-started/basic-usage.md) - Basic usage patterns
+- [String Validation Guide](../guides/string-validation.md) - String-specific methods and examples
+- [Numeric Validation Guide](../guides/numeric-validation.md) - Integer and float methods and examples
+- [Array Validation Guide](../guides/array-validation.md) - Array validation methods and examples
+- [Object & Schema Validation Guide](../guides/object-validation.md) - Object and schema validation methods
+- [Getting Started Guide](../getting-started/basic-usage.md) - Basic usage patterns

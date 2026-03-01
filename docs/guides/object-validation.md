@@ -157,6 +157,7 @@ Works with both `Validator::isAssociative()` and `Validator::isObject()`.
 ### Field Inclusion Behavior
 
 Schema validators only include fields in the result that were either:
+
 1. **Provided in the input data**, or
 2. **Have default values applied**
 
@@ -188,6 +189,7 @@ $result = $schema->validate($input);
 ```
 
 This behavior ensures that:
+
 - **Results accurately reflect the validated data** without unexpected properties
 - **Default values are consistently applied** when fields are missing
 - **Required field validation still works** (missing required fields cause validation to fail)

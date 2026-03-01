@@ -38,19 +38,23 @@ $bool = Validator::isBool();        // → BoolValidator
 All validators extend `FieldValidator`, which provides:
 
 ### Core Validation Methods
+
 - `validate(mixed $value): mixed` - Throws exception on failure
 - `tryValidate(mixed $value): array` - Returns `[bool, mixed, array]`
 
 ### Common Configuration
+
 - `required(): static` - Makes the field mandatory
 - `default(mixed $value): static` - Sets default value for null inputs
 - `coerce(): static` - Enables automatic type conversion
 - `in(array $values): static` - Restricts to specific values (primitive validators only)
 
 ### Custom Validation
+
 - `satisfies(callable|FieldValidator $rule, ?string $message = null): static` - Enhanced custom validation accepting validators or callables
 
 ### Instance Logical Combinators
+
 - `satisfiesAll(array $validations): static` - Must pass all validators/callables (replaces `allOf()`)
 - `satisfiesAny(array $validations): static` - Must pass at least one validator/callable (replaces `anyOf()`)
 - `satisfiesNone(array $validations): static` - Must NOT pass any validator/callable (replaces `not()`)
@@ -58,6 +62,7 @@ All validators extend `FieldValidator`, which provides:
 **Note:** The old `allOf()`, `anyOf()`, and `not()` instance methods are deprecated but maintained for backward compatibility.
 
 ### Static Logical Combinators
+
 - `Validator::allOf(array $validators)` - Creates validator that must pass all validators
 - `Validator::anyOf(array $validators)` - Creates validator that must pass at least one validator
 - `Validator::not(FieldValidator $validator)` - Creates validator that must NOT pass the validator
@@ -67,6 +72,7 @@ All validators extend `FieldValidator`, which provides:
 Each validator handles a specific PHP type and provides relevant methods:
 
 ### StringValidator
+
 ```php
 Validator::isString()
     ->notEmpty()       // Non-empty string
@@ -79,6 +85,7 @@ Validator::isString()
 ```
 
 ### IntValidator & FloatValidator
+
 Both share numeric constraints via `NumericConstraintsTrait`:
 
 ```php
@@ -96,6 +103,7 @@ Validator::isFloat()
 ```
 
 ### ArrayValidator
+
 ```php
 Validator::isArray()                    // Plain indexed array
 Validator::isArray()->notEmpty()        // At least one item
@@ -103,6 +111,7 @@ Validator::isArray()->items($itemValidator) // With item validation
 ```
 
 ### AssociativeValidator & ObjectValidator
+
 ```php
 Validator::isAssociative($schema)       // Associative array with schema
 Validator::isObject($schema)            // stdClass object with schema
@@ -138,6 +147,7 @@ $result = Validator::isString()
 ```
 
 **Key Characteristics:**
+
 - **Changes type context** - Updates internal type tracking
 - **No type coercion** - Returns exactly what the transformer produces
 - **Enables type switching** - Subsequent `pipe()` operations work with the new type
@@ -173,6 +183,7 @@ $result = Validator::isString()
 ```
 
 **Key Characteristics:**
+
 - **Preserves type context** - Maintains current type for consistency
 - **Type-specific coercion** - Applies intelligent coercion based on current type
 - **Multiple operations** - Accepts variadic arguments for clean chaining
@@ -192,6 +203,7 @@ $result = Validator::isArray()
 ```
 
 **What happens internally:**
+
 1. **Initial type**: `indexed_array` (from `Validator::isArray()`)
 2. **After `pipe()`**: Still `indexed_array`, but array is processed and reindexed
 3. **After first `transform()`**: Type context switches to `string`
@@ -376,6 +388,7 @@ $result = $arrayValidator->validate($obj); // Returns: ['key' => 'value']
 #### The Problem with Traditional Coercion
 
 In traditional PHP type casting, empty strings convert to "falsy" defaults:
+
 - `(int) ''` → `0`
 - `(float) ''` → `0.0`
 - `(bool) ''` → `false`

@@ -230,6 +230,7 @@ $quantity = (int) $_POST['quantity'];  // Empty field → 0 (dangerous!)
 ```
 
 **Real-world problems:**
+
 - Bank balance field left empty → account balance becomes $0
 - Product quantity field empty → order quantity becomes 0 items
 - Price field empty → product becomes free ($0.00)
@@ -319,6 +320,7 @@ $discount = $discountValidator->validate($formData['discount']); // Returns: 0.0
 ```
 
 **When to use `nullifyEmpty()`:**
+
 - **Optional numeric fields** where empty should have a default
 - **Explicit control** over empty string handling
 - **Database schemas** where NULL is preferred over empty strings

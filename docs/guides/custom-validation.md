@@ -278,17 +278,17 @@ $validator = Validator::isString()
 
 **Why External Libraries?**
 
--   **Staying Current**: External libraries stay up-to-date with the latest specifications, variants, and best practices for their domain
--   **Comprehensive Features**: They provide parsing, generation, and advanced features beyond basic validation
--   **Maintenance**: Specialized libraries are maintained by domain experts who prioritize that specific validator type
--   **Focus**: This allows Lemmon Validator to focus on core validation principles rather than maintaining numerous validator implementations
+- **Staying Current**: External libraries stay up-to-date with the latest specifications, variants, and best practices for their domain
+- **Comprehensive Features**: They provide parsing, generation, and advanced features beyond basic validation
+- **Maintenance**: Specialized libraries are maintained by domain experts who prioritize that specific validator type
+- **Focus**: This allows Lemmon Validator to focus on core validation principles rather than maintaining numerous validator implementations
 
 **When to Use External Libraries:**
 
--   Advanced or specialized validators (CUID, nanoid, ULID, etc.)
--   Validators requiring parsing, generation, or complex domain logic
--   Validators that frequently receive specification updates or new variants
--   Production applications requiring comprehensive validation features
+- Advanced or specialized validators (CUID, nanoid, ULID, etc.)
+- Validators requiring parsing, generation, or complex domain logic
+- Validators that frequently receive specification updates or new variants
+- Production applications requiring comprehensive validation features
 
 ## Cross-Item Array Validation
 
@@ -552,10 +552,10 @@ $domain = ValidationRules::isDomain()
 
 This pattern scales to any custom validator:
 
--   Subclass the Lemmon validator that matches your base type (`StringValidator`, `IntValidator`, etc.)
--   Configure the shared pipeline in `__construct` (coercion, transforms, generic `satisfies()` calls)
--   Add expressive helper methods that append more rules and return `$this`
--   Return the custom validator from a project-specific factory (e.g., `ValidationRules::isDomain()`)
+- Subclass the Lemmon validator that matches your base type (`StringValidator`, `IntValidator`, etc.)
+- Configure the shared pipeline in `__construct` (coercion, transforms, generic `satisfies()` calls)
+- Add expressive helper methods that append more rules and return `$this`
+- Return the custom validator from a project-specific factory (e.g., `ValidationRules::isDomain()`)
 
 Because these classes extend the core validators, they inherit null handling, error aggregation, coercion, and every other built-in capability, while letting you publish clean, reusable validators for your application.
 
@@ -637,7 +637,7 @@ $badValidator = Validator::isString()->satisfies(
 
 ## Next Steps
 
--   [Array Validation Guide](array-validation.md) -- Logical combinators and complex rules
--   [Error Handling Guide](error-handling.md) -- Working with validation errors
--   [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete `satisfies()` reference
--   [Form Validation Examples](../examples/form-validation.md) -- See custom validation in action
+- [Array Validation Guide](array-validation.md) -- Logical combinators and complex rules
+- [Error Handling Guide](error-handling.md) -- Working with validation errors
+- [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete `satisfies()` reference
+- [Form Validation Examples](../examples/form-validation.md) -- See custom validation in action
