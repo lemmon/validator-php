@@ -60,6 +60,7 @@ satisfiesAny(array<callable|FieldValidator> $rules, ?string $message = null): st
 satisfiesAll(array<callable|FieldValidator> $rules, ?string $message = null): static
 satisfiesNone(array<callable|FieldValidator> $rules, ?string $message = null): static
 const(mixed $value, ?string $message = null): static // Restrict to exactly one value (strict ===)
+enum(string $enumClass, ?string $message = null): static // Validate against PHP BackedEnum cases; $enumClass e.g. StatusEnum::class; value must be int|string
 
 // Transformation
 transform(callable $fn, bool $skipNull = true): static (can change type, skips null by default)

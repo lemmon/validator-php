@@ -205,6 +205,11 @@ $result = $restricted->validate('yellow'); // ❌ ValidationException
 $exact = Validator::isString()->const('active');
 $result = $exact->validate('active'); // Valid
 $result = $exact->validate('pending'); // ❌ ValidationException
+
+// PHP BackedEnum validation (StatusEnum: string with cases Active='active', Pending='pending')
+$status = Validator::isString()->enum(StatusEnum::class);
+$result = $status->validate('active'); // Valid
+$result = $status->validate('unknown'); // ❌ ValidationException
 ```
 
 ## Schema Validation

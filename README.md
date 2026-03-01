@@ -45,6 +45,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 -   **API-friendly flattened errors** with field paths for easy frontend integration (`getFlattenedErrors()`, `ValidationException::flattenErrors()`)
 -   **Intuitive custom validation** with `satisfies()` method and optional error messages
 -   **Single-value validation** with `const()` for exact value matching (available on all validators)
+-   **PHP BackedEnum validation** with `enum()` for type-safe enum case validation (available on all validators)
 -   **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
 -   **Form-safe coercion** - empty strings become `null` (not dangerous `0`/`false`) for real-world safety
 -   **Accurate schema validation** - results only include provided fields and fields with defaults (no unexpected properties)

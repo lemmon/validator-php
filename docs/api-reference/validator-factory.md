@@ -695,6 +695,35 @@ $result = $schema->validate(['service_id' => '550e8400-e29b-41d4-a716-4466554400
 
 ---
 
+### `enum(string $enumClass, ?string $message = null): self`
+
+**Available on:** All validators (`FieldValidator` base)
+
+Validates that the value matches one of the backed values of a PHP BackedEnum. The value must be `int` or `string` (non-scalar values fail). Use `enum(StatusEnum::class)` instead of `in(array_map(fn($e) => $e->value, StatusEnum::cases()))`.
+
+```php
+enum StatusEnum: string { case Active = 'active'; case Pending = 'pending'; }
+
+$validator = Validator::isString()->enum(StatusEnum::class);
+$validator->validate('active');   // Valid
+// $validator->validate('unknown'); // ❌ ValidationException
+
+// With coercion (form input)
+$priority = Validator::isInt()->coerce()->enum(PriorityEnum::class);
+$priority->validate('2'); // Valid (coerced to 2)
+```
+
+**Parameters:**
+
+-   `$enumClass`: Fully qualified BackedEnum class name (e.g. `StatusEnum::class`)
+-   `$message` (optional): Custom error message for invalid values
+
+**Returns:** Same validator instance for method chaining.
+
+**Throws:** `InvalidArgumentException` if `$enumClass` is not a BackedEnum.
+
+---
+
 ### `const(mixed $value, ?string $message = null): self`
 
 **Available on:** All validators (`FieldValidator` base)

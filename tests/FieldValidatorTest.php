@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Lemmon\Tests\Fixtures\PriorityEnum;
+use Lemmon\Tests\Fixtures\StatusEnum;
 use Lemmon\Validator\ValidationException;
 use Lemmon\Validator\Validator;
 
@@ -490,6 +492,53 @@ it('should skip const() validation for null when optional', function () {
 
     expect($validator->validate(null))->toBeNull();
 });
+
+it('should validate string-backed enum() - valid value passes', function () {
+    $validator = Validator::isString()->enum(StatusEnum::class);
+
+    expect($validator->validate('active'))->toBe('active');
+    expect($validator->validate('pending'))->toBe('pending');
+});
+
+it('should validate string-backed enum() - invalid value fails', function () {
+    $validator = Validator::isString()->enum(StatusEnum::class);
+
+    $validator->validate('unknown');
+})->throws(ValidationException::class, "Value must be one of: 'active', 'pending', 'done'");
+
+it('should validate int-backed enum() with coercion', function () {
+    $validator = Validator::isInt()->coerce()->enum(PriorityEnum::class);
+
+    expect($validator->validate('2'))->toBe(2);
+});
+
+it('should validate int-backed enum() - invalid value fails', function () {
+    $validator = Validator::isInt()->enum(PriorityEnum::class);
+
+    $validator->validate(99);
+})->throws(ValidationException::class);
+
+it('should use custom message for enum()', function () {
+    $validator = Validator::isString()->enum(StatusEnum::class, 'Invalid status');
+
+    $validator->validate('unknown');
+})->throws(ValidationException::class, 'Invalid status');
+
+it('should skip enum() validation for null when optional', function () {
+    $validator = Validator::isString()->enum(StatusEnum::class);
+
+    expect($validator->validate(null))->toBeNull();
+});
+
+it('should reject non-scalar for enum()', function () {
+    $validator = Validator::isArray()->enum(StatusEnum::class);
+
+    $validator->validate(['active']);
+})->throws(ValidationException::class);
+
+it('should throw InvalidArgumentException for non-BackedEnum class', function () {
+    Validator::isString()->enum(\stdClass::class);
+})->throws(InvalidArgumentException::class, 'Class must be a BackedEnum');
 
 it('should use custom error message for required() method', function () {
     $validator = Validator::isString()->required('Name is mandatory');

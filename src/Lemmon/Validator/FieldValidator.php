@@ -265,6 +265,39 @@ abstract class FieldValidator
     }
 
     /**
+     * Restricts the value to a PHP BackedEnum case.
+     * Value must be int or string matching one of the enum's backed values.
+     *
+     * @param string $enumClass Fully qualified BackedEnum class name (e.g. StatusEnum::class).
+     * @param ?string $message Optional custom error message.
+     * @return $this
+     */
+    public function enum(string $enumClass, ?string $message = null): self
+    {
+        if (!is_subclass_of($enumClass, \BackedEnum::class, true)) {
+            throw new \InvalidArgumentException(
+                sprintf('Class must be a BackedEnum, got: %s', $enumClass),
+            );
+        }
+
+        $allowed = implode(', ', array_map(
+            static fn(\BackedEnum $c) => var_export($c->value, true),
+            $enumClass::cases(),
+        ));
+
+        return $this->satisfies(
+            static function ($v) use ($enumClass): bool {
+                if (!is_int($v) && !is_string($v)) {
+                    return false;
+                }
+
+                return $enumClass::tryFrom($v) !== null;
+            },
+            $message ?? 'Value must be one of: ' . $allowed,
+        );
+    }
+
+    /**
      * Adds a transformation function to be applied after successful validation.
      * Can change the type - subsequent operations work with the new type.
      *

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+-   `enum(class-string<\BackedEnum> $enumClass, ?string $message = null)` on `FieldValidator` for PHP BackedEnum validation; restricts the value to one of the enum's backed cases (int or string); available on all validator types; use `enum(StatusEnum::class)` instead of `in(array_map(fn($e) => $e->value, StatusEnum::cases()))`
 -   `const(mixed $value, ?string $message = null)` on `FieldValidator` for single-value validation; restricts the value to exactly one allowed constant using strict comparison (`===`); available on all validator types; use `const('active')` instead of `in(['active'])` for clearer intent
 -   `outputKey(string $key)` on `FieldValidator` for schema fields: output validated values under a different key than the input field (e.g. input `service_id` -> output `service` after transform); works with `Validator::isAssociative()` and `Validator::isObject()`
 -   GitHub Actions CI: lint, platform-check, static analysis, tests on PHP 8.3

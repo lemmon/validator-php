@@ -2,10 +2,6 @@
 
 Public repo; keep this list short (about 7) and up to date. Rules: no numbering (keeps churn low), prune completed items, and replace them with the next priority. Contributors: pick one task, keep PRs focused, and update the list as things land.
 
--   Universal enum/const validators
-
-    -   Add `enum()` method available on all validator types; handle mixed scalar inputs and document usage patterns. (`const()` done)
-
 -   Structured error codes
 
     -   Add programmatic error codes to validation errors (e.g., 'STRING_TOO_SHORT', 'INVALID_EMAIL') for better error handling and i18n support; keep backward compatibility.
