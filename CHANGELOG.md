@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-03-06
+
 ### Added
 
 - `enum(class-string<\BackedEnum> $enumClass, ?string $message = null)` on `FieldValidator` for PHP BackedEnum validation; restricts the value to one of the enum's backed cases (int or string); available on all validator types; use `enum(StatusEnum::class)` instead of `in(array_map(fn($e) => $e->value, StatusEnum::cases()))`
