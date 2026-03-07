@@ -261,7 +261,7 @@ try {
 
 **Cross-Item Validation Errors (Field-Level):**
 
-For cross-item validations (like uniqueness) that need to attach errors to specific fields within items, use nested error structure:
+For uniqueness of a nested field, use `uniqueField()` -- it produces the nested error structure and field-level paths automatically:
 
 ```php
 $schema = Validator::isAssociative([
@@ -269,39 +269,7 @@ $schema = Validator::isAssociative([
         ->items(Validator::isAssociative([
             'destination' => Validator::isString()->required(),
         ]))
-        ->satisfies(
-            function ($symlinks) {
-                // Check uniqueness
-                $destinations = [];
-                foreach ($symlinks as $index => $item) {
-                    $dest = $item['destination'] ?? null;
-                    if ($dest) {
-                        $destinations[$dest][] = $index;
-                    }
-                }
-
-                $duplicates = [];
-                foreach ($destinations as $dest => $indices) {
-                    if (count($indices) > 1) {
-                        $duplicates[$dest] = $indices;
-                    }
-                }
-
-                if (empty($duplicates)) return true;
-
-                // Nested structure: [index => [field => [message]]]
-                // Flattens to 'symlinks.2.destination'
-                $errors = [];
-                foreach ($duplicates as $dest => $indices) {
-                    foreach (array_slice($indices, 1) as $idx) {
-                        $errors[$idx] = [
-                            'destination' => ["'{$dest}' is not unique"]
-                        ];
-                    }
-                }
-                throw new ValidationException($errors);
-            }
-        )
+        ->uniqueField('destination'),
 ]);
 
 try {
@@ -315,12 +283,12 @@ try {
 } catch (ValidationException $e) {
     $flattened = $e->getFlattenedErrors();
     // [
-    //     ['path' => 'symlinks.2.destination', 'message' => "'/path1' is not unique"]
+    //     ['path' => 'symlinks.2.destination', 'message' => "Value '/path1' is not unique (also used at index 0)"]
     // ]
 }
 ```
 
-**Key Pattern:** Structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level error paths in flattened output.
+For custom cross-item logic, use `satisfies()` and structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level paths in flattened output.
 
 ## Error Message Customization
 

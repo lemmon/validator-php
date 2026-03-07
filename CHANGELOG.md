@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `uniqueField(string $fieldName, ?string $message = null)` on `ArrayValidator` for cross-item uniqueness validation of a nested field; convenience wrapper around `satisfies()` that produces field-level error paths (e.g., `symlinks.2.destination`) by structuring errors as `[index => [fieldName => [message]]]`; skips items where the field is null or missing; works with both associative arrays and objects; uses strict comparison via `serialize()` to distinguish types
+
 ## [0.13.0] - 2026-03-06
 
 ### Added

@@ -136,9 +136,10 @@ notEmpty(?string $message = null): static
 minItems(int $min, ?string $message = null): static
 maxItems(int $max, ?string $message = null): static
 contains(mixed|FieldValidator $valueOrValidator, ?string $message = null): static
+uniqueField(string $fieldName, ?string $message = null): static
 ```
 
-**Cross-Item Validation:** Use `satisfies()` on array validator for uniqueness/relationships. Structure errors as `[index => [field => [message]]]` to get field-level paths (e.g., `symlinks.2.destination`). Runs after item validation, receives validated data structure.
+**Cross-Item Validation:** `uniqueField()` validates a nested field is unique across items with field-level error paths (e.g., `symlinks.2.destination`). For custom cross-item logic, use `satisfies()` directly -- structure errors as `[index => [field => [message]]]` for field-level paths. Both run after item validation and receive validated data.
 
 ### AssociativeValidator / ObjectValidator
 

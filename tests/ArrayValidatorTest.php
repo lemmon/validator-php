@@ -288,3 +288,232 @@ it('should work with contains and item validator together', function () {
     // Should fail item validation first
     $validator->validate(['apple', 123, 'banana']);
 })->throws(ValidationException::class);
+
+it('should validate uniqueField passes when all field values are unique', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isAssociative([
+            'name' => Validator::isString()->required(),
+        ]))
+        ->uniqueField('name');
+
+    $result = $validator->validate([
+        ['name' => 'alice'],
+        ['name' => 'bob'],
+        ['name' => 'charlie'],
+    ]);
+
+    expect($result)->toBe([
+        ['name' => 'alice'],
+        ['name' => 'bob'],
+        ['name' => 'charlie'],
+    ]);
+});
+
+it('should validate uniqueField rejects duplicate field values', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isAssociative([
+            'destination' => Validator::isString()->required(),
+        ]))
+        ->uniqueField('destination');
+
+    try {
+        $validator->validate([
+            ['destination' => '/path/a'],
+            ['destination' => '/path/b'],
+            ['destination' => '/path/a'],
+        ]);
+        expect(false)->toBe(true);
+    } catch (ValidationException $e) {
+        $errors = $e->getErrors();
+        expect($errors)->toHaveKey(2);
+        expect($errors[2])->toHaveKey('destination');
+        expect($errors[2]['destination'][0])->toContain("'/path/a'");
+        expect($errors[2]['destination'][0])->toContain('index 0');
+    }
+});
+
+it('should produce correct flattened error paths from uniqueField', function () {
+    $schema = Validator::isAssociative([
+        'symlinks' => Validator::isArray()
+            ->items(Validator::isAssociative([
+                'source' => Validator::isString()->default('.'),
+                'destination' => Validator::isString()->required(),
+            ]))
+            ->uniqueField('destination')
+            ->required(),
+    ]);
+
+    try {
+        $schema->validate([
+            'symlinks' => [
+                ['source' => 'a', 'destination' => '/same'],
+                ['source' => 'b', 'destination' => '/unique'],
+                ['source' => 'c', 'destination' => '/same'],
+            ],
+        ]);
+        expect(false)->toBe(true);
+    } catch (ValidationException $e) {
+        $flattened = $e->getFlattenedErrors();
+        expect($flattened)->toHaveCount(1);
+        expect($flattened[0]['path'])->toBe('symlinks.2.destination');
+        expect($flattened[0]['message'])->toContain("'/same'");
+    }
+});
+
+it('should report multiple duplicates from uniqueField', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isAssociative([
+            'id' => Validator::isInt()->required(),
+        ]))
+        ->uniqueField('id');
+
+    try {
+        $validator->validate([
+            ['id' => 1],
+            ['id' => 2],
+            ['id' => 1],
+            ['id' => 2],
+            ['id' => 3],
+        ]);
+        expect(false)->toBe(true);
+    } catch (ValidationException $e) {
+        $errors = $e->getErrors();
+        expect($errors)->toHaveKey(2);
+        expect($errors)->toHaveKey(3);
+        expect($errors[2])->toHaveKey('id');
+        expect($errors[3])->toHaveKey('id');
+        expect($errors)->not->toHaveKey(0);
+        expect($errors)->not->toHaveKey(1);
+        expect($errors)->not->toHaveKey(4);
+    }
+});
+
+it('should skip null and missing fields in uniqueField', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isAssociative([
+            'tag' => Validator::isString(),
+        ]))
+        ->uniqueField('tag');
+
+    $result = $validator->validate([
+        ['tag' => 'a'],
+        ['tag' => null],
+        ['tag' => null],
+        ['tag' => 'b'],
+    ]);
+
+    expect($result)->toHaveCount(4);
+});
+
+it('should use custom error message for uniqueField', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isAssociative([
+            'email' => Validator::isString()->required(),
+        ]))
+        ->uniqueField('email', 'Duplicate email address');
+
+    try {
+        $validator->validate([
+            ['email' => 'a@b.com'],
+            ['email' => 'a@b.com'],
+        ]);
+        expect(false)->toBe(true);
+    } catch (ValidationException $e) {
+        $errors = $e->getErrors();
+        expect($errors[1]['email'][0])->toBe('Duplicate email address');
+    }
+});
+
+it('should work with uniqueField on object items', function () {
+    $validator = Validator::isArray()->uniqueField('code');
+
+    $items = [
+        (object) ['code' => 'X'],
+        (object) ['code' => 'Y'],
+        (object) ['code' => 'X'],
+    ];
+
+    try {
+        $validator->validate($items);
+        expect(false)->toBe(true);
+    } catch (ValidationException $e) {
+        $errors = $e->getErrors();
+        expect($errors)->toHaveKey(2);
+        expect($errors[2])->toHaveKey('code');
+    }
+});
+
+it('should pass uniqueField on empty array', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isAssociative([
+            'name' => Validator::isString()->required(),
+        ]))
+        ->uniqueField('name');
+
+    expect($validator->validate([]))->toBe([]);
+});
+
+it('should mark all later occurrences when three or more duplicates exist in uniqueField', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isAssociative([
+            'code' => Validator::isString()->required(),
+        ]))
+        ->uniqueField('code');
+
+    try {
+        $validator->validate([
+            ['code' => 'A'],
+            ['code' => 'B'],
+            ['code' => 'A'],
+            ['code' => 'A'],
+        ]);
+        expect(false)->toBe(true);
+    } catch (ValidationException $e) {
+        $errors = $e->getErrors();
+        expect($errors)->toHaveKey(2);
+        expect($errors)->toHaveKey(3);
+        expect($errors)->not->toHaveKey(0);
+        expect($errors)->not->toHaveKey(1);
+        expect($errors[2]['code'][0])->toContain('index 0');
+        expect($errors[3]['code'][0])->toContain('index 0');
+    }
+});
+
+it('should skip scalar items silently in uniqueField', function () {
+    $validator = Validator::isArray()->uniqueField('name');
+
+    expect($validator->validate([1, 'hello', true]))->toBe([1, 'hello', true]);
+});
+
+it('should validate uniqueField after filterEmpty reindexes', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isAssociative([
+            'dest' => Validator::isString()->required(),
+        ]))
+        ->filterEmpty()
+        ->uniqueField('dest');
+
+    try {
+        $validator->validate([
+            ['dest' => '/a'],
+            ['dest' => '/a'],
+        ]);
+        expect(false)->toBe(true);
+    } catch (ValidationException $e) {
+        $errors = $e->getErrors();
+        expect($errors)->toHaveKey(1);
+        expect($errors[1])->toHaveKey('dest');
+    }
+});
+
+it('should distinguish types strictly in uniqueField', function () {
+    $validator = Validator::isArray()->uniqueField('val');
+
+    $result = $validator->validate([
+        ['val' => 1],
+        ['val' => '1'],
+        ['val' => true],
+    ]);
+
+    expect($result)->toHaveCount(3);
+});

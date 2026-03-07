@@ -477,11 +477,9 @@ try {
 
 ## Cross-Item Validation
 
-For validations that need to check relationships across multiple array items (like uniqueness), use `satisfies()` on the array validator. To attach errors to specific fields within items, use a nested error structure.
+### uniqueField() for Uniqueness
 
-### Uniqueness Validation with Field-Level Errors
-
-When validating uniqueness of a nested field (e.g., `destination` in each symlink), structure errors to attach them to the specific field:
+Use `uniqueField()` to validate that a nested field is unique across all array items. It produces field-level error paths (e.g., `symlinks.2.destination`) automatically. Items where the field is null or missing are skipped.
 
 ```php
 $schema = Validator::isAssociative([
@@ -490,50 +488,7 @@ $schema = Validator::isAssociative([
             'source' => Validator::isString()->default('.'),
             'destination' => Validator::isString()->required(),
         ]))
-        ->satisfies(
-            function ($symlinks, $key, $input) {
-                // Extract all destination values with their indices
-                $destinations = [];
-                foreach ($symlinks as $index => $symlink) {
-                    if (isset($symlink['destination'])) {
-                        $dest = $symlink['destination'];
-                        if (!isset($destinations[$dest])) {
-                            $destinations[$dest] = [];
-                        }
-                        $destinations[$dest][] = $index;
-                    }
-                }
-
-                // Check for duplicates
-                $duplicates = [];
-                foreach ($destinations as $dest => $indices) {
-                    if (count($indices) > 1) {
-                        $duplicates[$dest] = $indices;
-                    }
-                }
-
-                if (empty($duplicates)) {
-                    return true;
-                }
-
-                // Nested error structure: [index => [field => [message]]]
-                // This creates field-level error paths: 'symlinks.2.destination'
-                $errors = [];
-                foreach ($duplicates as $dest => $indices) {
-                    // Mark all but the first occurrence as duplicates
-                    foreach (array_slice($indices, 1) as $idx) {
-                        $errors[$idx] = [
-                            'destination' => [
-                                "Destination '{$dest}' is not unique (also used at index {$indices[0]})"
-                            ]
-                        ];
-                    }
-                }
-
-                throw new ValidationException($errors);
-            },
-            'All destinations must be unique'
-        )
+        ->uniqueField('destination')
         ->required(),
 ]);
 
@@ -550,12 +505,20 @@ try {
 } catch (ValidationException $e) {
     $flattened = $e->getFlattenedErrors();
     // [
-    //     ['path' => 'symlinks.2.destination', 'message' => "Destination '/same/path' is not unique (also used at index 0)"]
+    //     ['path' => 'symlinks.2.destination', 'message' => "Value '/same/path' is not unique (also used at index 0)"]
     // ]
 }
 ```
 
-**Key Pattern:** Structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level error paths. The flattening logic automatically builds paths like `symlinks.2.destination` from this nested structure.
+Custom message:
+
+```php
+->uniqueField('destination', 'Destination must be unique across all symlinks')
+```
+
+### Custom Cross-Item Validation with satisfies()
+
+For validations beyond uniqueness (ordering, dependencies, custom logic), use `satisfies()` on the array validator. Structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level paths.
 
 ### Simple Uniqueness Check (Array-Level Error)
 

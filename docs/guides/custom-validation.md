@@ -294,9 +294,9 @@ $validator = Validator::isString()
 
 For validations that need to check relationships across multiple array items (like uniqueness, ordering, or dependencies), use `satisfies()` on the array validator. This runs **after** item validation, so you receive the validated data structure.
 
-### Uniqueness Validation with Field-Level Errors
+### Uniqueness: uniqueField() (Convenience Method)
 
-When validating uniqueness of a nested field across array items, structure errors to attach them to specific fields within items:
+For simple field uniqueness across items, use `uniqueField()`:
 
 ```php
 $schema = Validator::isAssociative([
@@ -305,42 +305,7 @@ $schema = Validator::isAssociative([
             'id' => Validator::isInt()->required(),
             'name' => Validator::isString()->required(),
         ]))
-        ->satisfies(
-            function ($items, $key, $input) {
-                // Check uniqueness of 'id' field
-                $ids = [];
-                foreach ($items as $index => $item) {
-                    if (isset($item['id'])) {
-                        $id = $item['id'];
-                        $ids[$id][] = $index;
-                    }
-                }
-
-                $duplicates = [];
-                foreach ($ids as $id => $indices) {
-                    if (count($indices) > 1) {
-                        $duplicates[$id] = $indices;
-                    }
-                }
-
-                if (empty($duplicates)) {
-                    return true;
-                }
-
-                // Nested error structure: [index => [field => [message]]]
-                // This creates field-level error paths: 'items.2.id'
-                $errors = [];
-                foreach ($duplicates as $id => $indices) {
-                    foreach (array_slice($indices, 1) as $idx) {
-                        $errors[$idx] = [
-                            'id' => ["ID {$id} is not unique (also used at index {$indices[0]})"]
-                        ];
-                    }
-                }
-
-                throw new ValidationException($errors);
-            }
-        )
+        ->uniqueField('id'),
 ]);
 
 $input = [
@@ -356,12 +321,12 @@ try {
 } catch (ValidationException $e) {
     $flattened = $e->getFlattenedErrors();
     // [
-    //     ['path' => 'items.2.id', 'message' => 'ID 1 is not unique (also used at index 0)']
+    //     ['path' => 'items.2.id', 'message' => "Value '1' is not unique (also used at index 0)"]
     // ]
 }
 ```
 
-**Key Pattern:** Structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level error paths. The error flattening logic automatically builds paths like `items.2.id` from this nested structure.
+Use `satisfies()` when you need custom duplicate logic, custom messages per value, or cross-field uniqueness. See the [Array Validation Guide](array-validation.md#custom-cross-item-validation-with-satisfies) for the manual `satisfies()` pattern.
 
 ### Other Cross-Item Validations
 

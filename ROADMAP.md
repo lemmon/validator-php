@@ -16,7 +16,8 @@ Focused on core validation primitives, consistent pipelines, and extensibility v
 - [x] Universal allowed-value validators: `const()` (single allowed value), `enum()` (PHP BackedEnum)
 - [x] Schema output key remapping: `outputKey(string $key)`
 - [ ] Structured error codes in validation errors (backward compatible)
-- [ ] ArrayValidator `uniqueField(string $fieldName, ?string $message = null)`
+- [ ] Message placeholders for custom error messages (e.g., `{value}`, `{index}`) -- pair with error codes
+- [x] ArrayValidator `uniqueField(string $fieldName, ?string $message = null)`
 - [ ] Mutation testing pilot (Infection + baseline)
 - [ ] Property-based tests for core validators
 

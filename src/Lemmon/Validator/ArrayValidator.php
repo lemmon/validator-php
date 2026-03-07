@@ -83,6 +83,72 @@ class ArrayValidator extends FieldValidator
     }
 
     /**
+     * Validates that a specific field value is unique across all array items.
+     * Items are expected to be associative arrays or objects with the specified field.
+     * Items where the field is missing or null are skipped.
+     *
+     * Produces field-level error paths (e.g., `symlinks.2.destination`) by structuring
+     * errors as `[index => [fieldName => [message]]]`.
+     *
+     * @param string $fieldName The field name to check for uniqueness
+     * @param null|string $message Custom error message for duplicate values
+     * @return $this
+     */
+    public function uniqueField(string $fieldName, ?string $message = null): static
+    {
+        return $this->satisfies(
+            static function ($value, $key = null, $input = null) use ($fieldName, $message) {
+                $seen = [];
+
+                foreach ($value as $index => $item) {
+                    $fieldValue = match (true) {
+                        is_array($item) => $item[$fieldName] ?? null,
+                        is_object($item) => $item->$fieldName ?? null,
+                        default => null,
+                    };
+
+                    if ($fieldValue === null) {
+                        continue;
+                    }
+
+                    $serialized = serialize($fieldValue);
+                    $seen[$serialized] ??= ['value' => $fieldValue, 'indices' => []];
+                    $seen[$serialized]['indices'][] = $index;
+                }
+
+                $errors = [];
+
+                foreach ($seen as $entry) {
+                    if (count($entry['indices']) <= 1) {
+                        continue;
+                    }
+
+                    $displayValue = (string) $entry['value'];
+                    if (!is_scalar($entry['value'])) {
+                        $encoded = json_encode($entry['value']);
+                        $displayValue = $encoded !== false ? $encoded : '(complex value)';
+                    }
+
+                    foreach (array_slice($entry['indices'], 1) as $idx) {
+                        $errors[$idx] = [
+                            $fieldName => [
+                                $message
+                                    ?? "Value '{$displayValue}' is not unique (also used at index {$entry['indices'][0]})",
+                            ],
+                        ];
+                    }
+                }
+
+                if ($errors !== []) {
+                    throw new ValidationException($errors);
+                }
+
+                return true;
+            },
+        );
+    }
+
+    /**
      * Validates that the array contains a specific value or an item matching the provided validator.
      *
      * @param mixed $valueOrValidator Either a specific value to find, or a FieldValidator to match against items

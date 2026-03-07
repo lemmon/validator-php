@@ -573,6 +573,48 @@ $validator->validate([]); // Throws ValidationException
 
 ---
 
+#### `uniqueField(string $fieldName, ?string $message = null): ArrayValidator`
+
+Validates that a nested field is unique across all array items. Produces field-level error paths (e.g., `symlinks.2.destination`) automatically. Items where the field is null or missing are skipped. Works with associative arrays and objects.
+
+```php
+$schema = Validator::isAssociative([
+    'symlinks' => Validator::isArray()
+        ->items(Validator::isAssociative([
+            'source' => Validator::isString()->default('.'),
+            'destination' => Validator::isString()->required(),
+        ]))
+        ->uniqueField('destination')
+        ->required(),
+]);
+
+$result = $schema->validate([
+    'symlinks' => [
+        ['destination' => '/var/www/public'],
+        ['destination' => '/var/www/storage'],
+    ],
+]); // Valid
+
+// Duplicate destination throws ValidationException with path 'symlinks.2.destination'
+$schema->validate([
+    'symlinks' => [
+        ['destination' => '/same'],
+        ['destination' => '/same'],
+    ],
+]);
+```
+
+**Parameters:**
+
+- `$fieldName`: The field name to check for uniqueness
+- `$message` (optional): Custom error message for duplicate values
+
+**Returns:** `ArrayValidator` instance with unique-field validation enabled.
+
+**See Also:** [Array Validation Guide - Cross-Item Validation](../guides/array-validation.md#cross-item-validation)
+
+---
+
 ## Universal Methods
 
 All validators created by the factory methods inherit these universal methods from `FieldValidator`:
