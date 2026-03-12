@@ -283,7 +283,8 @@ try {
 } catch (ValidationException $e) {
     $flattened = $e->getFlattenedErrors();
     // [
-    //     ['path' => 'symlinks.2.destination', 'message' => "Value '/path1' is not unique (also used at index 0)"]
+    //     ['path' => 'symlinks.0.destination', 'message' => "Value '/path1' is not unique (also at index 2)"],
+    //     ['path' => 'symlinks.2.destination', 'message' => "Value '/path1' is not unique (also at index 0)"],
     // ]
 }
 ```

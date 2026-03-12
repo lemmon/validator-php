@@ -321,7 +321,8 @@ try {
 } catch (ValidationException $e) {
     $flattened = $e->getFlattenedErrors();
     // [
-    //     ['path' => 'items.2.id', 'message' => "Value '1' is not unique (also used at index 0)"]
+    //     ['path' => 'items.0.id', 'message' => "Value '1' is not unique (also at index 2)"],
+    //     ['path' => 'items.2.id', 'message' => "Value '1' is not unique (also at index 0)"],
     // ]
 }
 ```

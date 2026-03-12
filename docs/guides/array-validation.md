@@ -479,7 +479,7 @@ try {
 
 ### uniqueField() for Uniqueness
 
-Use `uniqueField()` to validate that a nested field is unique across all array items. It produces field-level error paths (e.g., `symlinks.2.destination`) automatically. Items where the field is null or missing are skipped.
+Use `uniqueField()` to validate that a nested field is unique across all array items. All members of a duplicate group receive errors with field-level paths automatically. Items where the field is null or missing are skipped.
 
 ```php
 $schema = Validator::isAssociative([
@@ -505,7 +505,8 @@ try {
 } catch (ValidationException $e) {
     $flattened = $e->getFlattenedErrors();
     // [
-    //     ['path' => 'symlinks.2.destination', 'message' => "Value '/same/path' is not unique (also used at index 0)"]
+    //     ['path' => 'symlinks.0.destination', 'message' => "Value '/same/path' is not unique (also at index 2)"],
+    //     ['path' => 'symlinks.2.destination', 'message' => "Value '/same/path' is not unique (also at index 0)"],
     // ]
 }
 ```

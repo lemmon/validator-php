@@ -139,7 +139,7 @@ contains(mixed|FieldValidator $valueOrValidator, ?string $message = null): stati
 uniqueField(string $fieldName, ?string $message = null): static
 ```
 
-**Cross-Item Validation:** `uniqueField()` validates a nested field is unique across items with field-level error paths (e.g., `symlinks.2.destination`). For custom cross-item logic, use `satisfies()` directly -- structure errors as `[index => [field => [message]]]` for field-level paths. Both run after item validation and receive validated data.
+**Cross-Item Validation:** `uniqueField()` validates a nested field is unique across items. All members of a duplicate group receive errors with field-level paths (e.g., both `symlinks.0.destination` and `symlinks.2.destination`). For custom cross-item logic, use `satisfies()` directly -- structure errors as `[index => [field => [message]]]` for field-level paths. Both run after item validation and receive validated data.
 
 ### AssociativeValidator / ObjectValidator
 

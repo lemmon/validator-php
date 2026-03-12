@@ -575,7 +575,7 @@ $validator->validate([]); // Throws ValidationException
 
 #### `uniqueField(string $fieldName, ?string $message = null): ArrayValidator`
 
-Validates that a nested field is unique across all array items. Produces field-level error paths (e.g., `symlinks.2.destination`) automatically. Items where the field is null or missing are skipped. Works with associative arrays and objects.
+Validates that a nested field is unique across all array items. All members of a duplicate group receive errors with field-level error paths automatically. Items where the field is null or missing are skipped. Works with associative arrays and objects.
 
 ```php
 $schema = Validator::isAssociative([
@@ -595,7 +595,8 @@ $result = $schema->validate([
     ],
 ]); // Valid
 
-// Duplicate destination throws ValidationException with path 'symlinks.2.destination'
+// Duplicate destination throws ValidationException with paths
+// 'symlinks.0.destination' and 'symlinks.1.destination'
 $schema->validate([
     'symlinks' => [
         ['destination' => '/same'],

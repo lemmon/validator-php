@@ -129,12 +129,21 @@ class ArrayValidator extends FieldValidator
                         $displayValue = $encoded !== false ? $encoded : '(complex value)';
                     }
 
-                    foreach (array_slice($entry['indices'], 1) as $idx) {
+                    foreach ($entry['indices'] as $idx) {
+                        $others = array_values(array_filter(
+                            $entry['indices'],
+                            static fn($i) => $i !== $idx,
+                        ));
+
+                        $defaultMessage = $message ?? match (count($others)) {
+                            1 => "Value '{$displayValue}' is not unique (also at index {$others[0]})",
+                            default => "Value '{$displayValue}' is not unique (also at indices "
+                                . implode(', ', $others)
+                                . ')',
+                        };
+
                         $errors[$idx] = [
-                            $fieldName => [
-                                $message
-                                    ?? "Value '{$displayValue}' is not unique (also used at index {$entry['indices'][0]})",
-                            ],
+                            $fieldName => [$defaultMessage],
                         ];
                     }
                 }

@@ -325,8 +325,12 @@ it('should validate uniqueField rejects duplicate field values', function () {
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
         $errors = $e->getErrors();
+        expect($errors)->toHaveKey(0);
         expect($errors)->toHaveKey(2);
+        expect($errors[0])->toHaveKey('destination');
         expect($errors[2])->toHaveKey('destination');
+        expect($errors[0]['destination'][0])->toContain("'/path/a'");
+        expect($errors[0]['destination'][0])->toContain('index 2');
         expect($errors[2]['destination'][0])->toContain("'/path/a'");
         expect($errors[2]['destination'][0])->toContain('index 0');
     }
@@ -354,8 +358,10 @@ it('should produce correct flattened error paths from uniqueField', function () 
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
         $flattened = $e->getFlattenedErrors();
-        expect($flattened)->toHaveCount(1);
-        expect($flattened[0]['path'])->toBe('symlinks.2.destination');
+        expect($flattened)->toHaveCount(2);
+        $paths = array_map(fn($e) => $e['path'], $flattened);
+        expect($paths)->toContain('symlinks.0.destination');
+        expect($paths)->toContain('symlinks.2.destination');
         expect($flattened[0]['message'])->toContain("'/same'");
     }
 });
@@ -378,12 +384,14 @@ it('should report multiple duplicates from uniqueField', function () {
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
         $errors = $e->getErrors();
+        expect($errors)->toHaveKey(0);
+        expect($errors)->toHaveKey(1);
         expect($errors)->toHaveKey(2);
         expect($errors)->toHaveKey(3);
+        expect($errors[0])->toHaveKey('id');
+        expect($errors[1])->toHaveKey('id');
         expect($errors[2])->toHaveKey('id');
         expect($errors[3])->toHaveKey('id');
-        expect($errors)->not->toHaveKey(0);
-        expect($errors)->not->toHaveKey(1);
         expect($errors)->not->toHaveKey(4);
     }
 });
@@ -420,6 +428,7 @@ it('should use custom error message for uniqueField', function () {
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
         $errors = $e->getErrors();
+        expect($errors[0]['email'][0])->toBe('Duplicate email address');
         expect($errors[1]['email'][0])->toBe('Duplicate email address');
     }
 });
@@ -438,7 +447,9 @@ it('should work with uniqueField on object items', function () {
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
         $errors = $e->getErrors();
+        expect($errors)->toHaveKey(0);
         expect($errors)->toHaveKey(2);
+        expect($errors[0])->toHaveKey('code');
         expect($errors[2])->toHaveKey('code');
     }
 });
@@ -453,7 +464,7 @@ it('should pass uniqueField on empty array', function () {
     expect($validator->validate([]))->toBe([]);
 });
 
-it('should mark all later occurrences when three or more duplicates exist in uniqueField', function () {
+it('should mark all occurrences when three or more duplicates exist in uniqueField', function () {
     $validator = Validator::isArray()
         ->items(Validator::isAssociative([
             'code' => Validator::isString()->required(),
@@ -470,12 +481,13 @@ it('should mark all later occurrences when three or more duplicates exist in uni
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
         $errors = $e->getErrors();
+        expect($errors)->toHaveKey(0);
         expect($errors)->toHaveKey(2);
         expect($errors)->toHaveKey(3);
-        expect($errors)->not->toHaveKey(0);
         expect($errors)->not->toHaveKey(1);
-        expect($errors[2]['code'][0])->toContain('index 0');
-        expect($errors[3]['code'][0])->toContain('index 0');
+        expect($errors[0]['code'][0])->toContain('indices 2, 3');
+        expect($errors[2]['code'][0])->toContain('indices 0, 3');
+        expect($errors[3]['code'][0])->toContain('indices 0, 2');
     }
 });
 
@@ -501,7 +513,9 @@ it('should validate uniqueField after filterEmpty reindexes', function () {
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
         $errors = $e->getErrors();
+        expect($errors)->toHaveKey(0);
         expect($errors)->toHaveKey(1);
+        expect($errors[0])->toHaveKey('dest');
         expect($errors[1])->toHaveKey('dest');
     }
 });
