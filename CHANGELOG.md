@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 - **CRITICAL BUG**: Fixed `default()` and `required()` interaction -- `required()` was rejecting null values before `default()` had a chance to provide a fallback
   - **Issue**: Chaining `->default($value)->required()` always threw "Value is required" for null inputs because `required` checked for null before `default` was applied
   - **Root Cause**: `tryValidate()` had a scattered, multi-branch architecture with `default` and `required` checks duplicated across 5+ locations (early returns, pre-pipeline, mid-loop, post-loop), making the interaction order unpredictable
-  - **Fix**: Simplified `tryValidate()` to a clean linear 4-step flow: coerce, type check, pipeline, then default-before-required at the end
+  - **Fix**: Simplified `tryValidate()` to a clean linear 5-step flow: coerce, type check, pipeline, default, required
   - **Impact**: `default()` and `required()` now work cooperatively -- `default()` is the last-resort fallback for null, `required()` only fails if the value is still null after default
   - **Real-World Benefit**: Enables patterns like `->pipe(fn($x) => null)->default($fallback)->required()` where a pipeline step intentionally nullifies a value and `default()` catches it before `required()` enforces presence
 

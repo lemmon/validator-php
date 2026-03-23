@@ -26,7 +26,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 **Key Design Principles:**
 
 - **Type-Safe Architecture**: Modern PHP 8.1+ enums provide IDE autocomplete, refactoring safety, and eliminate magic strings throughout the codebase
-- **Smart Null Handling**: Validations skip `null` unless `required()`. `transform()` runs on `null`, while `pipe()` and `nullifyEmpty()` skip `null` for type safety.
+- **Smart Null Handling**: Validations skip `null` unless `required()`. `transform()` and `pipe()` skip `null` by default for type safety. Use `transform($fn, skipNull: false)` to process null values.
 - **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
 - **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written -- `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
 - **Last-Resort Default**: `default()` is a flag applied after the pipeline -- fills in null only as a last resort, before `required()` enforces presence
@@ -39,7 +39,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 ## Features
 
 - **Type-safe architecture** - PHP 8.1+ enums with IDE autocomplete, refactoring safety, and zero magic strings
-- **Smart null handling** - validations skip `null` unless `required()`, `transform()` runs on `null`, `pipe()`/`nullifyEmpty()` skip `null`
+- **Smart null handling** - validations skip `null` unless `required()`, `transform()`/`pipe()`/`nullifyEmpty()` skip `null` by default
 - **Type-safe validation** for strings, integers, floats, arrays, and objects
 - **Fluent, chainable API** with guaranteed execution order -- methods execute exactly as written in the chain
 - **Schema-level error aggregation** with fail-fast behavior per field for clear, early feedback

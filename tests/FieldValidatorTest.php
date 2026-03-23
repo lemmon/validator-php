@@ -573,3 +573,55 @@ it('should use custom required message with nullifyEmpty', function () {
     // Empty string nullified, then fails required validation
     $validator->validate('');
 })->throws(ValidationException::class, 'Field cannot be empty');
+
+it('should apply default before required check for null input', function () {
+    $validator = Validator::isString()->default('fallback')->required();
+
+    expect($validator->validate(null))->toBe('fallback');
+    expect($validator->validate('actual'))->toBe('actual');
+});
+
+it('should apply default after pipeline nullifies value', function () {
+    $validator = Validator::isString()
+        ->pipe('trim')
+        ->nullifyEmpty()
+        ->default('fallback')
+        ->required();
+
+    expect($validator->validate('   '))->toBe('fallback');
+    expect($validator->validate('hello'))->toBe('hello');
+});
+
+it('should fail required when no default catches null', function () {
+    $validator = Validator::isString()
+        ->pipe('trim')
+        ->nullifyEmpty()
+        ->required('Cannot be blank');
+
+    $validator->validate('   ');
+})->throws(ValidationException::class, 'Cannot be blank');
+
+it('should apply default after transform with skipNull false produces null', function () {
+    $validator = Validator::isString()
+        ->transform(fn($v) => null, skipNull: false)
+        ->default('rescued');
+
+    expect($validator->validate(null))->toBe('rescued');
+    expect($validator->validate('anything'))->toBe('rescued');
+});
+
+it('should fail required after transform with skipNull false produces null and no default', function () {
+    $validator = Validator::isString()
+        ->transform(fn($v) => null, skipNull: false)
+        ->required('Still needed');
+
+    $validator->validate('anything');
+})->throws(ValidationException::class, 'Still needed');
+
+it('should apply default from transform with skipNull false then pass required', function () {
+    $validator = Validator::isString()
+        ->transform(fn($v) => $v ?? 'from-transform', skipNull: false)
+        ->required();
+
+    expect($validator->validate(null))->toBe('from-transform');
+});

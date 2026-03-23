@@ -21,7 +21,7 @@
 - **Entry Point:** `Validator` static factory (e.g., `Validator::isString()`).
 - **Fluency:** Validators are mutable during configuration but used sequentially.
 - **Execution:**
-  - `validate(mixed $value, string $key = '', array $input = [])` throws `ValidationException`.
+  - `validate(mixed $value, string $key = '', mixed $input = null)` throws `ValidationException`.
   - `tryValidate(mixed $value, string $key = '', mixed $input = null)` returns tuple `[bool $valid, mixed $data, ?array $errors]`.
 - **Fail-Fast:** Each validator chain stops at the first failing rule; schema validators aggregate errors across fields.
 - **Error Structure:** `ValidationException` contains nested array of error messages. Use `getFlattenedErrors()` for API format `[{path: string, message: string}]`.

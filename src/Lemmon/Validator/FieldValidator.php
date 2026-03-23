@@ -122,7 +122,7 @@ abstract class FieldValidator
                 }
                 return $value;
             },
-            'skipNull' => true, // Validations always skip null (required already checked)
+            'skipNull' => true, // Validations skip null (optional fields should not run custom rules)
         ];
         return $this;
     }
@@ -351,11 +351,11 @@ abstract class FieldValidator
      *
      * @param mixed $value The value to validate.
      * @param string $key The key of the field being validated.
-     * @param array<string, mixed> $input The entire input array.
+     * @param mixed $input The entire input payload (array or object).
      * @return mixed The validated and potentially coerced value.
      * @throws ValidationException If validation fails.
      */
-    public function validate(mixed $value, string $key = '', array $input = []): mixed
+    public function validate(mixed $value, string $key = '', mixed $input = null): mixed
     {
         [$valid, $data, $errors] = $this->tryValidate($value, $key, $input);
         if (!$valid) {
@@ -372,7 +372,7 @@ abstract class FieldValidator
      * @param mixed|null $input The entire input payload (array or object).
      * @return array{bool, mixed, array<string>|null} A tuple containing:
      *                                                 - bool: true if validation is successful, false otherwise.
-     *                                                 - mixed: The validated and potentially coerced value, or the original value on failure.
+     *                                                 - mixed: The validated and potentially coerced value on success, or the (possibly coerced) input value on failure.
      *                                                 - array|null: An array of error messages on failure, or null on success.
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
