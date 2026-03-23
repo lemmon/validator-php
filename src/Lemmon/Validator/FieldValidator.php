@@ -388,7 +388,7 @@ abstract class FieldValidator
 
             // Execute pipeline
             foreach ($this->pipeline as $step) {
-                if (is_null($processedValue) && ($step['type'] === PipelineType::VALIDATION || $step['skipNull'])) {
+                if (is_null($processedValue) && $step['skipNull']) {
                     continue;
                 }
                 $processedValue = $step['operation']($processedValue, $key, $input);
