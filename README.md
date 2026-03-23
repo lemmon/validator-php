@@ -29,6 +29,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 - **Smart Null Handling**: Validations skip `null` unless `required()`. `transform()` runs on `null`, while `pipe()` and `nullifyEmpty()` skip `null` for type safety.
 - **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
 - **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written -- `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
+- **Last-Resort Default**: `default()` is a flag applied after the pipeline -- fills in null only as a last resort, before `required()` enforces presence
 - **Fail-Fast Per Field**: Each validator stops at the first failing rule, while schema validation still aggregates errors across fields
 - **API-Friendly Error Format**: Flattened errors with field paths (`'_root'` for root-level, dot notation for nested) perfect for frontend consumption
 - **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically

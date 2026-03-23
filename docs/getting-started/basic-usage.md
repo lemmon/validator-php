@@ -152,7 +152,7 @@ $result = $safeQuantity->validate('5'); // Returns: 5
 
 ### Execution Order Matters
 
-**Critical**: Pipeline steps execute in the **exact order written**. This matters for `pipe()`, `transform()`, and `nullifyEmpty()`. `required()` is a flag, so its position does not change execution order.
+**Critical**: Pipeline steps execute in the **exact order written**. This matters for `pipe()`, `transform()`, and `nullifyEmpty()`. Both `required()` and `default()` are flags -- their position does not change execution order. `default()` fills in null after the pipeline as a last resort; `required()` enforces presence at the very end.
 
 ```php
 // Order matters for transformations

@@ -377,55 +377,31 @@ abstract class FieldValidator
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
-        // Handle initial null values - only return early if no pipeline, no default, and not required
-        if (is_null($value) && count($this->pipeline) === 0 && !$this->required) {
-            return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
-        }
-
-        $value = $this->coerce ? $this->coerceValue($value) : $value;
-
-        // Handle null values after coercion - only return early if no pipeline, no default, and not required
-        if (is_null($value) && count($this->pipeline) === 0 && !$this->required) {
-            return $this->hasDefault ? [true, $this->default, null] : [true, null, null];
+        // Coerce input
+        if ($this->coerce) {
+            $value = $this->coerceValue($value);
         }
 
         try {
-            // Check required first for null values
-            if ($this->required && is_null($value)) {
-                throw new ValidationException([$this->requiredMessage]);
-            }
+            // Type validation (skip null -- default/required will handle it)
+            $processedValue = is_null($value) ? $value : $this->validateType($value, $key);
 
-            // Skip type validation for null values if we have pipeline (let pipeline handle it)
-            $processedValue = is_null($value) && count($this->pipeline) > 0
-                ? $value
-                : $this->validateType($value, $key);
-
-            // Execute the unified pipeline with smart null handling
+            // Execute pipeline
             foreach ($this->pipeline as $step) {
-                $operation = $step['operation'];
-                $type = $step['type'];
-                $skipNull = $step['skipNull'];
-
-                // Smart null handling: validations always skip null, transformations skip based on skipNull flag
-                // pipe() transformations skip null (type-preserving, expect specific type)
-                // transform() transformations execute on null (can handle null and change types)
-                if (is_null($processedValue)) {
-                    if ($type === PipelineType::VALIDATION || $skipNull) {
-                        continue;
-                    }
+                if (is_null($processedValue) && ($step['type'] === PipelineType::VALIDATION || $step['skipNull'])) {
+                    continue;
                 }
-
-                $processedValue = $operation($processedValue, $key, $input);
-
-                // Check required again if value became null during transformations
-                if ($this->required && is_null($processedValue)) {
-                    throw new ValidationException([$this->requiredMessage]);
-                }
+                $processedValue = $step['operation']($processedValue, $key, $input);
             }
 
-            // Apply default if final result is null
+            // Default -- last resort fallback for null
             if (is_null($processedValue) && $this->hasDefault) {
                 $processedValue = $this->default;
+            }
+
+            // Required -- single check, always last
+            if ($this->required && is_null($processedValue)) {
+                throw new ValidationException([$this->requiredMessage]);
             }
 
             return [true, $processedValue, null];

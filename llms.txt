@@ -10,7 +10,7 @@
   - **Transformations**:
     - `pipe(callable)`: Skips `null` values (type-preserving, expects specific type).
     - `transform(callable, bool $skipNull = true)`: Skips `null` by default (most type conversions don't need null). Set `$skipNull = false` to process null values.
-- **Pipeline Order:** Pipeline steps execute in the exact order defined; `required()` is a flag enforced after the pipeline regardless of position.
+- **Pipeline Order:** Pipeline steps execute in the exact order defined. `default()` and `required()` are flags evaluated after the pipeline regardless of position: `default()` is the last-resort fallback for null, `required()` enforces presence after default has had its chance.
 - **Transformation Types:**
   - `pipe(callable)`: Intended for sanitization. Preserves type context and applies type-coercion to result.
   - `transform(callable)`: Intended for type conversion. Updates type context; no coercion.
@@ -25,8 +25,8 @@
   - `tryValidate(mixed $value, string $key = '', mixed $input = null)` returns tuple `[bool $valid, mixed $data, ?array $errors]`.
 - **Fail-Fast:** Each validator chain stops at the first failing rule; schema validators aggregate errors across fields.
 - **Error Structure:** `ValidationException` contains nested array of error messages. Use `getFlattenedErrors()` for API format `[{path: string, message: string}]`.
-- **Null Handling:** Validators skip `null` values unless `required()` is called.
-- **Pipeline:** Supports both validation (`satisfies`) and transformation (`transform`, `pipe`).
+- **Null Handling:** Validators skip `null` values unless `required()` is called. `default()` fills in null as a last-resort fallback after the pipeline; `required()` enforces presence at the very end.
+- **Pipeline:** Supports both validation (`satisfies`) and transformation (`transform`, `pipe`). Flow: coerce -> type check -> pipeline -> default -> required.
 - **Coercion:** `coerce()` enables smart type conversion (e.g., "true" -> `true`). Non-coercible values pass through unchanged.
 - **Form Safety:** Empty strings `''` are treated as `null` for primitives if coerced.
 
@@ -183,7 +183,7 @@ oneOf(array $values, ?string $message = null): static // Deprecated alias for in
 Validator::isString()
     ->pipe('trim')  // Transformation: "  \n  " → "" (preserves string type, skips null)
     ->nullifyEmpty()  // Transformation: "" → null (converts empty string/array to null)
-    ->required()  // Validation flag: enforced after pipeline, throws if value is null
+    ->required()  // Flag: enforced after pipeline + default(); throws if value is still null
     ->date('Y-m-d')  // Validation: checks format Y-m-d (skips null, but required() ensures non-null)
     ->transform(fn($s) => DateTime::createFromFormat('Y-m-d', $s)); // Transformation: String → DateTime (receives validated string)
 // With valid input "2024-01-15": "2024-01-15" → trim → "2024-01-15" → nullifyEmpty (no-op) → date validation → transform receives "2024-01-15" → DateTime

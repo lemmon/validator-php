@@ -121,14 +121,13 @@ Validator::isObject($schema)            // stdClass object with schema
 
 Understanding the validation flow helps debug and optimize your validators:
 
-1. **Input Received** - Raw value passed to validator
-2. **Type Coercion** - If enabled, attempt type conversion
-3. **Required Check** - If required and value is null → error
-4. **Type Validation** - Check value type (skipped for null when the pipeline is present)
-5. **Pipeline Execution** - Validations and transformations run in the order written (fail-fast per field)
-6. **Required Re-Check** - If transformations produce null on a required field → error
-7. **Default Application** - If final result is null and a default exists → apply default
-8. **Return Result** - Return validated/coerced/transformed value or errors
+1. **Type Coercion** - If enabled, attempt type conversion (empty strings become `null` for primitives)
+2. **Type Validation** - Check value type (skipped for null -- lets the pipeline and default/required handle it)
+3. **Pipeline Execution** - Validations and transformations run in the order written (fail-fast per field)
+4. **Default** - Last-resort fallback: if the result is null and a default exists, apply it
+5. **Required** - Single check, always last: if the value is still null after default, fail
+
+`default()` and `required()` are both flags -- their position in the fluent chain does not change when they are evaluated. `default()` always applies after the pipeline as the last-resort fallback for null. `required()` always enforces presence at the very end, after default has had its chance.
 
 ## Data Transformations
 
@@ -257,7 +256,7 @@ $processed = Validator::isArray()
 
 ### Transformation Pipeline Order
 
-Pipeline methods (`pipe()`, `transform()`, `nullifyEmpty()`, `satisfies()`, etc.) execute in their written order. `required()` is a flag, so its position does not change execution order:
+Pipeline methods (`pipe()`, `transform()`, `nullifyEmpty()`, `satisfies()`, etc.) execute in their written order. `required()` and `default()` are flags -- their position does not change execution order:
 
 ```php
 // Execution order: trim → nullifyEmpty
@@ -316,7 +315,7 @@ $nameValidator->validate('    ');     // ❌ "Name is required" (trimmed to empt
 ->pipe('trim')->nullifyEmpty()->required()
 ```
 
-You expect: trim → nullify → required check, and that's exactly what happens. `required()` is a flag and is enforced after the pipeline regardless of where it appears in the chain.
+You expect: trim → nullify → required check, and that's exactly what happens. Both `required()` and `default()` are flags evaluated after the pipeline, regardless of where they appear in the chain. `default()` fills in null as a last resort, then `required()` enforces presence.
 
 **Flexibility**: Different orders enable different behaviors for different use cases:
 
