@@ -148,7 +148,10 @@ _Schema validation_
 ```php
 // Constructor accepts array<string, FieldValidator>
 coerceAll(): static // Recursively enables coercion on schema fields
+passthrough(): static // Copy undeclared keys/properties from input to output without validating them; schema fields still validated; does not overwrite keys already set from the schema (including outputKey targets)
 ```
+
+By default, outputs only schema-defined keys (plus defaults). With `passthrough()`, any input key not in the schema is copied through unchanged (shallow); nested structures are not recursively validated. For `ObjectValidator`, only **public** properties from the input object are considered (via `get_object_vars()`).
 
 ### BoolValidator
 

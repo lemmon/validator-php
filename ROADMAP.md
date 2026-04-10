@@ -24,7 +24,8 @@ Focused on core validation primitives, consistent pipelines, and extensibility v
 ## Future (Schema and Structure)
 
 - [ ] Schema composition: `partial()`, `pick()`, `omit()`, `merge()`
-- [ ] Unknown key policies: `strict()` (reject undeclared keys) and `passthrough()` (preserve undeclared keys)
+- [x] `passthrough()` on `AssociativeValidator` / `ObjectValidator` (preserve undeclared keys)
+- [ ] `strict()` (reject undeclared keys)
 - [ ] Explicit key deny-listing: `forbidKeys(array $keys, ?string $message = null)`
 - [ ] Key validation: `patternProperties()`, `propertyNames()`
 - [ ] Cross-field dependencies: `dependencies()`

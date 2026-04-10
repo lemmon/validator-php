@@ -19,7 +19,7 @@ Core validation logic lives in `src/Lemmon/Validator/`. Tests in `tests/` follow
 - **Validators:** `isString`, `isInt`, `isFloat`, `isBool`, `isArray`, `isAssociative`, `isObject`
 - **Shared:** `NumericConstraintsTrait` (min, max, multipleOf, etc.); `PipelineType` enum; variant enums `IpVersion`, `Base64Variant`, `UuidVariant` for format methods
 - **String formats:** email, URL, UUID, IP, hostname, domain, time, base64, hex, regex, datetime, date
-- **Schema validation:** AssociativeValidator/ObjectValidator with nested error aggregation
+- **Schema validation:** AssociativeValidator/ObjectValidator with nested error aggregation; shared `SchemaValidatorOptionsTrait` (`coerceAll`, `passthrough`, schema clone helper); `passthrough()` keeps undeclared keys/properties (unvalidated); default output is schema keys only
 - **Logical combinators:** `Validator::allOf`, `anyOf`, `not`; instance `satisfiesAny`, `satisfiesAll`, `satisfiesNone`; `const()` for single allowed value; `enum()` for BackedEnum
 - **Behavior:** Optional by default (null allowed unless `required()`); form-safe coercion (empty string → null, not 0/false); pipeline order guaranteed; fail-fast per field; `satisfies()` accepts validators or callables with `(value, key, input)`; extend via `satisfies()`, not custom validators
 

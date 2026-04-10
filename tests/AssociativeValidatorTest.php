@@ -289,3 +289,47 @@ it('should remap output key for fields with default values', function () {
     expect($data)->toBe(['tier' => 3]);
     expect($data)->not->toHaveKey('level');
 });
+
+it('should preserve undeclared keys when passthrough is enabled', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+    ])->passthrough();
+
+    $input = [
+        'name' => 'Ann',
+        'metadata' => ['deep' => true],
+        'extra' => 1,
+    ];
+
+    $data = $schema->validate($input);
+
+    expect($data['name'])->toBe('Ann');
+    expect($data['metadata'])->toBe(['deep' => true]);
+    expect($data['extra'])->toBe(1);
+});
+
+it('should pass through all keys when schema is empty and passthrough is enabled', function () {
+    $schema = Validator::isAssociative([])->passthrough();
+
+    $input = [
+        'a' => 1,
+        'nested' => ['b' => 2],
+    ];
+
+    expect($schema->validate($input))->toBe($input);
+});
+
+it('should not let passthrough overwrite outputKey targets', function () {
+    $schema = Validator::isAssociative([
+        'service_id' => Validator::isString()->uuid()->outputKey('service'),
+    ])->passthrough();
+
+    $input = [
+        'service_id' => '550e8400-e29b-41d4-a716-446655440000',
+        'service' => 'unvalidated-should-not-win',
+    ];
+
+    $data = $schema->validate($input);
+
+    expect($data['service'])->toBe('550e8400-e29b-41d4-a716-446655440000');
+});

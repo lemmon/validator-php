@@ -222,3 +222,50 @@ it('should remap output key with outputKey when field is provided', function () 
     expect($data)->not->toHaveProperty('service_id');
     expect($data)->not->toHaveProperty('user_id');
 });
+
+it('should preserve undeclared properties when passthrough is enabled', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString()->required(),
+    ])->passthrough();
+
+    $input = (object) [
+        'name' => 'Ann',
+        'metadata' => ['deep' => true],
+        'extra' => 1,
+    ];
+
+    $data = $schema->validate($input);
+
+    expect($data->name)->toBe('Ann');
+    expect($data->metadata)->toBe(['deep' => true]);
+    expect($data->extra)->toBe(1);
+});
+
+it('should pass through all properties when schema is empty and passthrough is enabled', function () {
+    $schema = Validator::isObject([])->passthrough();
+
+    $input = (object) [
+        'a' => 1,
+        'nested' => ['b' => 2],
+    ];
+
+    $data = $schema->validate($input);
+
+    expect($data->a)->toBe(1);
+    expect($data->nested)->toBe(['b' => 2]);
+});
+
+it('should not let passthrough overwrite outputKey targets', function () {
+    $schema = Validator::isObject([
+        'service_id' => Validator::isString()->uuid()->outputKey('service'),
+    ])->passthrough();
+
+    $input = (object) [
+        'service_id' => '550e8400-e29b-41d4-a716-446655440000',
+        'service' => 'unvalidated-should-not-win',
+    ];
+
+    $data = $schema->validate($input);
+
+    expect($data->service)->toBe('550e8400-e29b-41d4-a716-446655440000');
+});

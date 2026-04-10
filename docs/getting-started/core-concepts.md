@@ -115,6 +115,7 @@ Validator::isArray()->items($itemValidator) // With item validation
 ```php
 Validator::isAssociative($schema)       // Associative array with schema
 Validator::isObject($schema)            // stdClass object with schema
+// Optional on both: ->coerceAll(), ->passthrough() (keep undeclared keys unvalidated)
 ```
 
 ## Validation Flow

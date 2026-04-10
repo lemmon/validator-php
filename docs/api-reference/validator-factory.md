@@ -135,7 +135,7 @@ $user = $userValidator->validate([
 
 **Returns:** `AssociativeValidator` instance with schema validation capabilities.
 
-**See Also:** [Object & Schema Validation Guide](../guides/object-validation.md)
+**See also:** [Object & Schema Validation Guide](../guides/object-validation.md) (`coerceAll()`, `passthrough()`, and schema patterns).
 
 ---
 
@@ -170,7 +170,7 @@ $validConfig = $configValidator->validate($config);
 
 **Returns:** `ObjectValidator` instance with schema validation capabilities.
 
-**See Also:** [Object & Schema Validation Guide](../guides/object-validation.md)
+**See also:** [Object & Schema Validation Guide](../guides/object-validation.md) (`coerceAll()`, `passthrough()`, and schema patterns).
 
 ---
 

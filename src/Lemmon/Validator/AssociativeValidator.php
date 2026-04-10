@@ -6,7 +6,7 @@ namespace Lemmon\Validator;
 
 class AssociativeValidator extends FieldValidator
 {
-    private bool $coerceAll = false;
+    use SchemaValidatorOptionsTrait;
 
     /**
      * @param array<string, FieldValidator> $schema
@@ -21,12 +21,6 @@ class AssociativeValidator extends FieldValidator
     protected function getValidatorType(): string
     {
         return 'associative_array';
-    }
-
-    public function coerceAll(): self
-    {
-        $this->coerceAll = true;
-        return $this;
     }
 
     /**
@@ -93,15 +87,21 @@ class AssociativeValidator extends FieldValidator
             throw new ValidationException($errors);
         }
 
+        if ($this->passthrough) {
+            foreach ($value as $inputKey => $rawValue) {
+                if (\array_key_exists($inputKey, $this->schema) || \array_key_exists($inputKey, $data)) {
+                    continue;
+                }
+                $data[$inputKey] = $rawValue;
+            }
+        }
+
         return $data;
     }
 
     public function __clone()
     {
         parent::__clone();
-
-        foreach ($this->schema as $fieldKey => $validator) {
-            $this->schema[$fieldKey] = $validator->clone();
-        }
+        $this->cloneSchemaFieldValidators();
     }
 }

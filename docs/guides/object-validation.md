@@ -8,6 +8,7 @@ This guide covers validation of structured data using `AssociativeValidator` (fo
 - [Object Validation](#object-validation)
 - [Schema Definition](#schema-definition)
 - [Output Key Remapping](#output-key-remapping)
+- [Passthrough (undeclared keys)](#passthrough-undeclared-keys)
 - [Type Coercion](#type-coercion)
 - [Advanced Features](#advanced-features)
 - [Common Patterns](#common-patterns)
@@ -156,7 +157,7 @@ Works with both `Validator::isAssociative()` and `Validator::isObject()`.
 
 ### Field Inclusion Behavior
 
-Schema validators only include fields in the result that were either:
+**By default**, schema validators only include fields in the result that were either:
 
 1. **Provided in the input data**, or
 2. **Have default values applied**
@@ -190,9 +191,40 @@ $result = $schema->validate($input);
 
 This behavior ensures that:
 
-- **Results accurately reflect the validated data** without unexpected properties
+- **Results accurately reflect the validated data** without unexpected properties (unless you opt into `passthrough()` below)
 - **Default values are consistently applied** when fields are missing
 - **Required field validation still works** (missing required fields cause validation to fail)
+
+### Passthrough (undeclared keys)
+
+Call `passthrough()` on a schema-backed `Validator::isAssociative()` or `Validator::isObject()` to **copy input keys that are not declared in the schema** onto the validated output **without validating them**. Declared fields are still run through their validators. Values already written from the schema (including keys produced by `outputKey()`) are **not** overwritten by passthrough.
+
+Passthrough runs only after all schema fields validate successfully. Copied values are shallow: nested arrays or objects are not recursively validated.
+
+```php
+$schema = Validator::isAssociative([
+    'name' => Validator::isString()->required(),
+])->passthrough();
+
+$input = [
+    'name' => 'Ann',
+    'metadata' => ['any' => 'structure'],
+    'version' => 1,
+];
+
+$result = $schema->validate($input);
+// Result includes name (validated) plus metadata and version (copied as-is)
+```
+
+With an **empty schema**, `passthrough()` keeps the entire map (still subject to array/object type rules and coercion on the container itself). That pattern is useful for optional opaque payloads such as API metadata:
+
+```php
+$result = Validator::isAssociative([])->passthrough()
+    ->validate(['foo' => 1, 'nested' => ['x' => true]]);
+// $result is the same associative shape, unvalidated
+```
+
+For `ObjectValidator`, only **public** properties on the input object are considered for passthrough (same visibility as `get_object_vars()`).
 
 ### Nested Schemas
 

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `passthrough()` on `AssociativeValidator` and `ObjectValidator`: copy undeclared keys or public properties from the input to the validated output without validating them; declared schema fields are still validated; values already written from the schema (including `outputKey` targets) are not overwritten by passthrough
+
 ## [0.14.0] - 2026-03-23
 
 ### Added
