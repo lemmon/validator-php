@@ -189,6 +189,8 @@ $result = $coercingValidator->validate('1'); // Returns: true (bool)
 $result = $coercingValidator->validate('false'); // Returns: false (bool)
 ```
 
+With `coerce()`, only **scalar** values are normalized to booleans from common string forms (`true` / `on` / `1`, etc.). Arrays, objects, and other non-scalars are not cast to string; they fail boolean type validation with `ValidationException`.
+
 **Returns:** `BoolValidator` instance with boolean-specific validation methods.
 
 ## Usage Patterns

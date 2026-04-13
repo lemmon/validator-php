@@ -16,10 +16,14 @@ class BoolValidator extends FieldValidator
         if ($value === '') {
             return null; // Empty string to null for form safety
         }
-        if (in_array(strtolower((string) $value), ['true', 'on', '1'], true)) {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+        $normalized = strtolower((string) $value);
+        if (in_array($normalized, ['true', 'on', '1'], true)) {
             return true;
         }
-        if (in_array(strtolower((string) $value), ['false', 'off', '0'], true)) {
+        if (in_array($normalized, ['false', 'off', '0'], true)) {
             return false;
         }
         return $value;

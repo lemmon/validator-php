@@ -52,3 +52,10 @@ it('should return non-coercible values as-is for type validation to handle', fun
     expect(fn() => $validator->validate('invalid'))->toThrow(ValidationException::class);
     expect(fn() => $validator->validate(123))->toThrow(ValidationException::class);
 });
+
+it('should reject non-scalar values with coercion without PHP warnings or errors', function () {
+    $validator = Validator::isBool()->coerce();
+
+    expect(fn() => $validator->validate([]))->toThrow(ValidationException::class);
+    expect(fn() => $validator->validate(new stdClass()))->toThrow(ValidationException::class);
+});

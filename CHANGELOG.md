@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- `BoolValidator::coerce()` no longer string-casts non-scalar values (arrays triggered `E_WARNING`, objects without `__toString` threw `Error`); non-scalars are passed through to type validation, which raises `ValidationException` as for other invalid types
+
 ### Added
 
 - `passthrough()` on `AssociativeValidator` and `ObjectValidator`: copy undeclared keys or public properties from the input to the validated output without validating them; declared schema fields are still validated; values already written from the schema (including `outputKey` targets) are not overwritten by passthrough
