@@ -13,7 +13,11 @@ class ObjectValidator extends FieldValidator
      */
     public function __construct(
         private array $schema,
-    ) {}
+    ) {
+        foreach ($this->schema as $key => $validator) {
+            $this->schema[$key] = $validator->clone();
+        }
+    }
 
     /**
      * @inheritDoc
@@ -55,10 +59,6 @@ class ObjectValidator extends FieldValidator
         $errors = [];
 
         foreach ($this->schema as $fieldKey => $validator) {
-            if ($this->coerceAll) {
-                $validator->coerce();
-            }
-
             // Get field value (null if not present)
             $fieldValue = property_exists($value, $fieldKey) ? $value->{$fieldKey} : null;
 

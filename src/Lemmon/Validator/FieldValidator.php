@@ -7,6 +7,7 @@ namespace Lemmon\Validator;
 abstract class FieldValidator
 {
     protected mixed $default = null;
+    protected ?\Closure $defaultFactory = null;
     protected bool $hasDefault = false;
     protected bool $coerce = false;
     protected bool $required = false;
@@ -24,11 +25,17 @@ abstract class FieldValidator
     }
 
     /**
-     * @var array<array{type: PipelineType, operation: callable, skipNull: bool}>
+     * @var array<array{
+     *     type: PipelineType,
+     *     operation: callable,
+     *     skipNull: bool,
+     *     bindable: bool,
+     *     rebuildOperation: null|\Closure
+     * }>
      */
     protected array $pipeline = [];
     /**
-     * Current type context for transformations (null = original validator type)
+     * Transient type context for the active validation run (null = original validator type).
      */
     protected ?string $currentType = null;
 
@@ -54,6 +61,26 @@ abstract class FieldValidator
     public function default(mixed $value): self
     {
         $this->default = $value;
+        $this->defaultFactory = null;
+        $this->hasDefault = true;
+        return $this;
+    }
+
+    /**
+     * Sets a default factory that is invoked whenever validation resolves to null.
+     *
+     * Use this whenever the default is an object that should not be shared across validation
+     * runs. {@see default()} stores the value as-is, so object defaults are returned by handle;
+     * this method invokes the factory on each run, guaranteeing a fresh instance.
+     * Prefer static closures so the factory does not implicitly capture the caller's `$this`.
+     *
+     * @param callable(): mixed $factory
+     * @return $this
+     */
+    public function defaultUsing(callable $factory): self
+    {
+        $this->default = null;
+        $this->defaultFactory = \Closure::fromCallable($factory);
         $this->hasDefault = true;
         return $this;
     }
@@ -64,6 +91,26 @@ abstract class FieldValidator
      * @return $this
      */
     public function coerce(): self
+    {
+        $this->coerce = true;
+        return $this;
+    }
+
+    /**
+     * Enables coercion on this validator and recursively on any nested validators.
+     *
+     * On leaf validators this is identical to {@see coerce()}. Schema validators and
+     * {@see ArrayValidator} override this to propagate coercion to their children
+     * (schema fields, array items, nested schemas).
+     *
+     * Does not propagate into assertion operands -- validators passed to
+     * {@see satisfies()}, {@see satisfiesAll()}, {@see satisfiesAny()},
+     * {@see satisfiesNone()}, or {@see ArrayValidator::contains()}. Call
+     * {@see coerce()} on those validators individually when needed.
+     *
+     * @return $this
+     */
+    public function coerceAll(): static
     {
         $this->coerce = true;
         return $this;
@@ -92,7 +139,9 @@ abstract class FieldValidator
         $this->pipeline[] = [
             'type' => PipelineType::TRANSFORMATION,
             'operation' => static fn($value) => $value === '' || is_array($value) && $value === [] ? null : $value,
-            'skipNull' => true, // nullifyEmpty() should skip null (only operates on empty strings/arrays)
+            'skipNull' => true,
+            'bindable' => false,
+            'rebuildOperation' => null,
         ];
         return $this;
     }
@@ -106,24 +155,23 @@ abstract class FieldValidator
      */
     public function satisfies(callable|FieldValidator $validation, ?string $message = null): self
     {
-        $rule = $validation instanceof FieldValidator
-            // Convert FieldValidator to callable
-            ? static function ($value, $key = null, $input = null) use ($validation) {
-                [$valid] = $validation->tryValidate($value, $key, $input);
-                return $valid;
-            }
-            : $validation;
+        if ($validation instanceof FieldValidator) {
+            $validation = $validation->clone();
 
-        $this->pipeline[] = [
-            'type' => PipelineType::VALIDATION,
-            'operation' => static function ($value, $key = null, $input = null) use ($rule, $message) {
-                if (!$rule($value, $key, $input)) {
-                    throw new ValidationException([$message ?? 'Custom validation failed']);
-                }
-                return $value;
-            },
-            'skipNull' => true, // Validations skip null (optional fields should not run custom rules)
-        ];
+            $this->addValidationStep(
+                self::buildFieldValidatorRule($validation),
+                $message,
+                static fn(): \Closure => self::buildValidationOperation(
+                    self::buildFieldValidatorRule($validation->clone()),
+                    $message,
+                ),
+            );
+
+            return $this;
+        }
+
+        $this->addValidationStep($validation, $message);
+
         return $this;
     }
 
@@ -136,6 +184,18 @@ abstract class FieldValidator
     }
 
     /**
+     * @param array<FieldValidator|callable> $validations
+     * @return array<FieldValidator|callable>
+     */
+    private static function cloneValidatorOperands(array $validations): array
+    {
+        return array_map(
+            static fn($v) => $v instanceof FieldValidator ? $v->clone() : $v,
+            $validations,
+        );
+    }
+
+    /**
      * Validates that the value satisfies ALL of the provided validators or callables.
      *
      * @param array<FieldValidator|callable> $validations Array of validators/callables that must all pass.
@@ -144,22 +204,21 @@ abstract class FieldValidator
      */
     public function satisfiesAll(array $validations, ?string $message = null): self
     {
-        return $this->satisfies(static function ($value, $key = null, $input = null) use ($validations) {
-            foreach ($validations as $validation) {
-                if ($validation instanceof FieldValidator) {
-                    [$valid] = $validation->tryValidate($value, $key, $input);
-                    if (!$valid) {
-                        return false;
-                    }
-                    continue;
-                }
+        $message ??= 'Value must satisfy all validation rules';
+        $validations = self::cloneValidatorOperands($validations);
 
-                if (!$validation($value, $key, $input)) {
-                    return false;
-                }
-            }
-            return true;
-        }, $message ?? 'Value must satisfy all validation rules');
+        $this->addValidationStep(
+            self::buildAllRule($validations),
+            $message,
+            self::hasFieldValidatorOperands($validations)
+                ? static fn(): \Closure => self::buildValidationOperation(
+                    self::buildAllRule(self::cloneValidatorOperands($validations)),
+                    $message,
+                )
+                : null,
+        );
+
+        return $this;
     }
 
     /**
@@ -180,22 +239,21 @@ abstract class FieldValidator
      */
     public function satisfiesAny(array $validations, ?string $message = null): self
     {
-        return $this->satisfies(static function ($value, $key = null, $input = null) use ($validations) {
-            foreach ($validations as $validation) {
-                if ($validation instanceof FieldValidator) {
-                    [$valid] = $validation->tryValidate($value, $key, $input);
-                    if ($valid) {
-                        return true;
-                    }
-                    continue;
-                }
+        $message ??= 'Value must satisfy at least one validation rule';
+        $validations = self::cloneValidatorOperands($validations);
 
-                if ($validation($value, $key, $input)) {
-                    return true;
-                }
-            }
-            return false;
-        }, $message ?? 'Value must satisfy at least one validation rule');
+        $this->addValidationStep(
+            self::buildAnyRule($validations),
+            $message,
+            self::hasFieldValidatorOperands($validations)
+                ? static fn(): \Closure => self::buildValidationOperation(
+                    self::buildAnyRule(self::cloneValidatorOperands($validations)),
+                    $message,
+                )
+                : null,
+        );
+
+        return $this;
     }
 
     /**
@@ -216,25 +274,150 @@ abstract class FieldValidator
      */
     public function satisfiesNone(array $validations, ?string $message = null): self
     {
-        return $this->satisfies(
-            static function ($value, $key = null, $input = null) use ($validations) {
-                foreach ($validations as $validation) {
-                    if ($validation instanceof FieldValidator) {
-                        [$valid] = $validation->tryValidate($value, $key, $input);
-                        if ($valid) {
-                            return false; // If any validation passes, satisfiesNone fails
-                        }
-                        continue;
-                    }
+        $message ??= 'Value must not satisfy any of the validation rules';
+        $validations = self::cloneValidatorOperands($validations);
 
-                    if ($validation($value, $key, $input)) {
-                        return false; // If any validation passes, satisfiesNone fails
-                    }
-                }
-                return true; // All validations failed, so satisfiesNone passes
-            },
-            $message ?? 'Value must not satisfy any of the validation rules',
+        $this->addValidationStep(
+            self::buildNoneRule($validations),
+            $message,
+            self::hasFieldValidatorOperands($validations)
+                ? static fn(): \Closure => self::buildValidationOperation(
+                    self::buildNoneRule(self::cloneValidatorOperands($validations)),
+                    $message,
+                )
+                : null,
         );
+
+        return $this;
+    }
+
+    /**
+     * @param array<FieldValidator|callable> $validations
+     */
+    private static function hasFieldValidatorOperands(array $validations): bool
+    {
+        foreach ($validations as $validation) {
+            if ($validation instanceof FieldValidator) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function buildFieldValidatorRule(FieldValidator $validation): \Closure
+    {
+        return static function ($value, $key = null, $input = null) use ($validation): bool {
+            [$valid] = $validation->tryValidate($value, $key, $input);
+            return $valid;
+        };
+    }
+
+    /**
+     * @param array<FieldValidator|callable> $validations
+     */
+    private static function buildAllRule(array $validations): \Closure
+    {
+        return static function ($value, $key = null, $input = null) use ($validations): bool {
+            foreach ($validations as $validation) {
+                if ($validation instanceof FieldValidator) {
+                    [$valid] = $validation->tryValidate($value, $key, $input);
+                    if (!$valid) {
+                        return false;
+                    }
+                    continue;
+                }
+
+                if (!$validation($value, $key, $input)) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+    }
+
+    /**
+     * @param array<FieldValidator|callable> $validations
+     */
+    private static function buildAnyRule(array $validations): \Closure
+    {
+        return static function ($value, $key = null, $input = null) use ($validations): bool {
+            foreach ($validations as $validation) {
+                if ($validation instanceof FieldValidator) {
+                    [$valid] = $validation->tryValidate($value, $key, $input);
+                    if ($valid) {
+                        return true;
+                    }
+                    continue;
+                }
+
+                if ($validation($value, $key, $input)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+    }
+
+    /**
+     * @param array<FieldValidator|callable> $validations
+     */
+    private static function buildNoneRule(array $validations): \Closure
+    {
+        return static function ($value, $key = null, $input = null) use ($validations): bool {
+            foreach ($validations as $validation) {
+                if ($validation instanceof FieldValidator) {
+                    [$valid] = $validation->tryValidate($value, $key, $input);
+                    if ($valid) {
+                        return false;
+                    }
+                    continue;
+                }
+
+                if ($validation($value, $key, $input)) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+    }
+
+    /**
+     * Wraps a boolean rule callable in a pipeline-compatible operation that throws on failure.
+     */
+    protected static function buildValidationOperation(callable $rule, ?string $message = null): \Closure
+    {
+        return static function ($value, $key = null, $input = null) use ($rule, $message) {
+            if (!$rule($value, $key, $input)) {
+                throw new ValidationException([$message ?? 'Custom validation failed']);
+            }
+
+            return $value;
+        };
+    }
+
+    /**
+     * Appends a validation step to the pipeline.
+     *
+     * When $rule captures a FieldValidator operand, the caller must clone that operand
+     * before building $rule *and* supply a $rebuildOperation that produces a fresh
+     * operation from a new clone, so that {@see __clone()} can isolate pipeline state.
+     */
+    protected function addValidationStep(
+        callable $rule,
+        ?string $message = null,
+        ?\Closure $rebuildOperation = null,
+    ): void {
+        $this->pipeline[] = [
+            'type' => PipelineType::VALIDATION,
+            'operation' => self::buildValidationOperation($rule, $message),
+            'skipNull' => true,
+            'bindable' => false,
+            'rebuildOperation' => $rebuildOperation,
+        ];
     }
 
     /**
@@ -318,6 +501,8 @@ abstract class FieldValidator
                 return $result; // No coercion - transform can change type
             },
             'skipNull' => $skipNull,
+            'bindable' => true,
+            'rebuildOperation' => null,
         ];
         return $this;
     }
@@ -340,7 +525,9 @@ abstract class FieldValidator
                     // Apply type-specific coercion based on current type context
                     return $this->coerceForCurrentType($result);
                 },
-                'skipNull' => true, // pipe() should skip null (type-preserving, expects specific type)
+                'skipNull' => true,
+                'bindable' => true,
+                'rebuildOperation' => null,
             ];
         }
         return $this;
@@ -377,6 +564,8 @@ abstract class FieldValidator
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
+        $this->currentType = null;
+
         // Coerce input
         if ($this->coerce) {
             $value = $this->coerceValue($value);
@@ -396,7 +585,7 @@ abstract class FieldValidator
 
             // Default -- last resort fallback for null
             if (is_null($processedValue) && $this->hasDefault) {
-                $processedValue = $this->default;
+                $processedValue = $this->resolveDefaultValue();
             }
 
             // Required -- single check, always last
@@ -407,6 +596,8 @@ abstract class FieldValidator
             return [true, $processedValue, null];
         } catch (ValidationException $e) {
             return [false, $value, $e->getErrors()];
+        } finally {
+            $this->currentType = null;
         }
     }
 
@@ -513,12 +704,29 @@ abstract class FieldValidator
         return $value; // Preserve keys - no reindexing!
     }
 
+    private function resolveDefaultValue(): mixed
+    {
+        if ($this->defaultFactory instanceof \Closure) {
+            return ($this->defaultFactory)();
+        }
+
+        return $this->default;
+    }
+
     public function __clone()
     {
+        $this->currentType = null;
+
         $rebuiltPipeline = [];
         foreach ($this->pipeline as $step) {
-            $operation = $step['operation'];
-            if ($operation instanceof \Closure) {
+            // Phase 1: if this step captures a FieldValidator operand, rebuild the
+            // operation from a fresh clone so the operand's state is isolated.
+            $operation = $step['rebuildOperation'] instanceof \Closure
+                ? $step['rebuildOperation']()
+                : $step['operation'];
+            // Phase 2: re-bind non-static closures (transform/pipe) to $this so they
+            // reference the cloned validator's currentType, not the original's.
+            if ($step['bindable'] && $operation instanceof \Closure) {
                 $boundOperation = $operation->bindTo($this);
                 if ($boundOperation !== null) {
                     $operation = $boundOperation;
@@ -529,6 +737,10 @@ abstract class FieldValidator
                 'type' => $step['type'],
                 'operation' => $operation,
                 'skipNull' => $step['skipNull'],
+                'bindable' => $step['bindable'],
+                // Carried over as-is: the closure captures a template validator that is
+                // cloned on each invocation and must remain free of persistent mutable state.
+                'rebuildOperation' => $step['rebuildOperation'],
             ];
         }
 

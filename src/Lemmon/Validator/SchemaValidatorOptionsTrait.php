@@ -15,9 +15,28 @@ trait SchemaValidatorOptionsTrait
 
     private bool $passthrough = false;
 
-    public function coerceAll(): self
+    /**
+     * Recursively enable coercion on every schema field. Nested schema and array validators
+     * propagate coercion to their own children.
+     *
+     * Safe to call on shared definitions: the constructor already clones every field
+     * validator, so mutations here stay local to this schema instance.
+     *
+     * Scope: schema fields, nested schemas, and array item validators. Does not propagate
+     * into assertion operands ({@see FieldValidator::satisfies()}, {@see FieldValidator::satisfiesAll()},
+     * etc.); call {@see FieldValidator::coerce()} on those validators individually when needed.
+     */
+    public function coerceAll(): static
     {
+        if ($this->coerceAll) {
+            return $this;
+        }
+        $this->coerce = true;
+        foreach ($this->schema as $fieldKey => $validator) {
+            $this->schema[$fieldKey] = $validator->coerceAll();
+        }
         $this->coerceAll = true;
+
         return $this;
     }
 
@@ -27,7 +46,7 @@ trait SchemaValidatorOptionsTrait
      * Schema fields are still validated. Output members already set from the schema (including
      * via {@see FieldValidator::outputKey()}) are not overwritten by passthrough values.
      */
-    public function passthrough(): self
+    public function passthrough(): static
     {
         $this->passthrough = true;
         return $this;

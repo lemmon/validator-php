@@ -266,6 +266,34 @@ it('should validate array contains item matching complex validator', function ()
     $validator->validate([-1, 0, -2]);
 })->throws(ValidationException::class);
 
+it('should clone contains() validators without sharing nested validator state', function () {
+    $inner = Validator::isArray()
+        ->pipe(fn($value) => ['a' => count($value)])
+        ->satisfies(static fn($value) => array_is_list($value), 'Inner validator must still see a list')
+        ->transform(static fn($value) => implode(',', $value));
+
+    $original = Validator::isArray()->contains($inner);
+    $copy = $original->clone();
+
+    $input = [[1], [2]];
+
+    expect($copy->validate($input))->toBe($input);
+    expect($original->validate($input))->toBe($input);
+});
+
+it('should reuse contains() validators across repeated validations', function () {
+    $inner = Validator::isArray()
+        ->pipe(fn($value) => ['a' => count($value)])
+        ->satisfies(static fn($value) => array_is_list($value), 'Inner validator must still see a list')
+        ->transform(static fn($value) => implode(',', $value));
+
+    $validator = Validator::isArray()->contains($inner);
+    $input = [[1], [2]];
+
+    expect($validator->validate($input))->toBe($input);
+    expect($validator->validate($input))->toBe($input);
+});
+
 it('should use custom error message for contains', function () {
     $validator = Validator::isArray()->contains('required', 'Array must contain "required"');
     try {
@@ -530,4 +558,32 @@ it('should distinguish types strictly in uniqueField', function () {
     ]);
 
     expect($result)->toHaveCount(3);
+});
+
+it('should coerce items when items() is called before coerceAll()', function () {
+    $validator = Validator::isArray()
+        ->items(Validator::isInt())
+        ->coerceAll();
+
+    $result = $validator->validate(['1', '2', '3']);
+    expect($result)->toBe([1, 2, 3]);
+});
+
+it('should coerce items when coerceAll() is called before items()', function () {
+    $validator = Validator::isArray()
+        ->coerceAll()
+        ->items(Validator::isInt());
+
+    $result = $validator->validate(['1', '2', '3']);
+    expect($result)->toBe([1, 2, 3]);
+});
+
+it('should snapshot item validator on assignment so later mutations do not leak', function () {
+    $shared = Validator::isInt()->min(10);
+    $arrayValidator = Validator::isArray()->items($shared);
+
+    $shared->min(100);
+
+    $result = $arrayValidator->validate([50]);
+    expect($result)->toBe([50]);
 });

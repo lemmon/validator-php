@@ -18,7 +18,7 @@ class FloatValidator extends FieldValidator
             return null; // Empty string to null for form safety
         }
         if (is_numeric($value)) {
-            return is_int($value) ? (float) $value : (float) $value;
+            return (float) $value;
         }
         return $value;
     }

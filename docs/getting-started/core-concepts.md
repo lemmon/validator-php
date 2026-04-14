@@ -46,6 +46,7 @@ All validators extend `FieldValidator`, which provides:
 
 - `required(): static` - Makes the field mandatory
 - `default(mixed $value): static` - Sets default value for null inputs
+- `defaultUsing(callable $factory): static` - Builds a fresh default for each null input
 - `coerce(): static` - Enables automatic type conversion
 - `in(array $values): static` - Restricts to specific values (primitive validators only)
 

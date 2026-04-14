@@ -8,6 +8,7 @@ class ArrayValidator extends FieldValidator
 {
     private ?FieldValidator $itemValidator = null;
     private bool $filterEmpty = false;
+    private bool $coerceAll = false;
 
     /**
      * @inheritDoc
@@ -25,7 +26,7 @@ class ArrayValidator extends FieldValidator
      */
     public function items(FieldValidator $validator): self
     {
-        $this->itemValidator = $validator;
+        $this->itemValidator = $this->coerceAll ? $validator->clone()->coerceAll() : $validator->clone();
         return $this;
     }
 
@@ -166,24 +167,47 @@ class ArrayValidator extends FieldValidator
      */
     public function contains(mixed $valueOrValidator, ?string $message = null): static
     {
-        return $this->satisfies(
-            static function ($value, $key = null, $input = null) use ($valueOrValidator) {
-                if ($valueOrValidator instanceof FieldValidator) {
-                    // Check if any item matches the validator
-                    foreach ($value as $item) {
-                        [$valid] = $valueOrValidator->tryValidate($item);
-                        if ($valid) {
-                            return true;
-                        }
+        $message ??= 'Value must contain the required item';
+
+        if ($valueOrValidator instanceof FieldValidator) {
+            $valueOrValidator = $valueOrValidator->clone();
+
+            $this->addValidationStep(
+                self::buildContainsRule($valueOrValidator),
+                $message,
+                static fn(): \Closure => self::buildValidationOperation(
+                    self::buildContainsRule($valueOrValidator->clone()),
+                    $message,
+                ),
+            );
+
+            return $this;
+        }
+
+        $this->addValidationStep(
+            self::buildContainsRule($valueOrValidator),
+            $message,
+        );
+
+        return $this;
+    }
+
+    private static function buildContainsRule(mixed $valueOrValidator): \Closure
+    {
+        return static function ($value, $key = null, $input = null) use ($valueOrValidator): bool {
+            if ($valueOrValidator instanceof FieldValidator) {
+                foreach ($value as $item) {
+                    [$valid] = $valueOrValidator->tryValidate($item);
+                    if ($valid) {
+                        return true;
                     }
-                    return false;
                 }
 
-                // Check if array contains the specific value (strict comparison)
-                return in_array($valueOrValidator, $value, true);
-            },
-            $message ?? 'Value must contain the required item',
-        );
+                return false;
+            }
+
+            return in_array($valueOrValidator, $value, true);
+        };
     }
 
     /**
@@ -266,6 +290,19 @@ class ArrayValidator extends FieldValidator
         }
 
         return $value;
+    }
+
+    public function coerceAll(): static
+    {
+        if ($this->coerceAll) {
+            return $this;
+        }
+        $this->coerce = true;
+        $this->coerceAll = true;
+        if ($this->itemValidator !== null) {
+            $this->itemValidator = $this->itemValidator->coerceAll();
+        }
+        return $this;
     }
 
     public function __clone()

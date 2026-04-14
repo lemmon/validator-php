@@ -283,7 +283,7 @@ $result = $schema->validate($input);
 $schema = Validator::isAssociative([
     'level' => Validator::isInt()->in([3, 5, 8]),
     'override' => Validator::isBool()
-])->coerceAll(); // Enables coercion for all fields
+])->coerceAll(); // Recursively enables coercion for all fields, nested schemas, and array items
 
 $input = [
     'level' => '5', // String coerced to int
@@ -293,6 +293,8 @@ $input = [
 $result = $schema->validate($input);
 // Result: ['level' => 5, 'override' => false]
 ```
+
+> **Scope:** `coerceAll()` propagates through schema fields, nested schemas, and array item validators. It does not reach into assertion operands -- validators passed to `satisfies()`, `satisfiesAll()`, `satisfiesAny()`, `satisfiesNone()`, or `contains()`. Call `coerce()` on those validators individually when needed.
 
 ### Object-Array Coercion
 

@@ -7,9 +7,16 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - `BoolValidator::coerce()` no longer string-casts non-scalar values (arrays triggered `E_WARNING`, objects without `__toString` threw `Error`); non-scalars are passed through to type validation, which raises `ValidationException` as for other invalid types
+- `coerceAll()` no longer calls `coerce()` on schema field validators in place (which leaked coercion to every other schema reusing the same `FieldValidator` instance); `coerceAll()` now replaces each field with a clone that has coercion enabled
+- `coerceAll()` is now recursive: nested `AssociativeValidator`, `ObjectValidator`, and `ArrayValidator` (with item validators) all propagate coercion to their children; previously only top-level schema fields were coerced
+- `FieldValidator::__clone()` skips `Closure::bindTo()` for static closures (for example from `in()`), avoiding PHP warnings when cloning such validators; pipeline steps now carry a `bindable` flag set at insertion time so cloning no longer needs `ReflectionFunction`
+- `satisfies()`, `satisfiesAll()`, `satisfiesAny()`, `satisfiesNone()`, and `ArrayValidator::contains()` now clone any `FieldValidator` operand at capture time and rebuild those operands when the outer validator is cloned, so later mutations or clone-local pipeline state do not leak across validator instances
+- `FieldValidator::tryValidate()` now resets transient type-tracking before and after every validation run, so validators that use `transform()`/`pipe()` remain repeatable across multiple calls and clones do not inherit stale runtime state
+- `default()` no longer deep-copies object values; object defaults are returned as-is (shared by handle). Use `defaultUsing()` when each validation run needs a fresh object instance
 
 ### Added
 
+- `defaultUsing(callable $factory)` on `FieldValidator`: invokes the factory whenever validation resolves to null, providing a fresh default per validation run; intended for mutable domain objects or other defaults that should not be shared across validations or clones
 - `passthrough()` on `AssociativeValidator` and `ObjectValidator`: copy undeclared keys or public properties from the input to the validated output without validating them; declared schema fields are still validated; values already written from the schema (including `outputKey` targets) are not overwritten by passthrough
 
 ## [0.14.0] - 2026-03-23

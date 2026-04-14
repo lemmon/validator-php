@@ -707,6 +707,8 @@ $strictString = Validator::isString(); // No coerce() call
 
 Sets a default value when validation passes but the value is null.
 
+Scalars and flat arrays (no nested objects) are safe because PHP copies them by value. Object defaults and arrays containing objects are returned as-is, sharing the same object handles across runs; use `defaultUsing()` when the default contains any mutable objects.
+
 ```php
 $validator = Validator::isString()
     ->nullifyEmpty() // Empty strings become null
@@ -714,6 +716,22 @@ $validator = Validator::isString()
 
 $result = $validator->validate(''); // Returns: 'N/A'
 ```
+
+---
+
+### `defaultUsing(callable $factory): self`
+
+Invokes the factory whenever validation resolves to null, so each validation run receives a fresh default value.
+
+```php
+$validator = Validator::isObject()->defaultUsing(
+    static fn() => (object) ['active' => true],
+);
+
+$result = $validator->validate(null); // Returns a new stdClass each time
+```
+
+Use this whenever the default contains mutable objects -- whether a plain object or an array with nested objects. Each call to `validate()` will invoke the factory and receive a fresh instance.
 
 ---
 

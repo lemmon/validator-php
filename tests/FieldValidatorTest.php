@@ -231,6 +231,178 @@ it('should clone validators without sharing pipeline state', function () {
     expect($currentType->getValue($original))->toBeNull(); // Original instance untouched
 });
 
+it('should reset type context between validations', function () {
+    $validator = Validator::isArray()
+        ->pipe(fn($value) => ['a' => count($value)])
+        ->satisfies(static fn($value) => array_is_list($value), 'Validator must still see a list')
+        ->transform(static fn($value) => implode(',', $value));
+
+    expect($validator->validate([1]))->toBe('1');
+    expect($validator->validate([1]))->toBe('1');
+});
+
+it('should not carry runtime type context into clones', function () {
+    $original = Validator::isArray()
+        ->pipe(fn($value) => ['a' => count($value)])
+        ->satisfies(static fn($value) => array_is_list($value), 'Validator must still see a list')
+        ->transform(static fn($value) => implode(',', $value));
+
+    expect($original->validate([1]))->toBe('1');
+
+    $clone = $original->clone();
+
+    expect($clone->validate([1]))->toBe('1');
+
+    $currentType = new ReflectionProperty($clone, 'currentType');
+    expect($currentType->getValue($clone))->toBeNull();
+});
+
+it('should clone a validator with in() without triggering warnings', function () {
+    $original = Validator::isInt()->in([1, 2, 3]);
+    $copy = $original->clone();
+
+    expect($copy->validate(2))->toBe(2);
+    expect(fn() => $copy->validate(4))->toThrow(ValidationException::class);
+});
+
+it('should clone a validator with enum() without triggering warnings', function () {
+    $original = Validator::isString()->enum(StatusEnum::class);
+    $copy = $original->clone();
+
+    expect($copy->validate('active'))->toBe('active');
+    expect(fn() => $copy->validate('unknown'))->toThrow(ValidationException::class);
+});
+
+it('should not leak mutations to a FieldValidator captured by satisfies()', function () {
+    $rule = Validator::isInt()->min(1)->max(10);
+    $field = Validator::isInt()->satisfies($rule);
+
+    // Mutate the original rule after capture
+    $rule->max(2);
+
+    // The field should still use the original max(10), not max(2)
+    expect($field->validate(5))->toBe(5);
+});
+
+it('should not leak mutations to FieldValidators captured by satisfiesAll()', function () {
+    $minRule = Validator::isInt()->min(1);
+    $field = Validator::isInt()->satisfiesAll([$minRule], 'All must pass');
+
+    $minRule->min(100);
+
+    expect($field->validate(5))->toBe(5);
+});
+
+it('should not leak mutations to FieldValidators captured by satisfiesAny()', function () {
+    $rule = Validator::isInt()->max(10);
+    $field = Validator::isInt()->satisfiesAny([$rule], 'Any must pass');
+
+    $rule->max(1);
+
+    expect($field->validate(5))->toBe(5);
+});
+
+it('should not leak mutations to FieldValidators captured by satisfiesNone()', function () {
+    $rule = Validator::isInt()->min(100);
+    $field = Validator::isInt()->satisfiesNone([$rule], 'None must pass');
+
+    // Lowering min to 1 would make 5 pass the inner rule, which should fail satisfiesNone
+    $rule->min(1);
+
+    expect($field->validate(5))->toBe(5);
+});
+
+it('should return scalar and flat array defaults by value without sharing', function () {
+    $validator = Validator::isString()->default('fallback');
+    expect($validator->validate(null))->toBe('fallback');
+    expect($validator->validate(null))->toBe('fallback');
+
+    $arrayValidator = Validator::isArray()->default([1, 2]);
+    $first = $arrayValidator->validate(null);
+    $first[] = 3;
+    expect($arrayValidator->validate(null))->toBe([1, 2]);
+});
+
+it('should share nested objects inside array defaults by handle', function () {
+    $nested = (object) ['x' => 1];
+    $validator = Validator::isArray()->default([$nested]);
+
+    $first = $validator->validate(null);
+    $first[0]->x = 999;
+
+    $second = $validator->validate(null);
+    expect($second[0]->x)->toBe(999);
+});
+
+it('should share object defaults by handle (use defaultUsing for isolation)', function () {
+    $validator = Validator::isObject()->default((object) ['x' => 1]);
+
+    $first = $validator->validate(null);
+    $second = $validator->validate(null);
+
+    expect($first)->toBe($second);
+});
+
+it('should create fresh mutable object defaults across validations with defaultUsing()', function () {
+    $validator = Validator::isObject()->defaultUsing(static fn() => new class() {
+        public object $child;
+
+        public function __construct()
+        {
+            $this->child = (object) ['x' => 1];
+        }
+    });
+
+    $first = $validator->validate(null);
+    $first->child->x = 999;
+
+    $second = $validator->validate(null);
+    expect($second->child->x)->toBe(1);
+});
+
+it('should create fresh mutable object defaults across clones with defaultUsing()', function () {
+    $original = Validator::isObject()->defaultUsing(static fn() => new class() {
+        public object $child;
+
+        public function __construct()
+        {
+            $this->child = (object) ['x' => 1];
+        }
+    });
+    $copy = $original->clone();
+
+    $fromOriginal = $original->validate(null);
+    $fromOriginal->child->x = 999;
+
+    $fromCopy = $copy->validate(null);
+    expect($fromCopy->child->x)->toBe(1);
+});
+
+it('should clone validators with satisfies() FieldValidator operands without sharing state', function () {
+    $inner = Validator::isArray()
+        ->pipe(fn($value) => ['a' => count($value)])
+        ->satisfies(static fn($value) => array_is_list($value), 'Inner validator must still see a list')
+        ->transform(static fn($value) => implode(',', $value));
+
+    $original = Validator::isArray()->satisfies($inner, 'Outer validator failed');
+    $copy = $original->clone();
+
+    expect($copy->validate([1]))->toBe([1]);
+    expect($original->validate([1]))->toBe([1]);
+});
+
+it('should reuse satisfies() FieldValidator operands across repeated validations', function () {
+    $inner = Validator::isArray()
+        ->pipe(fn($value) => ['a' => count($value)])
+        ->satisfies(static fn($value) => array_is_list($value), 'Inner validator must still see a list')
+        ->transform(static fn($value) => implode(',', $value));
+
+    $outer = Validator::isArray()->satisfies($inner, 'Outer validator failed');
+
+    expect($outer->validate([1]))->toBe([1]);
+    expect($outer->validate([1]))->toBe([1]);
+});
+
 it('should deep clone nested schemas for associative validators', function () {
     $original = Validator::isAssociative([
         'nickname' => Validator::isString(),

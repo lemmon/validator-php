@@ -269,3 +269,67 @@ it('should not let passthrough overwrite outputKey targets', function () {
 
     expect($data->service)->toBe('550e8400-e29b-41d4-a716-446655440000');
 });
+
+it('should not mutate shared field validators when using coerceAll', function () {
+    $shared = Validator::isInt();
+    $withCoerceAll = Validator::isObject([
+        'n' => $shared,
+    ])->coerceAll();
+    $withoutCoerceAll = Validator::isObject([
+        'n' => $shared,
+    ]);
+
+    $coercedInput = (object) ['n' => '7'];
+    expect($withCoerceAll->validate($coercedInput))->toEqual((object) ['n' => 7]);
+    expect(fn() => $withoutCoerceAll->validate($coercedInput))->toThrow(ValidationException::class);
+});
+
+it('should preserve coerceAll behavior when cloning an object schema', function () {
+    $original = Validator::isObject([
+        'n' => Validator::isInt(),
+    ])->coerceAll();
+    $copy = $original->clone();
+
+    expect($copy->validate((object) ['n' => '2']))->toEqual((object) ['n' => 2]);
+});
+
+it('should recursively coerce nested object schemas with coerceAll', function () {
+    $schema = Validator::isObject([
+        'age' => Validator::isInt(),
+        'settings' => Validator::isObject([
+            'retries' => Validator::isInt(),
+            'active' => Validator::isBool(),
+        ]),
+    ])->coerceAll();
+
+    $result = $schema->validate((object) [
+        'age' => '25',
+        'settings' => (object) [
+            'retries' => '3',
+            'active' => 'true',
+        ],
+    ]);
+
+    expect($result->age)->toBe(25);
+    expect($result->settings->retries)->toBe(3);
+    expect($result->settings->active)->toBe(true);
+});
+
+it('should coerce top-level associative array input when coerceAll is enabled', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString(),
+    ])->coerceAll();
+
+    $result = $schema->validate(['name' => 'Alice']);
+    expect($result)->toEqual((object) ['name' => 'Alice']);
+});
+
+it('should snapshot schema validators so later mutations do not leak', function () {
+    $shared = Validator::isInt()->min(10);
+    $schema = Validator::isObject(['n' => $shared]);
+
+    $shared->min(100);
+
+    $result = $schema->validate((object) ['n' => 50]);
+    expect($result->n)->toBe(50);
+});

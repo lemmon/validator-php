@@ -11,6 +11,7 @@
     - `pipe(callable)`: Skips `null` values (type-preserving, expects specific type).
     - `transform(callable, bool $skipNull = true)`: Skips `null` by default (most type conversions don't need null). Set `$skipNull = false` to process null values.
 - **Pipeline Order:** Pipeline steps execute in the exact order defined. `default()` and `required()` are flags evaluated after the pipeline regardless of position: `default()` is the last-resort fallback for null, `required()` enforces presence after default has had its chance.
+- **Mutable Defaults:** `default()` stores the value as-is; scalars and flat arrays are copied by value in PHP, but objects (and arrays containing objects) share handles across runs. Use `defaultUsing()` when the default contains any mutable objects.
 - **Transformation Types:**
   - `pipe(callable)`: Intended for sanitization. Preserves type context and applies type-coercion to result.
   - `transform(callable)`: Intended for type conversion. Updates type context; no coercion.
@@ -54,6 +55,7 @@ _Available on all validators_
 ```php
 required(?string $message = null): static
 default(mixed $value): static
+defaultUsing(callable(): mixed $factory): static
 coerce(): static
 outputKey(string $key): static (schema fields only: output under different key, e.g. input service_id -> output service)
 nullifyEmpty(): static (transforms '' or [] to null)
@@ -147,7 +149,7 @@ _Schema validation_
 
 ```php
 // Constructor accepts array<string, FieldValidator>
-coerceAll(): static // Recursively enables coercion on schema fields
+coerceAll(): static // Recursively enables coercion on schema fields, nested schemas, and array item validators (each validator is cloned so shared instances are not mutated); does not propagate into assertion operands (satisfies, contains, etc.) -- call coerce() on those individually
 passthrough(): static // Copy undeclared keys/properties from input to output without validating them; schema fields still validated; does not overwrite keys already set from the schema (including outputKey targets)
 ```
 

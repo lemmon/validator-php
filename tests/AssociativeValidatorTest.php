@@ -187,6 +187,20 @@ it('should include fields with default values even when not provided', function 
     expect($data)->not->toHaveKey('city'); // Not provided, no default
 });
 
+it('should include fields with defaultUsing values even when not provided', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+        'meta' => Validator::isObject()->defaultUsing(static fn() => (object) ['active' => true]),
+    ]);
+
+    $data = $schema->validate([
+        'name' => 'John Doe',
+    ]);
+
+    expect($data['name'])->toBe('John Doe');
+    expect($data['meta'])->toEqual((object) ['active' => true]);
+});
+
 it('should still validate required fields even when not provided', function () {
     $schema = Validator::isAssociative([
         'name' => Validator::isString()->required(),
@@ -332,4 +346,123 @@ it('should not let passthrough overwrite outputKey targets', function () {
     $data = $schema->validate($input);
 
     expect($data['service'])->toBe('550e8400-e29b-41d4-a716-446655440000');
+});
+
+it('should not mutate shared field validators when using coerceAll', function () {
+    $shared = Validator::isInt();
+    $withCoerceAll = Validator::isAssociative([
+        'n' => $shared,
+    ])->coerceAll();
+    $withoutCoerceAll = Validator::isAssociative([
+        'n' => $shared,
+    ]);
+
+    expect($withCoerceAll->validate(['n' => '7']))->toBe(['n' => 7]);
+    expect(fn() => $withoutCoerceAll->validate(['n' => '7']))->toThrow(ValidationException::class);
+});
+
+it('should preserve coerceAll behavior when cloning an associative schema', function () {
+    $original = Validator::isAssociative([
+        'n' => Validator::isInt(),
+    ])->coerceAll();
+    $copy = $original->clone();
+
+    expect($copy->validate(['n' => '2']))->toBe(['n' => 2]);
+});
+
+it('should recursively coerce nested associative schemas with coerceAll', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString(),
+        'age' => Validator::isInt(),
+        'address' => Validator::isAssociative([
+            'zip' => Validator::isInt(),
+            'active' => Validator::isBool(),
+        ]),
+    ])->coerceAll();
+
+    $result = $schema->validate([
+        'name' => 'Jane',
+        'age' => '30',
+        'address' => [
+            'zip' => '90210',
+            'active' => 'true',
+        ],
+    ]);
+
+    expect($result['age'])->toBe(30);
+    expect($result['address']['zip'])->toBe(90_210);
+    expect($result['address']['active'])->toBe(true);
+});
+
+it('should recursively coerce array items through coerceAll', function () {
+    $schema = Validator::isAssociative([
+        'tags' => Validator::isArray()->items(Validator::isInt()),
+    ])->coerceAll();
+
+    $result = $schema->validate([
+        'tags' => ['1', '2', '3'],
+    ]);
+
+    expect($result['tags'])->toBe([1, 2, 3]);
+});
+
+it('should recursively coerce deeply nested schemas with coerceAll', function () {
+    $schema = Validator::isAssociative([
+        'level1' => Validator::isAssociative([
+            'level2' => Validator::isAssociative([
+                'value' => Validator::isInt(),
+            ]),
+        ]),
+    ])->coerceAll();
+
+    $result = $schema->validate([
+        'level1' => [
+            'level2' => [
+                'value' => '42',
+            ],
+        ],
+    ]);
+
+    expect($result['level1']['level2']['value'])->toBe(42);
+});
+
+it('should recursively coerce array items that are schemas with coerceAll', function () {
+    $schema = Validator::isAssociative([
+        'items' => Validator::isArray()->items(
+            Validator::isAssociative([
+                'qty' => Validator::isInt(),
+                'price' => Validator::isFloat(),
+            ]),
+        ),
+    ])->coerceAll();
+
+    $result = $schema->validate([
+        'items' => [
+            ['qty' => '2', 'price' => '9.99'],
+            ['qty' => '1', 'price' => '4.50'],
+        ],
+    ]);
+
+    expect($result['items'][0]['qty'])->toBe(2);
+    expect($result['items'][0]['price'])->toBe(9.99);
+    expect($result['items'][1]['qty'])->toBe(1);
+});
+
+it('should coerce top-level stdClass input when coerceAll is enabled', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString(),
+    ])->coerceAll();
+
+    $result = $schema->validate((object) ['name' => 'Alice']);
+    expect($result)->toBe(['name' => 'Alice']);
+});
+
+it('should snapshot schema validators so later mutations do not leak', function () {
+    $shared = Validator::isInt()->min(10);
+    $schema = Validator::isAssociative(['n' => $shared]);
+
+    $shared->min(100);
+
+    $result = $schema->validate(['n' => 50]);
+    expect($result)->toBe(['n' => 50]);
 });
