@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - `satisfies()`, `satisfiesAll()`, `satisfiesAny()`, `satisfiesNone()`, and `ArrayValidator::contains()` now clone any `FieldValidator` operand at capture time and rebuild those operands when the outer validator is cloned, so later mutations or clone-local pipeline state do not leak across validator instances
 - `FieldValidator::tryValidate()` now resets transient type-tracking before and after every validation run, so validators that use `transform()`/`pipe()` remain repeatable across multiple calls and clones do not inherit stale runtime state
 - `default()` no longer deep-copies object values; object defaults are returned as-is (shared by handle). Use `defaultUsing()` when each validation run needs a fresh object instance
+- `Base64Variant::UrlSafe` now strictly validates URL-safe characters (`-_`) only; previously it was identical to `Base64Variant::Any` (accepted both standard and URL-safe)
 
 ### Added
 

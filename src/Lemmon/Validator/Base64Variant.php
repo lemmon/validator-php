@@ -16,8 +16,7 @@ enum Base64Variant: string
     case Standard = 'standard';
 
     /**
-     * URL-safe Base64 encoding (uses -, _, and no padding).
-     * URL-safe parsers typically accept both standard and URL-safe variants.
+     * URL-safe Base64 encoding (uses - and _ instead of + and /, padding optional).
      */
     case UrlSafe = 'urlsafe';
 

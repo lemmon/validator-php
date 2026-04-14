@@ -183,10 +183,10 @@ $base64 = $standardValidator->validate('SGVsbG8gV29ybGQ='); // "Hello World"
 $base64 = $standardValidator->validate('dGVzdA=='); // "test"
 $base64 = $standardValidator->validate('YWJj'); // "abc" (no padding)
 
-// URL-safe Base64 (uses -, _, and accepts both variants)
+// URL-safe Base64 (uses - and _ instead of + and /, padding optional)
 $urlSafeValidator = Validator::isString()->base64(Base64Variant::UrlSafe);
-$base64 = $urlSafeValidator->validate('SGVsbG8gV29ybGQ'); // URL-safe format
-$base64 = $urlSafeValidator->validate('SGVsbG8gV29ybGQ='); // Standard format also accepted
+$base64 = $urlSafeValidator->validate('SGVsbG8gV29ybGQ'); // URL-safe format (no padding)
+$base64 = $urlSafeValidator->validate('PDw_Pz4-'); // URL-safe chars - and _
 
 // Any variant (accepts both standard and URL-safe)
 $anyValidator = Validator::isString()->base64(Base64Variant::Any);

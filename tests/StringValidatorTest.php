@@ -228,17 +228,18 @@ it('should validate base64 strings with Base64Variant enum', function () {
 it('should validate URL-safe base64 strings', function () {
     $urlSafeValidator = Validator::isString()->base64(Base64Variant::UrlSafe);
 
-    // Valid URL-safe base64 strings (no padding, uses - and _)
     expect($urlSafeValidator->validate('SGVsbG8gV29ybGQ'))->toBe('SGVsbG8gV29ybGQ'); // "Hello World" (no padding)
     expect($urlSafeValidator->validate('dGVzdA'))->toBe('dGVzdA'); // "test" (no padding)
     expect($urlSafeValidator->validate('YWJj'))->toBe('YWJj'); // "abc"
-
-    // URL-safe parsers accept both standard and URL-safe variants
-    // So standard Base64 with + and / should also be accepted
-    expect($urlSafeValidator->validate('SGVsbG8gV29ybGQ='))->toBe('SGVsbG8gV29ybGQ='); // Standard Base64 accepted
+    expect($urlSafeValidator->validate('PDw_Pz4-'))->toBe('PDw_Pz4-'); // contains - and _ chars
 
     // Invalid: contains invalid characters
     $urlSafeValidator->validate('SGVsbG8gV29ybGQ!');
+})->throws(ValidationException::class, 'Value must be a valid URL-safe Base64 encoded string');
+
+it('should reject standard base64 characters in URL-safe mode', function () {
+    $urlSafeValidator = Validator::isString()->base64(Base64Variant::UrlSafe);
+    $urlSafeValidator->validate('PDw/Pz4+'); // standard Base64 with + and /
 })->throws(ValidationException::class, 'Value must be a valid URL-safe Base64 encoded string');
 
 it('should validate base64 with Any variant', function () {
