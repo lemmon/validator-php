@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-04-15
+
 ### Fixed
 
 - `BoolValidator::coerce()` no longer string-casts non-scalar values (arrays triggered `E_WARNING`, objects without `__toString` threw `Error`); non-scalars are passed through to type validation, which raises `ValidationException` as for other invalid types
