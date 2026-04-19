@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use Lemmon\Tests\Fixtures\ColorEnum;
 use Lemmon\Tests\Fixtures\PriorityEnum;
 use Lemmon\Tests\Fixtures\StatusEnum;
+use Lemmon\Validator\FieldValidator;
 use Lemmon\Validator\ValidationException;
 use Lemmon\Validator\Validator;
 
@@ -708,9 +710,57 @@ it('should reject non-scalar for enum()', function () {
     $validator->validate(['active']);
 })->throws(ValidationException::class);
 
-it('should throw InvalidArgumentException for non-BackedEnum class', function () {
+it('should validate UnitEnum by case name string', function () {
+    $validator = Validator::isString()->enum(ColorEnum::class);
+
+    expect($validator->validate('Red'))->toBe('Red');
+    expect($validator->validate('Green'))->toBe('Green');
+});
+
+it('should validate UnitEnum by case instance', function () {
+    $mixed = new class() extends FieldValidator {
+        protected function coerceValue(mixed $value): mixed
+        {
+            return $value;
+        }
+
+        protected function validateType(mixed $value, string $key): mixed
+        {
+            return $value;
+        }
+
+        protected function getValidatorType(): string
+        {
+            return 'mixed';
+        }
+    };
+
+    $validator = $mixed->enum(ColorEnum::class);
+
+    expect($validator->validate(ColorEnum::Blue))->toBe(ColorEnum::Blue);
+});
+
+it('should validate UnitEnum - invalid case name fails', function () {
+    $validator = Validator::isString()->enum(ColorEnum::class);
+
+    $validator->validate('Magenta');
+})->throws(ValidationException::class);
+
+it('should use custom message for UnitEnum enum()', function () {
+    $validator = Validator::isString()->enum(ColorEnum::class, 'Bad color');
+
+    $validator->validate('Magenta');
+})->throws(ValidationException::class, 'Bad color');
+
+it('should reject non-matching type for UnitEnum enum()', function () {
+    $validator = Validator::isArray()->enum(ColorEnum::class);
+
+    $validator->validate(['Red']);
+})->throws(ValidationException::class);
+
+it('should throw InvalidArgumentException for non-enum class', function () {
     Validator::isString()->enum(\stdClass::class);
-})->throws(InvalidArgumentException::class, 'Class must be a BackedEnum');
+})->throws(InvalidArgumentException::class, 'Class must be a BackedEnum or UnitEnum');
 
 it('should use custom error message for required() method', function () {
     $validator = Validator::isString()->required('Name is mandatory');

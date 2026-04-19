@@ -13,7 +13,7 @@ Focused on core validation primitives, consistent pipelines, and extensibility v
 
 ## Next Minor Release
 
-- [x] Universal allowed-value validators: `const()` (single allowed value), `enum()` (PHP BackedEnum)
+- [x] Universal allowed-value validators: `const()` (single allowed value), `enum()` (PHP `BackedEnum` and `UnitEnum`)
 - [x] Schema output key remapping: `outputKey(string $key)`
 - [ ] Structured error codes in validation errors (backward compatible)
 - [ ] Message placeholders for custom error messages (e.g., `{value}`, `{index}`) -- pair with error codes

@@ -762,9 +762,14 @@ $result = $schema->validate(['service_id' => '550e8400-e29b-41d4-a716-4466554400
 
 **Available on:** All validators (`FieldValidator` base)
 
-Validates that the value matches one of the backed values of a PHP BackedEnum. The value must be `int` or `string` (non-scalar values fail). Use `enum(StatusEnum::class)` instead of `in(array_map(fn($e) => $e->value, StatusEnum::cases()))`.
+Validates against a PHP `BackedEnum` or `UnitEnum`.
+
+**BackedEnum:** The value must be `int` or `string` and must match one of the enum’s backed values (`tryFrom()`). Non-scalar values fail. Use `enum(StatusEnum::class)` instead of `in(array_map(fn($e) => $e->value, StatusEnum::cases()))`.
+
+**UnitEnum** (non-backed): The value must be an instance of the enum, or a `string` equal to one of the case names (`$case->name`). Other types fail.
 
 ```php
+// BackedEnum
 enum StatusEnum: string { case Active = 'active'; case Pending = 'pending'; }
 
 $validator = Validator::isString()->enum(StatusEnum::class);
@@ -774,16 +779,25 @@ $validator->validate('active');   // Valid
 // With coercion (form input)
 $priority = Validator::isInt()->coerce()->enum(PriorityEnum::class);
 $priority->validate('2'); // Valid (coerced to 2)
+
+// UnitEnum (case name as string, or pass an enum instance from a mixed-typed validator)
+enum ColorEnum { case Red; case Green; case Blue; }
+
+$color = Validator::isString()->enum(ColorEnum::class);
+$color->validate('Red'); // Valid
+// $color->validate(ColorEnum::Blue); // invalid: isString() runs before enum()
 ```
+
+For an enum **case instance**, chain `enum()` on a validator whose type step accepts objects (for example a custom `FieldValidator` with a permissive `validateType`, or logical combinators that accept mixed input).
 
 **Parameters:**
 
-- `$enumClass`: Fully qualified BackedEnum class name (e.g. `StatusEnum::class`)
+- `$enumClass`: Fully qualified enum class name (`BackedEnum` or `UnitEnum`, e.g. `StatusEnum::class`)
 - `$message` (optional): Custom error message for invalid values
 
 **Returns:** Same validator instance for method chaining.
 
-**Throws:** `InvalidArgumentException` if `$enumClass` is not a BackedEnum.
+**Throws:** `InvalidArgumentException` if `$enumClass` is not a `BackedEnum` or `UnitEnum`.
 
 ---
 

@@ -448,35 +448,66 @@ abstract class FieldValidator
     }
 
     /**
-     * Restricts the value to a PHP BackedEnum case.
-     * Value must be int or string matching one of the enum's backed values.
+     * Restricts the value to a PHP enum case.
      *
-     * @param string $enumClass Fully qualified BackedEnum class name (e.g. StatusEnum::class).
+     * For BackedEnum, the value must be int or string matching one of the backed values.
+     * For UnitEnum (non-backed), the value must be an instance of the enum or a string
+     * equal to one of the case names.
+     *
+     * @param string $enumClass Fully qualified enum class name (e.g. StatusEnum::class).
      * @param ?string $message Optional custom error message.
      * @return $this
      */
     public function enum(string $enumClass, ?string $message = null): self
     {
-        if (!is_subclass_of($enumClass, \BackedEnum::class, true)) {
-            throw new \InvalidArgumentException(
-                sprintf('Class must be a BackedEnum, got: %s', $enumClass),
+        if (is_subclass_of($enumClass, \BackedEnum::class, true)) {
+            $allowed = implode(', ', array_map(
+                static fn(\BackedEnum $c) => var_export($c->value, true),
+                $enumClass::cases(),
+            ));
+
+            return $this->satisfies(
+                static function ($v) use ($enumClass): bool {
+                    if (!is_int($v) && !is_string($v)) {
+                        return false;
+                    }
+
+                    return $enumClass::tryFrom($v) !== null;
+                },
+                $message ?? 'Value must be one of: ' . $allowed,
             );
         }
 
-        $allowed = implode(', ', array_map(
-            static fn(\BackedEnum $c) => var_export($c->value, true),
-            $enumClass::cases(),
-        ));
+        if (is_subclass_of($enumClass, \UnitEnum::class, true)) {
+            $allowed = implode(', ', array_map(
+                static fn(\UnitEnum $c) => var_export($c->name, true),
+                $enumClass::cases(),
+            ));
 
-        return $this->satisfies(
-            static function ($v) use ($enumClass): bool {
-                if (!is_int($v) && !is_string($v)) {
+            return $this->satisfies(
+                static function ($v) use ($enumClass): bool {
+                    if ($v instanceof $enumClass) {
+                        return true;
+                    }
+
+                    if (!is_string($v)) {
+                        return false;
+                    }
+
+                    foreach ($enumClass::cases() as $case) {
+                        if ($case->name === $v) {
+                            return true;
+                        }
+                    }
+
                     return false;
-                }
+                },
+                $message ?? 'Value must be one of: ' . $allowed,
+            );
+        }
 
-                return $enumClass::tryFrom($v) !== null;
-            },
-            $message ?? 'Value must be one of: ' . $allowed,
+        throw new \InvalidArgumentException(
+            sprintf('Class must be a BackedEnum or UnitEnum, got: %s', $enumClass),
         );
     }
 

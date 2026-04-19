@@ -2,7 +2,7 @@
 
 The Lemmon Validator allows you to add custom validation logic using the `satisfies()` method. This is perfect for business rules, complex validation logic, and context-aware validation that built-in validators can't handle.
 
-For simple allowed-value validation, consider built-in methods first: `const()` for a single allowed value (e.g. `->const('active')`), `enum()` for PHP BackedEnums (e.g. `->enum(StatusEnum::class)`), or `in()` for multiple values on string, int, float, and bool validators.
+For simple allowed-value validation, consider built-in methods first: `const()` for a single allowed value (e.g. `->const('active')`), `enum()` for PHP enums (e.g. `->enum(StatusEnum::class)` for a backed enum or `->enum(ColorEnum::class)` for a unit enum by case name or instance), or `in()` for multiple values on string, int, float, and bool validators.
 
 ## Basic Custom Validation
 

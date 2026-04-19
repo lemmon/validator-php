@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `enum()` on `FieldValidator` now accepts PHP `UnitEnum` (non-backed enums): the value must be an instance of the enum or a string equal to one of the case names; `BackedEnum` behavior is unchanged (int or string backed values via `tryFrom()`)
+
 ## [0.15.0] - 2026-04-15
 
 ### Fixed

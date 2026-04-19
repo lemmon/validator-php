@@ -210,6 +210,11 @@ $result = $exact->validate('pending'); // ❌ ValidationException
 $status = Validator::isString()->enum(StatusEnum::class);
 $result = $status->validate('active'); // Valid
 $result = $status->validate('unknown'); // ❌ ValidationException
+
+// PHP UnitEnum (non-backed): match by case name string, or use a mixed validator for enum instances
+$color = Validator::isString()->enum(ColorEnum::class);
+$result = $color->validate('Red'); // Valid (case name)
+$result = $color->validate('Magenta'); // ❌ ValidationException
 ```
 
 ## Schema Validation
