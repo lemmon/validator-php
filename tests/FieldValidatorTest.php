@@ -762,6 +762,14 @@ it('should throw InvalidArgumentException for non-enum class', function () {
     Validator::isString()->enum(\stdClass::class);
 })->throws(InvalidArgumentException::class, 'Class must be a BackedEnum or UnitEnum');
 
+it('should throw InvalidArgumentException for UnitEnum interface passed to enum()', function () {
+    Validator::isString()->enum(\UnitEnum::class);
+})->throws(InvalidArgumentException::class, 'Class must be a BackedEnum or UnitEnum');
+
+it('should throw InvalidArgumentException for BackedEnum interface passed to enum()', function () {
+    Validator::isString()->enum(\BackedEnum::class);
+})->throws(InvalidArgumentException::class, 'Class must be a BackedEnum or UnitEnum');
+
 it('should use custom error message for required() method', function () {
     $validator = Validator::isString()->required('Name is mandatory');
 

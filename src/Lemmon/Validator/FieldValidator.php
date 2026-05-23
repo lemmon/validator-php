@@ -457,9 +457,16 @@ abstract class FieldValidator
      * @param string $enumClass Fully qualified enum class name (e.g. StatusEnum::class).
      * @param ?string $message Optional custom error message.
      * @return $this
+     * @throws \InvalidArgumentException If $enumClass is not an actual enum (e.g. an interface or plain class).
      */
     public function enum(string $enumClass, ?string $message = null): self
     {
+        if (!enum_exists($enumClass)) {
+            throw new \InvalidArgumentException(
+                sprintf('Class must be a BackedEnum or UnitEnum, got: %s', $enumClass),
+            );
+        }
+
         if (is_subclass_of($enumClass, \BackedEnum::class, true)) {
             $allowed = implode(', ', array_map(
                 static fn(\BackedEnum $c) => var_export($c->value, true),
