@@ -25,13 +25,7 @@ abstract class FieldValidator
     }
 
     /**
-     * @var array<array{
-     *     type: PipelineType,
-     *     operation: callable,
-     *     skipNull: bool,
-     *     bindable: bool,
-     *     rebuildOperation: null|\Closure
-     * }>
+     * @var array<PipelineStep>
      */
     protected array $pipeline = [];
     /**
@@ -136,13 +130,12 @@ abstract class FieldValidator
      */
     public function nullifyEmpty(): self
     {
-        $this->pipeline[] = [
-            'type' => PipelineType::TRANSFORMATION,
-            'operation' => static fn($value) => $value === '' || is_array($value) && $value === [] ? null : $value,
-            'skipNull' => true,
-            'bindable' => false,
-            'rebuildOperation' => null,
-        ];
+        $this->pipeline[] = new PipelineStep(
+            type: PipelineType::TRANSFORMATION,
+            operation: static fn($value) => $value === '' || is_array($value) && $value === [] ? null : $value,
+            skipNull: true,
+            bindable: false,
+        );
         return $this;
     }
 
@@ -411,13 +404,13 @@ abstract class FieldValidator
         ?string $message = null,
         ?\Closure $rebuildOperation = null,
     ): void {
-        $this->pipeline[] = [
-            'type' => PipelineType::VALIDATION,
-            'operation' => self::buildValidationOperation($rule, $message),
-            'skipNull' => true,
-            'bindable' => false,
-            'rebuildOperation' => $rebuildOperation,
-        ];
+        $this->pipeline[] = new PipelineStep(
+            type: PipelineType::VALIDATION,
+            operation: self::buildValidationOperation($rule, $message),
+            skipNull: true,
+            bindable: false,
+            rebuildOperation: $rebuildOperation,
+        );
     }
 
     /**
@@ -528,9 +521,9 @@ abstract class FieldValidator
      */
     public function transform(callable $transformer, bool $skipNull = true): self
     {
-        $this->pipeline[] = [
-            'type' => PipelineType::TRANSFORMATION,
-            'operation' => function ($value) use ($transformer) {
+        $this->pipeline[] = new PipelineStep(
+            type: PipelineType::TRANSFORMATION,
+            operation: function ($value) use ($transformer) {
                 $result = $transformer($value);
 
                 // Update current type context based on result
@@ -538,10 +531,9 @@ abstract class FieldValidator
 
                 return $result; // No coercion - transform can change type
             },
-            'skipNull' => $skipNull,
-            'bindable' => true,
-            'rebuildOperation' => null,
-        ];
+            skipNull: $skipNull,
+            bindable: true,
+        );
         return $this;
     }
 
@@ -555,18 +547,17 @@ abstract class FieldValidator
     public function pipe(callable ...$transformers): self
     {
         foreach ($transformers as $transformer) {
-            $this->pipeline[] = [
-                'type' => PipelineType::TRANSFORMATION,
-                'operation' => function ($value) use ($transformer) {
+            $this->pipeline[] = new PipelineStep(
+                type: PipelineType::TRANSFORMATION,
+                operation: function ($value) use ($transformer) {
                     $result = $transformer($value);
 
                     // Apply type-specific coercion based on current type context
                     return $this->coerceForCurrentType($result);
                 },
-                'skipNull' => true,
-                'bindable' => true,
-                'rebuildOperation' => null,
-            ];
+                skipNull: true,
+                bindable: true,
+            );
         }
         return $this;
     }
@@ -615,10 +606,10 @@ abstract class FieldValidator
 
             // Execute pipeline
             foreach ($this->pipeline as $step) {
-                if (is_null($processedValue) && $step['skipNull']) {
+                if (is_null($processedValue) && $step->skipNull) {
                     continue;
                 }
-                $processedValue = $step['operation']($processedValue, $key, $input);
+                $processedValue = ($step->operation)($processedValue, $key, $input);
             }
 
             // Default -- last resort fallback for null
@@ -759,27 +750,20 @@ abstract class FieldValidator
         foreach ($this->pipeline as $step) {
             // Phase 1: if this step captures a FieldValidator operand, rebuild the
             // operation from a fresh clone so the operand's state is isolated.
-            $operation = $step['rebuildOperation'] instanceof \Closure
-                ? $step['rebuildOperation']()
-                : $step['operation'];
+            $operation = $step->rebuildOperation instanceof \Closure ? ($step->rebuildOperation)() : $step->operation;
             // Phase 2: re-bind non-static closures (transform/pipe) to $this so they
             // reference the cloned validator's currentType, not the original's.
-            if ($step['bindable'] && $operation instanceof \Closure) {
+            if ($step->bindable) {
                 $boundOperation = $operation->bindTo($this);
                 if ($boundOperation !== null) {
                     $operation = $boundOperation;
                 }
             }
 
-            $rebuiltPipeline[] = [
-                'type' => $step['type'],
-                'operation' => $operation,
-                'skipNull' => $step['skipNull'],
-                'bindable' => $step['bindable'],
-                // Carried over as-is: the closure captures a template validator that is
-                // cloned on each invocation and must remain free of persistent mutable state.
-                'rebuildOperation' => $step['rebuildOperation'],
-            ];
+            // rebuildOperation is carried over as-is by withOperation(): the closure
+            // captures a template validator that is cloned on each invocation and must
+            // remain free of persistent mutable state.
+            $rebuiltPipeline[] = $step->withOperation($operation);
         }
 
         $this->pipeline = $rebuiltPipeline;

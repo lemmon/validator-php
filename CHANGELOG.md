@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - `enum()` on `FieldValidator` now accepts PHP `UnitEnum` (non-backed enums): the value must be an instance of the enum or a string equal to one of the case names; `BackedEnum` behavior is unchanged (int or string backed values via `tryFrom()`)
 
+### Changed
+
+- Internal refactor (no public API or behavior change): `Validator::allOf()`, `anyOf()`, and `not()` now build on a new concrete `MixedValidator` base instead of repeating an inline anonymous class; validator pipeline steps are now a typed `PipelineStep` value object (internal) instead of an associative array, simplifying `FieldValidator::__clone()`
+
 ## [0.15.0] - 2026-04-15
 
 ### Fixed

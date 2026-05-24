@@ -17,10 +17,10 @@ Core validation logic lives in `src/Lemmon/Validator/`. Tests in `tests/` follow
 - **Namespace:** `Lemmon\Validator` (runtime), `Lemmon\Tests` (tests)
 - **Core:** `Validator` static factory; `FieldValidator` base; `ValidationException` for errors
 - **Validators:** `isString`, `isInt`, `isFloat`, `isBool`, `isArray`, `isAssociative`, `isObject`
-- **Shared:** `NumericConstraintsTrait` (min, max, multipleOf, etc.); `PipelineType` enum; variant enums `IpVersion`, `Base64Variant`, `UuidVariant` for format methods
+- **Shared:** `NumericConstraintsTrait` (min, max, multipleOf, etc.); `PipelineType` enum; `PipelineStep` value object (internal pipeline entry); variant enums `IpVersion`, `Base64Variant`, `UuidVariant` for format methods
 - **String formats:** email, URL, UUID, IP, hostname, domain, time, base64, hex, regex, datetime, date
 - **Schema validation:** AssociativeValidator/ObjectValidator with nested error aggregation; shared `SchemaValidatorOptionsTrait` (`coerceAll`, `passthrough`, schema clone helper); `passthrough()` keeps undeclared keys/properties (unvalidated); default output is schema keys only
-- **Logical combinators:** `Validator::allOf`, `anyOf`, `not`; instance `satisfiesAny`, `satisfiesAll`, `satisfiesNone`; `const()` for single allowed value; `enum()` for `BackedEnum` and `UnitEnum`
+- **Logical combinators:** `Validator::allOf`, `anyOf`, `not` (built on `MixedValidator`, the type-agnostic base); instance `satisfiesAny`, `satisfiesAll`, `satisfiesNone`; `const()` for single allowed value; `enum()` for `BackedEnum` and `UnitEnum`
 - **Behavior:** Optional by default (null allowed unless `required()`); form-safe coercion (empty string → null, not 0/false); pipeline order guaranteed; fail-fast per field; `satisfies()` accepts validators or callables with `(value, key, input)`; extend via `satisfies()`, not custom validators
 
 ## Build, Test, and Development Commands

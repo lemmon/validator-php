@@ -87,22 +87,7 @@ class Validator
      */
     public static function anyOf(array $validators, ?string $message = null): FieldValidator
     {
-        return (new class() extends FieldValidator {
-            protected function coerceValue(mixed $value): mixed
-            {
-                return $value; // No coercion for mixed types
-            }
-
-            protected function validateType(mixed $value, string $key): mixed
-            {
-                return $value; // Accept any type
-            }
-
-            protected function getValidatorType(): string
-            {
-                return 'mixed'; // Mixed type validator
-            }
-        })->satisfiesAny($validators, $message);
+        return (new MixedValidator())->satisfiesAny($validators, $message);
     }
 
     /**
@@ -114,22 +99,7 @@ class Validator
      */
     public static function allOf(array $validators, ?string $message = null): FieldValidator
     {
-        return (new class() extends FieldValidator {
-            protected function coerceValue(mixed $value): mixed
-            {
-                return $value; // No coercion for mixed types
-            }
-
-            protected function validateType(mixed $value, string $key): mixed
-            {
-                return $value; // Accept any type
-            }
-
-            protected function getValidatorType(): string
-            {
-                return 'mixed'; // Mixed type validator
-            }
-        })->satisfiesAll($validators, $message);
+        return (new MixedValidator())->satisfiesAll($validators, $message);
     }
 
     /**
@@ -141,21 +111,7 @@ class Validator
      */
     public static function not(FieldValidator $validator, ?string $message = null): FieldValidator
     {
-        return (new class() extends FieldValidator {
-            protected function coerceValue(mixed $value): mixed
-            {
-                return $value; // No coercion for mixed types
-            }
-
-            protected function validateType(mixed $value, string $key): mixed
-            {
-                return $value; // Accept any type
-            }
-
-            protected function getValidatorType(): string
-            {
-                return 'mixed'; // Mixed type validator
-            }
-        })->satisfiesNone([$validator], $message ?? 'Value must not satisfy the validation rule');
+        return (new MixedValidator())
+            ->satisfiesNone([$validator], $message ?? 'Value must not satisfy the validation rule');
     }
 }
