@@ -225,12 +225,8 @@ it('should clone validators without sharing pipeline state', function () {
 
     $clone = $original->clone();
 
-    $result = $clone->validate('a,b,c');
-    expect($result)->toBe('c-b-a');
-
-    $currentType = new ReflectionProperty($original, 'currentType');
-
-    expect($currentType->getValue($original))->toBeNull(); // Original instance untouched
+    expect($clone->validate('a,b,c'))->toBe('c-b-a');
+    expect($original->validate('a,b,c'))->toBe('c-b-a'); // Original validates independently
 });
 
 it('should reset type context between validations', function () {
@@ -254,9 +250,7 @@ it('should not carry runtime type context into clones', function () {
     $clone = $original->clone();
 
     expect($clone->validate([1]))->toBe('1');
-
-    $currentType = new ReflectionProperty($clone, 'currentType');
-    expect($currentType->getValue($clone))->toBeNull();
+    expect($original->validate([1]))->toBe('1'); // Original still works after the clone runs
 });
 
 it('should clone a validator with in() without triggering warnings', function () {

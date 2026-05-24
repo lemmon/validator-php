@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Internal refactor (no public API or behavior change): `Validator::allOf()`, `anyOf()`, and `not()` now build on a new concrete `MixedValidator` base instead of repeating an inline anonymous class; validator pipeline steps are now a typed `PipelineStep` value object (internal) instead of an associative array, simplifying `FieldValidator::__clone()`
+- Internal refactor (no public API or behavior change): the `transform()`/`pipe()` type context now lives in a per-run `PipelineContext` object created in `tryValidate()` instead of a mutable `currentType` property on the validator; pipeline operations are now stateless static closures, so cloning no longer rebinds them and validator instances hold no transient state during a run (safe for reuse and reentrancy)
 
 ## [0.15.0] - 2026-04-15
 

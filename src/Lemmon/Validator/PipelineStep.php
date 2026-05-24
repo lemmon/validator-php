@@ -12,10 +12,9 @@ namespace Lemmon\Validator;
 final readonly class PipelineStep
 {
     /**
-     * @param \Closure $operation    The operation applied to the value during validation.
+     * @param \Closure $operation    The operation applied to the value during validation; receives
+     *                               (mixed $value, PipelineContext $context, string $key, mixed $input).
      * @param bool     $skipNull     Whether the step is skipped when the value is null.
-     * @param bool     $bindable     Whether $operation is a non-static closure that must be
-     *                               re-bound to the owning validator when it is cloned.
      * @param \Closure|null $rebuildOperation Rebuilds $operation from a fresh clone of any
      *                               captured FieldValidator operand, so cloning isolates state.
      */
@@ -23,7 +22,6 @@ final readonly class PipelineStep
         public PipelineType $type,
         public \Closure $operation,
         public bool $skipNull,
-        public bool $bindable,
         public ?\Closure $rebuildOperation = null,
     ) {}
 
@@ -36,7 +34,6 @@ final readonly class PipelineStep
             $this->type,
             $operation,
             $this->skipNull,
-            $this->bindable,
             $this->rebuildOperation,
         );
     }

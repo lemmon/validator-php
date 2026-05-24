@@ -28,10 +28,6 @@ abstract class FieldValidator
      * @var array<PipelineStep>
      */
     protected array $pipeline = [];
-    /**
-     * Transient type context for the active validation run (null = original validator type).
-     */
-    protected ?string $currentType = null;
 
     /**
      * Marks the field as required.
@@ -134,7 +130,6 @@ abstract class FieldValidator
             type: PipelineType::TRANSFORMATION,
             operation: static fn($value) => $value === '' || is_array($value) && $value === [] ? null : $value,
             skipNull: true,
-            bindable: false,
         );
         return $this;
     }
@@ -383,7 +378,10 @@ abstract class FieldValidator
      */
     protected static function buildValidationOperation(callable $rule, ?string $message = null): \Closure
     {
-        return static function ($value, $key = null, $input = null) use ($rule, $message) {
+        return static function ($value, ?PipelineContext $context = null, $key = null, $input = null) use (
+            $rule,
+            $message,
+        ) {
             if (!$rule($value, $key, $input)) {
                 throw new ValidationException([$message ?? 'Custom validation failed']);
             }
@@ -408,7 +406,6 @@ abstract class FieldValidator
             type: PipelineType::VALIDATION,
             operation: self::buildValidationOperation($rule, $message),
             skipNull: true,
-            bindable: false,
             rebuildOperation: $rebuildOperation,
         );
     }
@@ -523,16 +520,15 @@ abstract class FieldValidator
     {
         $this->pipeline[] = new PipelineStep(
             type: PipelineType::TRANSFORMATION,
-            operation: function ($value) use ($transformer) {
+            operation: static function ($value, PipelineContext $context) use ($transformer) {
                 $result = $transformer($value);
 
-                // Update current type context based on result
-                $this->currentType = $this->detectType($result);
+                // Record the new type so later pipe steps coerce against it
+                $context->setTypeFrom($result);
 
                 return $result; // No coercion - transform can change type
             },
             skipNull: $skipNull,
-            bindable: true,
         );
         return $this;
     }
@@ -549,14 +545,8 @@ abstract class FieldValidator
         foreach ($transformers as $transformer) {
             $this->pipeline[] = new PipelineStep(
                 type: PipelineType::TRANSFORMATION,
-                operation: function ($value) use ($transformer) {
-                    $result = $transformer($value);
-
-                    // Apply type-specific coercion based on current type context
-                    return $this->coerceForCurrentType($result);
-                },
+                operation: static fn($value, PipelineContext $context) => $context->coerce($transformer($value)),
                 skipNull: true,
-                bindable: true,
             );
         }
         return $this;
@@ -593,8 +583,6 @@ abstract class FieldValidator
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
-        $this->currentType = null;
-
         // Coerce input
         if ($this->coerce) {
             $value = $this->coerceValue($value);
@@ -604,12 +592,15 @@ abstract class FieldValidator
             // Type validation (skip null -- default/required will handle it)
             $processedValue = is_null($value) ? $value : $this->validateType($value, $key);
 
+            // Per-run type context, seeded with this validator's type and discarded when the run ends
+            $context = new PipelineContext($this->getValidatorType());
+
             // Execute pipeline
             foreach ($this->pipeline as $step) {
                 if (is_null($processedValue) && $step->skipNull) {
                     continue;
                 }
-                $processedValue = ($step->operation)($processedValue, $key, $input);
+                $processedValue = ($step->operation)($processedValue, $context, $key, $input);
             }
 
             // Default -- last resort fallback for null
@@ -625,8 +616,6 @@ abstract class FieldValidator
             return [true, $processedValue, null];
         } catch (ValidationException $e) {
             return [false, $value, $e->getErrors()];
-        } finally {
-            $this->currentType = null;
         }
     }
 
@@ -655,84 +644,6 @@ abstract class FieldValidator
      */
     abstract protected function getValidatorType(): string;
 
-    /**
-     * Gets the current type context for transformations.
-     *
-     * @return string The current type or the validator's original type
-     */
-    protected function getCurrentType(): string
-    {
-        return $this->currentType ?? $this->getValidatorType();
-    }
-
-    /**
-     * Detects the type of a value for transformation context.
-     *
-     * @param mixed $value The value to analyze
-     * @return string The detected type
-     */
-    protected function detectType(mixed $value): string
-    {
-        return match (true) {
-            is_array($value) && array_is_list($value) => 'indexed_array',
-            is_array($value) => 'associative_array',
-            is_string($value) => 'string',
-            is_int($value) => 'int',
-            is_float($value) => 'float',
-            is_bool($value) => 'bool',
-            is_object($value) => 'object',
-            default => 'mixed',
-        };
-    }
-
-    /**
-     * Applies type-specific coercion based on current type context.
-     *
-     * @param mixed $value The value to coerce
-     * @return mixed The coerced value
-     */
-    protected function coerceForCurrentType(mixed $value): mixed
-    {
-        return match ($this->getCurrentType()) {
-            'indexed_array' => $this->coerceToIndexedArray($value),
-            'associative_array' => $this->coerceToAssociativeArray($value),
-            'string' => $value, // No coercion needed
-            'int' => $value, // No coercion needed
-            'float' => $value, // No coercion needed
-            'bool' => $value, // No coercion needed
-            'object' => $value, // No coercion needed
-            default => $value,
-        };
-    }
-
-    /**
-     * Coerces value to indexed array (reindexes if necessary).
-     *
-     * @param mixed $value The value to coerce
-     * @return mixed The coerced value
-     */
-    protected function coerceToIndexedArray(mixed $value): mixed
-    {
-        if (!is_array($value)) {
-            return $value;
-        }
-        return array_is_list($value) ? $value : array_values($value);
-    }
-
-    /**
-     * Coerces value to associative array (preserves keys).
-     *
-     * @param mixed $value The value to coerce
-     * @return mixed The coerced value
-     */
-    protected function coerceToAssociativeArray(mixed $value): mixed
-    {
-        if (!is_array($value)) {
-            return $value;
-        }
-        return $value; // Preserve keys - no reindexing!
-    }
-
     private function resolveDefaultValue(): mixed
     {
         if ($this->defaultFactory instanceof \Closure) {
@@ -744,26 +655,14 @@ abstract class FieldValidator
 
     public function __clone()
     {
-        $this->currentType = null;
-
+        // Operations are static closures with no bound state, so steps can be shared as-is --
+        // except those capturing a FieldValidator operand, whose operation is rebuilt from a
+        // fresh clone so the operand's pipeline state stays isolated from the original.
         $rebuiltPipeline = [];
         foreach ($this->pipeline as $step) {
-            // Phase 1: if this step captures a FieldValidator operand, rebuild the
-            // operation from a fresh clone so the operand's state is isolated.
-            $operation = $step->rebuildOperation instanceof \Closure ? ($step->rebuildOperation)() : $step->operation;
-            // Phase 2: re-bind non-static closures (transform/pipe) to $this so they
-            // reference the cloned validator's currentType, not the original's.
-            if ($step->bindable) {
-                $boundOperation = $operation->bindTo($this);
-                if ($boundOperation !== null) {
-                    $operation = $boundOperation;
-                }
-            }
-
-            // rebuildOperation is carried over as-is by withOperation(): the closure
-            // captures a template validator that is cloned on each invocation and must
-            // remain free of persistent mutable state.
-            $rebuiltPipeline[] = $step->withOperation($operation);
+            $rebuiltPipeline[] = $step->rebuildOperation instanceof \Closure
+                ? $step->withOperation(($step->rebuildOperation)())
+                : $step;
         }
 
         $this->pipeline = $rebuiltPipeline;
