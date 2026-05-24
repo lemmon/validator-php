@@ -7,10 +7,8 @@ PHP validation library inspired by Valibot and Zod. Type-safe, fluent API for pr
 Core validation logic lives in `src/Lemmon/Validator/`. Tests in `tests/` follow `XValidatorTest.php` naming. Key project files:
 
 - `llms.txt` - Technical spec for external/consumer use; API signatures, null handling, transformation types
-- `ROADMAP.md` - Strategic planning and checkboxes
-- `TASKS.md` - Immediate task pool (keep short, no numbering)
+- `ROADMAP.md` - Single source of truth for planned and considered work (v1.0 path, post-1.0, not planned)
 - `CHANGELOG` - Completed work
-- `IDEAS` - Exploration
 
 ## Architecture
 
