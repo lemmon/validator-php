@@ -428,10 +428,9 @@ $validator = Validator::isArray()->items(Validator::isInt()->coerce());
 
 if (!$valid) {
     echo "Validation failed:\n";
-    print_r($errors);
-    // Output:
+    // $errors is a flat list of ValidationError objects:
     // [
-    //     '1' => ['Value must be an integer']
+    //     ValidationError(path: '1', code: 'INVALID_TYPE', message: 'Value must be an integer'),
     // ]
 
     // Flattened errors preserve array indices
@@ -519,7 +518,7 @@ Custom message:
 
 ### Custom Cross-Item Validation with satisfies()
 
-For validations beyond uniqueness (ordering, dependencies, custom logic), use `satisfies()` on the array validator. Structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level paths.
+For validations beyond uniqueness (ordering, dependencies, custom logic), use `satisfies()` on the array validator. Throw a `ValidationException` of `ValidationError` objects whose `path` is `"{index}.{field}"` to get field-level paths.
 
 ### Simple Uniqueness Check (Array-Level Error)
 

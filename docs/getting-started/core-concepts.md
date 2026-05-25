@@ -40,7 +40,7 @@ All validators extend `FieldValidator`, which provides:
 ### Core Validation Methods
 
 - `validate(mixed $value): mixed` - Throws exception on failure
-- `tryValidate(mixed $value): array` - Returns `[bool, mixed, array]`
+- `tryValidate(mixed $value): array` - Returns `[bool $valid, mixed $data, ?array $errors]`, where `$errors` is a list of `ValidationError` objects
 
 ### Common Configuration
 
@@ -342,7 +342,7 @@ $validator = Validator::isString()
 // Stops at the first failing rule in this chain:
 [$valid, $data, $errors] = $validator->tryValidate('ab');
 // $errors = [
-//     'Value must be at least 5 characters long'
+//     ValidationError(path: '', code: 'STRING_TOO_SHORT', message: 'Value must be at least 5 characters long'),
 // ]
 ```
 

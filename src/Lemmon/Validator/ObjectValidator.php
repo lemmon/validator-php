@@ -52,10 +52,11 @@ class ObjectValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_object($value)) {
-            throw new ValidationException(['Input must be an object']);
+            throw self::typeError('Input must be an object', 'object');
         }
 
         $data = new \stdClass();
+        /** @var array<ValidationError> $errors */
         $errors = [];
 
         foreach ($this->schema as $fieldKey => $validator) {
@@ -69,7 +70,9 @@ class ObjectValidator extends FieldValidator
             );
 
             if (!$valid) {
-                $errors[$fieldKey] = $fieldErrors;
+                foreach ($fieldErrors ?? [] as $error) {
+                    $errors[] = $error->withPathPrefix((string) $fieldKey);
+                }
                 continue;
             }
 

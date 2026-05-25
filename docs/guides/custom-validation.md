@@ -264,11 +264,33 @@ $validator = Validator::isString()
 
 [$valid, $data, $errors] = $validator->tryValidate('short');
 
-// $errors will contain:
+// $errors is a flat list of ValidationError objects; the chain stops at the first failure:
 // [
-//     'Value must be at least 8 characters long'
+//     ValidationError(path: '', code: 'STRING_TOO_SHORT', message: 'Value must be at least 8 characters long'),
 // ]
 ```
+
+## Custom Error Codes and Placeholders
+
+`satisfies()` accepts two optional trailing arguments: a stable `$code` and a `$params` map. The
+code lets integrators handle the error programmatically (it defaults to `CUSTOM`), and params double
+as `{name}` placeholders substituted into the message:
+
+```php
+$validator = Validator::isString()->satisfies(
+    fn($value) => strlen($value) >= 12,
+    'Password must be at least {min} characters',
+    'PASSWORD_TOO_SHORT',
+    ['min' => 12],
+);
+
+[$valid, $data, $errors] = $validator->tryValidate('weak');
+// $errors[0]->getCode()    === 'PASSWORD_TOO_SHORT'
+// $errors[0]->getMessage() === 'Password must be at least 12 characters'
+// $errors[0]->getParams()  === ['min' => 12]
+```
+
+See the [Error Handling Guide](error-handling.md#structured-errors) for the full structured-error model.
 
 ## Advanced Patterns
 

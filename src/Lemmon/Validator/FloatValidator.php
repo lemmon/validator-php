@@ -37,7 +37,7 @@ class FloatValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_numeric($value)) {
-            throw new ValidationException(['Value must be a float']);
+            throw self::typeError('Value must be a float', 'float');
         }
         return (float) $value;
     }

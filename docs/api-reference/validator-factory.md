@@ -293,7 +293,8 @@ try {
 if ($valid) {
     echo 'Valid email: ' . $data;
 } else {
-    echo 'Errors: ' . implode(', ', $errors);
+    // $errors is a list of ValidationError objects
+    echo 'Errors: ' . implode(', ', array_map(fn($e) => $e->getMessage(), $errors));
 }
 ```
 

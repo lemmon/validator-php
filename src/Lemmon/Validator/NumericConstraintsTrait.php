@@ -24,6 +24,8 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value >= $min,
             $message ?? "Value must be at least {$min}",
+            ValidationCode::NUMBER_TOO_SMALL,
+            ['min' => $min],
         );
     }
 
@@ -39,6 +41,8 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value <= $max,
             $message ?? "Value must be at most {$max}",
+            ValidationCode::NUMBER_TOO_LARGE,
+            ['max' => $max],
         );
     }
 
@@ -55,6 +59,8 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value >= $min && $value <= $max,
             $message ?? "Value must be between {$min} and {$max}",
+            ValidationCode::NUMBER_BETWEEN,
+            ['min' => $min, 'max' => $max],
         );
     }
 
@@ -70,6 +76,8 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value > $threshold,
             $message ?? "Value must be greater than {$threshold}",
+            ValidationCode::GREATER_THAN,
+            ['threshold' => $threshold],
         );
     }
 
@@ -85,6 +93,8 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value >= $threshold,
             $message ?? "Value must be at least {$threshold}",
+            ValidationCode::NUMBER_TOO_SMALL,
+            ['min' => $threshold],
         );
     }
 
@@ -100,6 +110,8 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value < $threshold,
             $message ?? "Value must be less than {$threshold}",
+            ValidationCode::LESS_THAN,
+            ['threshold' => $threshold],
         );
     }
 
@@ -115,6 +127,8 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value <= $threshold,
             $message ?? "Value must be at most {$threshold}",
+            ValidationCode::NUMBER_TOO_LARGE,
+            ['max' => $threshold],
         );
     }
 
@@ -139,6 +153,8 @@ trait NumericConstraintsTrait
                 return abs($remainder) < $epsilon || abs($remainder - $divisor) < $epsilon;
             },
             $message ?? "Value must be a multiple of {$divisor}",
+            ValidationCode::MULTIPLE_OF,
+            ['divisor' => $divisor],
         );
     }
 
@@ -153,6 +169,7 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value > 0,
             $message ?? 'Value must be positive',
+            ValidationCode::POSITIVE,
         );
     }
 
@@ -167,6 +184,7 @@ trait NumericConstraintsTrait
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => $value < 0,
             $message ?? 'Value must be negative',
+            ValidationCode::NEGATIVE,
         );
     }
 

@@ -464,9 +464,9 @@ $strictValidator = Validator::isInt()
 
 [$valid, $data, $errors] = $strictValidator->tryValidate(5);
 
-// $errors might contain:
+// $errors is a flat list of ValidationError objects:
 // [
-//     'Value must be at least 10'
+//     ValidationError(path: '', code: 'NUMBER_TOO_SMALL', message: 'Value must be at least 10'),
 // ]
 ```
 

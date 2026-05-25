@@ -43,6 +43,7 @@ Rather than reimplementing every possible transformation or validation rule, Lem
 - **Type-safe validation** for strings, integers, floats, arrays, and objects
 - **Fluent, chainable API** with guaranteed execution order -- methods execute exactly as written in the chain
 - **Schema-level error aggregation** with fail-fast behavior per field for clear, early feedback
+- **Structured errors** - `getStructuredErrors()` returns `ValidationError` objects with a stable `code` (see `ValidationCode`), dotted `path`, `message`, and `params` for programmatic handling and i18n; match on codes rather than message text
 - **API-friendly flattened errors** with field paths for easy frontend integration (`getFlattenedErrors()`, `ValidationException::flattenErrors()`)
 - **Intuitive custom validation** with `satisfies()` method and optional error messages
 - **Single-value validation** with `const()` for exact value matching (available on all validators)

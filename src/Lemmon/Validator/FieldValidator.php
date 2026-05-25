@@ -139,10 +139,20 @@ abstract class FieldValidator
      *
      * @param callable|FieldValidator $validation The validation function or validator instance.
      * @param ?string $message Optional custom error message. If not provided, a generic message is used.
+     *                         May contain `{name}` placeholders substituted from $params.
+     * @param ?string $code Optional structured error code (defaults to {@see ValidationCode::CUSTOM}).
+     * @param array<string, mixed> $params Optional params recorded on the error and used for placeholder
+     *                                     substitution in the message.
      * @return $this
      */
-    public function satisfies(callable|FieldValidator $validation, ?string $message = null): self
-    {
+    public function satisfies(
+        callable|FieldValidator $validation,
+        ?string $message = null,
+        ?string $code = null,
+        array $params = [],
+    ): self {
+        $code ??= ValidationCode::CUSTOM;
+
         if ($validation instanceof FieldValidator) {
             $validation = $validation->clone();
 
@@ -152,13 +162,17 @@ abstract class FieldValidator
                 static fn(): \Closure => self::buildValidationOperation(
                     self::buildFieldValidatorRule($validation->clone()),
                     $message,
+                    $code,
+                    $params,
                 ),
+                $code,
+                $params,
             );
 
             return $this;
         }
 
-        $this->addValidationStep($validation, $message);
+        $this->addValidationStep($validation, $message, null, $code, $params);
 
         return $this;
     }
@@ -202,8 +216,10 @@ abstract class FieldValidator
                 ? static fn(): \Closure => self::buildValidationOperation(
                     self::buildAllRule(self::cloneValidatorOperands($validations)),
                     $message,
+                    ValidationCode::ALL_OF,
                 )
                 : null,
+            ValidationCode::ALL_OF,
         );
 
         return $this;
@@ -237,8 +253,10 @@ abstract class FieldValidator
                 ? static fn(): \Closure => self::buildValidationOperation(
                     self::buildAnyRule(self::cloneValidatorOperands($validations)),
                     $message,
+                    ValidationCode::ANY_OF,
                 )
                 : null,
+            ValidationCode::ANY_OF,
         );
 
         return $this;
@@ -272,8 +290,10 @@ abstract class FieldValidator
                 ? static fn(): \Closure => self::buildValidationOperation(
                     self::buildNoneRule(self::cloneValidatorOperands($validations)),
                     $message,
+                    ValidationCode::NONE_OF,
                 )
                 : null,
+            ValidationCode::NONE_OF,
         );
 
         return $this;
@@ -376,14 +396,30 @@ abstract class FieldValidator
     /**
      * Wraps a boolean rule callable in a pipeline-compatible operation that throws on failure.
      */
-    protected static function buildValidationOperation(callable $rule, ?string $message = null): \Closure
-    {
+    /**
+     * @param array<string, mixed> $params
+     */
+    protected static function buildValidationOperation(
+        callable $rule,
+        ?string $message = null,
+        string $code = ValidationCode::CUSTOM,
+        array $params = [],
+    ): \Closure {
         return static function ($value, ?PipelineContext $context = null, $key = null, $input = null) use (
             $rule,
             $message,
+            $code,
+            $params,
         ) {
             if (!$rule($value, $key, $input)) {
-                throw new ValidationException([$message ?? 'Custom validation failed']);
+                throw new ValidationException([
+                    new ValidationError(
+                        '',
+                        $code,
+                        ValidationError::interpolate($message ?? 'Custom validation failed', $params),
+                        $params,
+                    ),
+                ]);
             }
 
             return $value;
@@ -396,18 +432,34 @@ abstract class FieldValidator
      * When $rule captures a FieldValidator operand, the caller must clone that operand
      * before building $rule *and* supply a $rebuildOperation that produces a fresh
      * operation from a new clone, so that {@see __clone()} can isolate pipeline state.
+     *
+     * @param array<string, mixed> $params
      */
     protected function addValidationStep(
         callable $rule,
         ?string $message = null,
         ?\Closure $rebuildOperation = null,
+        string $code = ValidationCode::CUSTOM,
+        array $params = [],
     ): void {
         $this->pipeline[] = new PipelineStep(
             type: PipelineType::VALIDATION,
-            operation: self::buildValidationOperation($rule, $message),
+            operation: self::buildValidationOperation($rule, $message, $code, $params),
             skipNull: true,
             rebuildOperation: $rebuildOperation,
         );
+    }
+
+    /**
+     * Builds a root-level type-mismatch error ({@see ValidationCode::INVALID_TYPE}).
+     *
+     * @param string $expected The expected type name (e.g. 'string', 'indexed_array').
+     */
+    protected static function typeError(string $message, string $expected): ValidationException
+    {
+        return new ValidationException([
+            new ValidationError('', ValidationCode::INVALID_TYPE, $message, ['expected' => $expected]),
+        ]);
     }
 
     /**
@@ -434,6 +486,8 @@ abstract class FieldValidator
         return $this->satisfies(
             static fn($v) => $v === $value,
             $message ?? 'Value must be ' . (is_scalar($value) ? var_export($value, true) : json_encode($value)),
+            ValidationCode::CONST,
+            ['expected' => $value],
         );
     }
 
@@ -458,10 +512,8 @@ abstract class FieldValidator
         }
 
         if (is_subclass_of($enumClass, \BackedEnum::class, true)) {
-            $allowed = implode(', ', array_map(
-                static fn(\BackedEnum $c) => var_export($c->value, true),
-                $enumClass::cases(),
-            ));
+            $allowedValues = array_map(static fn(\BackedEnum $c) => $c->value, $enumClass::cases());
+            $allowed = implode(', ', array_map(static fn($v) => var_export($v, true), $allowedValues));
 
             return $this->satisfies(
                 static function ($v) use ($enumClass): bool {
@@ -472,14 +524,14 @@ abstract class FieldValidator
                     return $enumClass::tryFrom($v) !== null;
                 },
                 $message ?? 'Value must be one of: ' . $allowed,
+                ValidationCode::ENUM,
+                ['allowed' => $allowedValues],
             );
         }
 
         if (is_subclass_of($enumClass, \UnitEnum::class, true)) {
-            $allowed = implode(', ', array_map(
-                static fn(\UnitEnum $c) => var_export($c->name, true),
-                $enumClass::cases(),
-            ));
+            $allowedNames = array_map(static fn(\UnitEnum $c) => $c->name, $enumClass::cases());
+            $allowed = implode(', ', array_map(static fn($n) => var_export($n, true), $allowedNames));
 
             return $this->satisfies(
                 static function ($v) use ($enumClass): bool {
@@ -500,6 +552,8 @@ abstract class FieldValidator
                     return false;
                 },
                 $message ?? 'Value must be one of: ' . $allowed,
+                ValidationCode::ENUM,
+                ['allowed' => $allowedNames],
             );
         }
 
@@ -565,7 +619,9 @@ abstract class FieldValidator
     {
         [$valid, $data, $errors] = $this->tryValidate($value, $key, $input);
         if (!$valid) {
-            throw new ValidationException($errors ?? ['Validation failed']);
+            throw new ValidationException(
+                $errors ?? [new ValidationError('', ValidationCode::CUSTOM, 'Validation failed')],
+            );
         }
         return $data;
     }
@@ -576,10 +632,10 @@ abstract class FieldValidator
      * @param mixed $value The value to validate.
      * @param string $key The key of the field being validated.
      * @param mixed|null $input The entire input payload (array or object).
-     * @return array{bool, mixed, array<string>|null} A tuple containing:
+     * @return array{bool, mixed, array<ValidationError>|null} A tuple containing:
      *                                                 - bool: true if validation is successful, false otherwise.
      *                                                 - mixed: The validated and potentially coerced value on success, or the (possibly coerced) input value on failure.
-     *                                                 - array|null: An array of error messages on failure, or null on success.
+     *                                                 - array|null: A list of structured {@see ValidationError} objects on failure, or null on success.
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
@@ -610,12 +666,14 @@ abstract class FieldValidator
 
             // Required -- single check, always last
             if ($this->required && is_null($processedValue)) {
-                throw new ValidationException([$this->requiredMessage]);
+                throw new ValidationException([
+                    new ValidationError('', ValidationCode::REQUIRED, $this->requiredMessage ?? 'Value is required'),
+                ]);
             }
 
             return [true, $processedValue, null];
         } catch (ValidationException $e) {
-            return [false, $value, $e->getErrors()];
+            return [false, $value, $e->getStructuredErrors()];
         }
     }
 

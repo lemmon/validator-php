@@ -30,6 +30,8 @@ trait AllowedValuesTrait
         return $this->satisfies(
             static fn($value) => in_array($value, $values, true),
             $message ?? 'Value must be one of: ' . json_encode($values),
+            ValidationCode::IN,
+            ['allowed' => $values],
         );
     }
 

@@ -62,7 +62,8 @@ try {
 
 ### `tryValidate()` - Tuple-based
 
-Returns a tuple `[bool $valid, mixed $data, array $errors]`:
+Returns a tuple `[bool $valid, mixed $data, ?array $errors]`, where `$errors` is a flat list of
+`ValidationError` objects (or `null` on success):
 
 ```php
 $validator = Validator::isString()->email();
@@ -72,7 +73,8 @@ $validator = Validator::isString()->email();
 if ($valid) {
     echo "Valid email: " . $data;
 } else {
-    echo "Errors: " . implode(', ', $errors);
+    echo "Errors: " . implode(', ', array_map(fn($e) => $e->getMessage(), $errors));
+    // Each error also exposes getPath(), getCode(), and getParams()
 }
 ```
 
@@ -277,9 +279,9 @@ $validator = Validator::isString()
 
 [$valid, $data, $errors] = $validator->tryValidate('ab');
 
-// $errors might contain:
+// $errors is a flat list of ValidationError objects:
 // [
-//     'Value must be at least 5 characters long'
+//     ValidationError(path: '', code: 'STRING_TOO_SHORT', message: 'Value must be at least 5 characters long'),
 // ]
 ```
 

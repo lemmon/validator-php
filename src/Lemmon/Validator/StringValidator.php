@@ -30,7 +30,7 @@ class StringValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_string($value)) {
-            throw new ValidationException(['Value must be a string']);
+            throw self::typeError('Value must be a string', 'string');
         }
         return $value;
     }
@@ -40,6 +40,7 @@ class StringValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => filter_var($value, FILTER_VALIDATE_EMAIL) !== false,
             $message ?? 'Value must be a valid email address',
+            ValidationCode::EMAIL,
         );
     }
 
@@ -48,6 +49,7 @@ class StringValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => filter_var($value, FILTER_VALIDATE_URL) !== false,
             $message ?? 'Value must be a valid URL',
+            ValidationCode::URL,
         );
     }
 
@@ -93,6 +95,8 @@ class StringValidator extends FieldValidator
                 UuidVariant::V7 => 'Value must be a valid UUID version 7',
                 UuidVariant::Any => 'Value must be a valid UUID',
             },
+            ValidationCode::UUID,
+            ['variant' => $variant->name],
         );
     }
 
@@ -109,6 +113,8 @@ class StringValidator extends FieldValidator
                 IpVersion::IPv6 => 'Value must be a valid IPv6 address',
                 IpVersion::Any => 'Value must be a valid IP address',
             },
+            ValidationCode::IP,
+            ['version' => $version->name],
         );
     }
 
@@ -117,6 +123,8 @@ class StringValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => mb_strlen($value) >= $min,
             $message ?? "Value must be at least {$min} characters long",
+            ValidationCode::STRING_TOO_SHORT,
+            ['min' => $min],
         );
     }
 
@@ -125,6 +133,8 @@ class StringValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => mb_strlen($value) <= $max,
             $message ?? "Value must be at most {$max} characters long",
+            ValidationCode::STRING_TOO_LONG,
+            ['max' => $max],
         );
     }
 
@@ -133,6 +143,8 @@ class StringValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => mb_strlen($value) === $exact,
             $message ?? "Value must be exactly {$exact} characters long",
+            ValidationCode::STRING_LENGTH,
+            ['length' => $exact],
         );
     }
 
@@ -141,12 +153,18 @@ class StringValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => mb_strlen($value) >= $min && mb_strlen($value) <= $max,
             $message ?? "Value must be between {$min} and {$max} characters long",
+            ValidationCode::STRING_BETWEEN,
+            ['min' => $min, 'max' => $max],
         );
     }
 
     public function notEmpty(?string $message = null): static
     {
-        return $this->minLength(1, $message ?? 'Value must not be empty');
+        return $this->satisfies(
+            static fn($value, $key = null, $input = null) => mb_strlen($value) >= 1,
+            $message ?? 'Value must not be empty',
+            ValidationCode::NOT_EMPTY,
+        );
     }
 
     public function pattern(string $regex, ?string $message = null): static
@@ -154,6 +172,8 @@ class StringValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => preg_match($regex, $value) === 1,
             $message ?? 'Value does not match the required pattern',
+            ValidationCode::PATTERN,
+            ['pattern' => $regex],
         );
     }
 
@@ -165,6 +185,8 @@ class StringValidator extends FieldValidator
                 return $date !== false && $date->format($format) === $value;
             },
             $message ?? "Value must be a valid datetime in format '{$format}'",
+            ValidationCode::DATETIME,
+            ['format' => $format],
         );
     }
 
@@ -176,6 +198,8 @@ class StringValidator extends FieldValidator
                 return $date !== false && $date->format($format) === $value;
             },
             $message ?? "Value must be a valid date in format '{$format}'",
+            ValidationCode::DATE,
+            ['format' => $format],
         );
     }
 
@@ -186,6 +210,7 @@ class StringValidator extends FieldValidator
                 filter_var($value, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false
             ),
             $message ?? 'Value must be a valid hostname',
+            ValidationCode::HOSTNAME,
         );
     }
 
@@ -200,6 +225,7 @@ class StringValidator extends FieldValidator
                 return filter_var($value, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false;
             },
             $message ?? 'Value must be a valid domain name',
+            ValidationCode::DOMAIN,
         );
     }
 
@@ -210,6 +236,7 @@ class StringValidator extends FieldValidator
                 preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/', $value) === 1
             ),
             $message ?? 'Value must be a valid time in format HH:MM or HH:MM:SS',
+            ValidationCode::TIME,
         );
     }
 
@@ -236,6 +263,8 @@ class StringValidator extends FieldValidator
                 Base64Variant::UrlSafe => 'Value must be a valid URL-safe Base64 encoded string',
                 Base64Variant::Any => 'Value must be a valid Base64 encoded string',
             },
+            ValidationCode::BASE64,
+            ['variant' => $variant->name],
         );
     }
 
@@ -247,6 +276,7 @@ class StringValidator extends FieldValidator
                 && strlen($value) > 0
             ),
             $message ?? 'Value must be a valid hexadecimal string',
+            ValidationCode::HEX,
         );
     }
 

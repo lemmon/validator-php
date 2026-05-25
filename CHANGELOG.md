@@ -6,9 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Structured error model. `ValidationException::getStructuredErrors()` returns a flat list of new `ValidationError` value objects, each with `getPath()` (dotted, `''` at root), `getCode()` (a stable code from the new `ValidationCode` catalog, e.g. `STRING_TOO_SHORT`, `INVALID_TYPE`, `REQUIRED`), `getMessage()`, and `getParams()` (e.g. `['min' => 5]`). `ValidationError` is `JsonSerializable`. All built-in validators now emit codes and params; messages support `{name}` placeholder substitution from params
+- `satisfies()` accepts two optional trailing arguments: `?string $code` (defaults to `CUSTOM`) and `array $params` for structured error codes and message placeholders on custom rules
 - `enum()` on `FieldValidator` now accepts PHP `UnitEnum` (non-backed enums): the value must be an instance of the enum or a string equal to one of the case names; `BackedEnum` behavior is unchanged (int or string backed values via `tryFrom()`)
 
 ### Changed
+
+- **BREAKING:** the third element of the `tryValidate()` tuple is now a flat list of `ValidationError` objects (previously a nested array of message strings). `ValidationException::flattenErrors()` now accepts this list. `ValidationException::getErrors()` still returns the legacy nested message array (back-compatible) and `getFlattenedErrors()` is unchanged
+- **BREAKING:** `ValidationException::__construct()` now takes a list of `ValidationError` objects instead of a raw error array (affects only code that constructs the exception directly)
 
 - Internal refactor (no public API or behavior change): `Validator::allOf()`, `anyOf()`, and `not()` now build on a new concrete `MixedValidator` base instead of repeating an inline anonymous class; validator pipeline steps are now a typed `PipelineStep` value object (internal) instead of an associative array, simplifying `FieldValidator::__clone()`
 - Internal refactor (no public API or behavior change): the `transform()`/`pipe()` type context now lives in a per-run `PipelineContext` object created in `tryValidate()` instead of a mutable `currentType` property on the validator; pipeline operations are now stateless static closures, so cloning no longer rebinds them and validator instances hold no transient state during a run (safe for reuse and reentrancy)

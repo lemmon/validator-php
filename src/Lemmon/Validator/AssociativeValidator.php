@@ -52,10 +52,11 @@ class AssociativeValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_array($value)) {
-            throw new ValidationException(['Input must be an associative array']);
+            throw self::typeError('Input must be an associative array', 'associative_array');
         }
 
         $data = [];
+        /** @var array<ValidationError> $errors */
         $errors = [];
 
         foreach ($this->schema as $fieldKey => $validator) {
@@ -69,7 +70,9 @@ class AssociativeValidator extends FieldValidator
             );
 
             if (!$valid) {
-                $errors[$fieldKey] = $fieldErrors;
+                foreach ($fieldErrors ?? [] as $error) {
+                    $errors[] = $error->withPathPrefix((string) $fieldKey);
+                }
                 continue;
             }
 

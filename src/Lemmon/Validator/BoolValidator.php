@@ -43,7 +43,7 @@ class BoolValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_bool($value)) {
-            throw new ValidationException(['Value must be a boolean']);
+            throw self::typeError('Value must be a boolean', 'bool');
         }
         return $value;
     }

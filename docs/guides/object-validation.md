@@ -491,8 +491,8 @@ $schema = Validator::isAssociative([
 
 if (!$valid) {
     echo "Validation failed:\n";
-    foreach ($errors as $field => $fieldErrors) {
-        echo "$field: " . implode(', ', $fieldErrors) . "\n";
+    foreach ($errors as $error) {
+        echo "{$error->getPath()}: {$error->getMessage()}\n";
     }
 } else {
     echo "Validation successful:\n";

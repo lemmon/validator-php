@@ -26,7 +26,8 @@ try {
 
 ### Tuple-Based: `tryValidate()`
 
-Returns a result tuple `[bool $valid, mixed $data, array $errors]`:
+Returns a result tuple `[bool $valid, mixed $data, ?array $errors]`, where `$errors` is a flat
+list of `ValidationError` objects (or `null` on success):
 
 ```php
 $validator = Validator::isString()->email();
@@ -36,8 +37,8 @@ $validator = Validator::isString()->email();
 if ($valid) {
     echo "Valid email: " . $data;
 } else {
-    echo "Errors: " . implode(', ', $errors);
-    // Handle errors without exception handling
+    echo "Errors: " . implode(', ', array_map(fn($e) => $e->getMessage(), $errors));
+    // Each $errors[$i] is a ValidationError with getPath(), getCode(), getMessage(), getParams()
 }
 ```
 
@@ -49,18 +50,142 @@ The `ValidationException` class provides structured access to validation errors:
 try {
     $validator->validate($invalidData);
 } catch (ValidationException $e) {
-    // Get all error messages as array
+    // Structured errors: a flat list of ValidationError objects (the source of truth)
+    $structured = $e->getStructuredErrors();
+
+    // Legacy nested view (back-compatible): messages keyed by path segments
     $errors = $e->getErrors();
 
-    // Get exception message (JSON-encoded error structure)
-    $message = $e->getMessage();
+    // Flat list of ['path' => ..., 'message' => ...] pairs for API responses
+    $flattened = $e->getFlattenedErrors();
 
-    // Standard exception properties
-    $code = $e->getCode();
-    $file = $e->getFile();
-    $line = $e->getLine();
+    // Get exception message (JSON-encoded legacy error structure)
+    $message = $e->getMessage();
 }
 ```
+
+## Structured Errors
+
+`getStructuredErrors()` returns a flat list of `ValidationError` value objects. Each one carries:
+
+- `getCode()` -- a stable machine-readable code (see `ValidationCode`), decoupled from wording
+- `getMessage()` -- the human-readable message
+- `getPath()` -- dotted location within the input (`''` at the root)
+- `getParams()` -- the values that produced the message (e.g. `['min' => 5]`)
+
+```php
+use Lemmon\Validator\ValidationCode;
+
+[$valid, $data, $errors] = Validator::isString()->minLength(5)->tryValidate('hi');
+
+$error = $errors[0];
+$error->getCode();    // 'STRING_TOO_SHORT' (=== ValidationCode::STRING_TOO_SHORT)
+$error->getMessage(); // 'Value must be at least 5 characters long'
+$error->getPath();    // ''
+$error->getParams();  // ['min' => 5]
+```
+
+Codes are stable across releases, so match on them rather than message text -- this is what makes
+i18n and programmatic handling reliable:
+
+```php
+foreach ($e->getStructuredErrors() as $error) {
+    $label = match ($error->getCode()) {
+        ValidationCode::REQUIRED => __('errors.required'),
+        ValidationCode::STRING_TOO_SHORT => __('errors.too_short', $error->getParams()),
+        ValidationCode::INVALID_TYPE => __('errors.invalid_type', $error->getParams()),
+        default => $error->getMessage(),
+    };
+}
+```
+
+`ValidationError` implements `JsonSerializable`, so it serializes directly to
+`{ "path": ..., "code": ..., "message": ..., "params": ... }` for API responses.
+
+### Custom codes and message placeholders
+
+`satisfies()` accepts an optional code and params. Params double as `{name}` placeholders in the
+message:
+
+```php
+$validator = Validator::isString()->satisfies(
+    fn($value) => strlen($value) >= 8,
+    'Must be at least {min} characters',
+    'PASSWORD_TOO_SHORT',
+    ['min' => 8],
+);
+// On failure: code 'PASSWORD_TOO_SHORT', message 'Must be at least 8 characters', params ['min' => 8]
+```
+
+## Error Code Reference
+
+Codes are stable across releases and exposed as constants on `ValidationCode`. Match on the
+constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or message text. Custom
+`satisfies()` rules default to `CUSTOM` but may supply any code.
+
+### Core
+
+| Code           | Emitted by                          | Params                                                               |
+| -------------- | ----------------------------------- | -------------------------------------------------------------------- |
+| `REQUIRED`     | `required()` when the value is null | --                                                                   |
+| `INVALID_TYPE` | any validator's type check          | `expected` (e.g. `'string'`, `'int'`, `'indexed_array'`, `'object'`) |
+| `IN`           | `in()` / `oneOf()`                  | `allowed` (array)                                                    |
+| `CONST`        | `const()`                           | `expected`                                                           |
+| `ENUM`         | `enum()`                            | `allowed` (array of backed values or case names)                     |
+| `CUSTOM`       | `satisfies()` (default)             | as supplied                                                          |
+
+### Logical combinators
+
+| Code      | Emitted by                              | Params |
+| --------- | --------------------------------------- | ------ |
+| `ALL_OF`  | `satisfiesAll()` / `Validator::allOf()` | --     |
+| `ANY_OF`  | `satisfiesAny()` / `Validator::anyOf()` | --     |
+| `NONE_OF` | `satisfiesNone()` / `Validator::not()`  | --     |
+
+### String
+
+| Code               | Emitted by              | Params       |
+| ------------------ | ----------------------- | ------------ |
+| `STRING_TOO_SHORT` | `minLength()`           | `min`        |
+| `STRING_TOO_LONG`  | `maxLength()`           | `max`        |
+| `STRING_LENGTH`    | `length()`              | `length`     |
+| `STRING_BETWEEN`   | `between()`             | `min`, `max` |
+| `NOT_EMPTY`        | `notEmpty()`            | --           |
+| `EMAIL`            | `email()`               | --           |
+| `URL`              | `url()`                 | --           |
+| `UUID`             | `uuid()`                | `variant`    |
+| `IP`               | `ip()`                  | `version`    |
+| `PATTERN`          | `pattern()` / `regex()` | `pattern`    |
+| `DATETIME`         | `datetime()`            | `format`     |
+| `DATE`             | `date()`                | `format`     |
+| `HOSTNAME`         | `hostname()`            | --           |
+| `DOMAIN`           | `domain()`              | --           |
+| `TIME`             | `time()`                | --           |
+| `BASE64`           | `base64()`              | `variant`    |
+| `HEX`              | `hex()`                 | --           |
+
+### Numeric
+
+| Code               | Emitted by                             | Params       |
+| ------------------ | -------------------------------------- | ------------ |
+| `NUMBER_TOO_SMALL` | `min()`, `gte()` (and `nonNegative()`) | `min`        |
+| `NUMBER_TOO_LARGE` | `max()`, `lte()` (and `nonPositive()`) | `max`        |
+| `NUMBER_BETWEEN`   | `between()`                            | `min`, `max` |
+| `GREATER_THAN`     | `gt()`                                 | `threshold`  |
+| `LESS_THAN`        | `lt()`                                 | `threshold`  |
+| `MULTIPLE_OF`      | `multipleOf()`                         | `divisor`    |
+| `POSITIVE`         | `positive()`                           | --           |
+| `NEGATIVE`         | `negative()`                           | --           |
+| `PORT`             | `port()` (int)                         | --           |
+
+### Array
+
+| Code                   | Emitted by      | Params |
+| ---------------------- | --------------- | ------ |
+| `ARRAY_TOO_FEW_ITEMS`  | `minItems()`    | `min`  |
+| `ARRAY_TOO_MANY_ITEMS` | `maxItems()`    | `max`  |
+| `CONTAINS`             | `contains()`    | --     |
+| `NOT_UNIQUE`           | `uniqueField()` | --     |
 
 ## Flattened Errors for API Consumption
 
@@ -164,10 +289,9 @@ $validator = Validator::isString()
 
 [$valid, $data, $errors] = $validator->tryValidate('AB');
 
-// $errors contains the first failure in the chain:
-// [
-//     'Value must be at least 8 characters long'
-// ]
+// $errors contains the first failure in the chain as a single ValidationError:
+// $errors[0]->getMessage() === 'Value must be at least 8 characters long'
+// $errors[0]->getCode()    === 'STRING_TOO_SHORT'
 ```
 
 ### Schema Validation Errors
@@ -189,7 +313,14 @@ $invalidData = [
 
 [$valid, $data, $errors] = $userSchema->tryValidate($invalidData);
 
-// $errors structure:
+// $errors is a flat list of ValidationError objects, each with a dotted path:
+// [
+//     ValidationError(path: 'name',  code: 'STRING_TOO_SHORT', message: 'Value must be at least 2 characters long'),
+//     ValidationError(path: 'email', code: 'EMAIL',            message: 'Value must be a valid email address'),
+//     ValidationError(path: 'age',   code: 'NUMBER_TOO_SMALL', message: 'Value must be at least 18'),
+// ]
+
+// For the legacy nested array form, catch the exception and call $e->getErrors():
 // [
 //     'name' => ['Value must be at least 2 characters long'],
 //     'email' => ['Value must be a valid email address'],
@@ -215,12 +346,10 @@ $input = [
 
 [$valid, $data, $errors] = $schema->tryValidate($input);
 
-// $errors structure preserves array indices:
+// $errors is a flat list of ValidationError objects with full dotted paths:
 // [
-//     'items' => [
-//         '1' => ['Value must be at least 1'],
-//         '2' => ['Value must be at least 1']
-//     ]
+//     ValidationError(path: 'items.1', code: 'NUMBER_TOO_SMALL', message: 'Value must be at least 1'),
+//     ValidationError(path: 'items.2', code: 'NUMBER_TOO_SMALL', message: 'Value must be at least 1'),
 // ]
 
 // Flattened errors show full paths with indices:
@@ -289,7 +418,7 @@ try {
 }
 ```
 
-For custom cross-item logic, use `satisfies()` and structure errors as `[arrayIndex => [fieldName => [errorMessage]]]` to get field-level paths in flattened output.
+For custom cross-item logic, use `satisfies()` and throw a `ValidationException` containing `ValidationError` objects whose `path` is `"{index}.{field}"` (e.g. `new ValidationError("2.destination", ValidationCode::NOT_UNIQUE, $message)`) to get field-level paths in flattened output.
 
 ## Error Message Customization
 
@@ -367,11 +496,9 @@ if ($result['valid']) {
     // Process valid data
     $user = createUser($result['data']);
 } else {
-    // Display errors to user
-    foreach ($result['errors'] as $field => $fieldErrors) {
-        foreach ($fieldErrors as $error) {
-            echo "<div class='error'>{$field}: {$error}</div>";
-        }
+    // Display errors to user ($result['errors'] is a list of ValidationError objects)
+    foreach ($result['errors'] as $error) {
+        echo "<div class='error'>{$error->getPath()}: {$error->getMessage()}</div>";
     }
 }
 ```
@@ -441,28 +568,13 @@ class ConfigValidator
 
         if (!$valid) {
             $errorMessage = "Configuration validation failed:\n";
-            $this->flattenErrors($errors, $errorMessage);
+            foreach (\Lemmon\Validator\ValidationException::flattenErrors($errors) as $entry) {
+                $errorMessage .= "- {$entry['path']}: {$entry['message']}\n";
+            }
             throw new InvalidConfigurationException($errorMessage);
         }
 
         return $validatedConfig;
-    }
-
-    private function flattenErrors(array $errors, string &$message, string $prefix = ''): void
-    {
-        foreach ($errors as $key => $value) {
-            $currentKey = $prefix ? "{$prefix}.{$key}" : $key;
-
-            if (is_array($value) && !empty($value) && is_string($value[0])) {
-                // Leaf error messages
-                foreach ($value as $error) {
-                    $message .= "- {$currentKey}: {$error}\n";
-                }
-            } elseif (is_array($value)) {
-                // Nested errors
-                $this->flattenErrors($value, $message, $currentKey);
-            }
-        }
     }
 }
 ```
@@ -626,20 +738,14 @@ $validator = Validator::isString()
 ### 3. Handle Nested Errors Appropriately
 
 ```php
-function displayErrors(array $errors, string $prefix = ''): void
-{
-    foreach ($errors as $key => $value) {
-        $fieldName = $prefix ? "{$prefix}.{$key}" : $key;
+use Lemmon\Validator\ValidationError;
 
-        if (is_array($value) && isset($value[0]) && is_string($value[0])) {
-            // Field errors
-            foreach ($value as $error) {
-                echo "<div class='error'>{$fieldName}: {$error}</div>";
-            }
-        } elseif (is_array($value)) {
-            // Nested structure errors
-            displayErrors($value, $fieldName);
-        }
+function displayErrors(array $errors): void
+{
+    // $errors is a flat list of ValidationError objects with dotted paths -- no recursion needed
+    foreach ($errors as $error) {
+        $field = $error->getPath() === '' ? '_root' : $error->getPath();
+        echo "<div class='error'>{$field}: {$error->getMessage()}</div>";
     }
 }
 ```

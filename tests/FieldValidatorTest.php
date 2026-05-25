@@ -81,7 +81,7 @@ it('should not apply transformations when validation fails', function () {
 
     expect($valid)->toBe(false);
     expect($data)->toBe('short'); // Original value, not transformed
-    expect($errors)->toContain('Value must be at least 10 characters long');
+    expect(array_map(fn($e) => $e->getMessage(), $errors))->toContain('Value must be at least 10 characters long');
 });
 
 it('should work with array transformations', function () {
@@ -214,7 +214,10 @@ it('should return a result tuple for standalone validators', function () {
     [$valid, $data, $errors] = Validator::isString()->tryValidate(123);
     expect($valid)->toBe(false);
     expect($data)->toBe(123);
-    expect($errors)->toBe(['Value must be a string']);
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getMessage())->toBe('Value must be a string');
+    expect($errors[0]->getCode())->toBe('INVALID_TYPE');
+    expect($errors[0]->getPath())->toBe('');
 });
 
 it('should clone validators without sharing pipeline state', function () {
@@ -430,7 +433,7 @@ it('should fail fast in single pipeline - first validation error stops execution
 
     expect($valid)->toBe(false);
     expect($errors)->toHaveCount(1); // Only first error - fail fast behavior
-    expect($errors)->toContain('Value must be at least 10 characters long'); // First validation that fails
+    expect($errors[0]->getMessage())->toBe('Value must be at least 10 characters long'); // First validation that fails
 });
 
 it('should pass context to custom validators', function () {
@@ -449,7 +452,8 @@ it('should pass context to custom validators', function () {
 
     [$valid, $data, $errors] = $validator->tryValidate('value', 'wrong', ['other' => 'data']);
     expect($valid)->toBe(false);
-    expect($errors)->toContain('Custom validation failed');
+    expect($errors[0]->getMessage())->toBe('Custom validation failed');
+    expect($errors[0]->getCode())->toBe('CUSTOM');
 });
 
 it('should validate satisfiesAll combinator', function () {

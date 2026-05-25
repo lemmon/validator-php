@@ -76,7 +76,8 @@ describe('Validator Static Logical Combinators', function () {
             [$valid, $data, $errors] = $validator->tryValidate('invalid');
             expect($valid)->toBe(false);
             expect($data)->toBe('invalid');
-            expect($errors)->toContain('Value must satisfy at least one validation rule');
+            expect(array_map(fn($e) => $e->getMessage(), $errors))
+                ->toContain('Value must satisfy at least one validation rule');
         });
     });
 
@@ -143,7 +144,8 @@ describe('Validator Static Logical Combinators', function () {
             [$valid, $data, $errors] = $validator->tryValidate('hi');
             expect($valid)->toBe(false);
             expect($data)->toBe('hi');
-            expect($errors)->toContain('Value must satisfy all validation rules');
+            expect(array_map(fn($e) => $e->getMessage(), $errors))
+                ->toContain('Value must satisfy all validation rules');
         });
     });
 
@@ -193,7 +195,8 @@ describe('Validator Static Logical Combinators', function () {
             [$valid, $data, $errors] = $validator->tryValidate('test@example.com');
             expect($valid)->toBe(false);
             expect($data)->toBe('test@example.com');
-            expect($errors)->toContain('Value must not satisfy the validation rule');
+            expect(array_map(fn($e) => $e->getMessage(), $errors))
+                ->toContain('Value must not satisfy the validation rule');
         });
     });
 

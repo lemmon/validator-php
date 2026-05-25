@@ -101,13 +101,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<!-- Display errors in template -->
+<!-- Display errors in template ($errors is a list of ValidationError objects) -->
 <?php if (isset($errors)): ?>
     <div class="alert alert-danger">
-        <?php foreach ($errors as $field => $fieldErrors): ?>
-            <?php foreach ($fieldErrors as $error): ?>
-                <div><?= htmlspecialchars($error) ?></div>
-            <?php endforeach; ?>
+        <?php foreach ($errors as $error): ?>
+            <div><?= htmlspecialchars($error->getMessage()) ?></div>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
@@ -844,12 +842,9 @@ function formatErrorsForDisplay(array $errors): array
 {
     $formatted = [];
 
-    foreach ($errors as $field => $fieldErrors) {
-        $fieldName = ucfirst(str_replace('_', ' ', $field));
-
-        foreach ($fieldErrors as $error) {
-            $formatted[] = "{$fieldName}: {$error}";
-        }
+    foreach ($errors as $error) {
+        $fieldName = ucfirst(str_replace(['_', '.'], [' ', ' '], $error->getPath()));
+        $formatted[] = "{$fieldName}: {$error->getMessage()}";
     }
 
     return $formatted;

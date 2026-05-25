@@ -34,7 +34,7 @@ class IntValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_int($value)) {
-            throw new ValidationException(['Value must be an integer']);
+            throw self::typeError('Value must be an integer', 'int');
         }
         return $value;
     }
@@ -50,6 +50,7 @@ class IntValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => is_int($value) && $value >= 1 && $value <= 65_535,
             $message ?? 'Value must be a valid port number (1-65535)',
+            ValidationCode::PORT,
         );
     }
 }

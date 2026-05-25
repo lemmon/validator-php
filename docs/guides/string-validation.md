@@ -538,9 +538,9 @@ $validator = Validator::isString()
 
 [$valid, $data, $errors] = $validator->tryValidate('ab');
 
-// $errors will contain:
+// $errors is a flat list of ValidationError objects:
 // [
-//     'Value must be at least 8 characters long'
+//     ValidationError(path: '', code: 'STRING_TOO_SHORT', message: 'Value must be at least 8 characters long'),
 // ]
 ```
 

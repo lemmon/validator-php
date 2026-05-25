@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Lemmon\Validator\ValidationCode;
+use Lemmon\Validator\ValidationError;
 use Lemmon\Validator\ValidationException;
 use Lemmon\Validator\Validator;
 
@@ -211,7 +213,9 @@ it('should handle empty error array', function () {
 });
 
 it('should handle single root-level error', function () {
-    $exception = new ValidationException(['Value must be a string']);
+    $exception = new ValidationException([
+        new ValidationError('', ValidationCode::INVALID_TYPE, 'Value must be a string'),
+    ]);
     $flattened = $exception->getFlattenedErrors();
     expect($flattened)->toBe([
         ['path' => '_root', 'message' => 'Value must be a string'],

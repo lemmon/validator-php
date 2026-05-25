@@ -50,7 +50,11 @@ class ArrayValidator extends FieldValidator
      */
     public function notEmpty(?string $message = null): static
     {
-        return $this->minItems(1, $message ?? 'Value must not be empty');
+        return $this->satisfies(
+            static fn($value, $key = null, $input = null) => count($value) >= 1,
+            $message ?? 'Value must not be empty',
+            ValidationCode::NOT_EMPTY,
+        );
     }
 
     /**
@@ -65,6 +69,8 @@ class ArrayValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => count($value) >= $min,
             $message ?? "Value must contain at least {$min} items",
+            ValidationCode::ARRAY_TOO_FEW_ITEMS,
+            ['min' => $min],
         );
     }
 
@@ -80,6 +86,8 @@ class ArrayValidator extends FieldValidator
         return $this->satisfies(
             static fn($value, $key = null, $input = null) => count($value) <= $max,
             $message ?? "Value must contain at most {$max} items",
+            ValidationCode::ARRAY_TOO_MANY_ITEMS,
+            ['max' => $max],
         );
     }
 
@@ -117,6 +125,7 @@ class ArrayValidator extends FieldValidator
                     $seen[$serialized]['indices'][] = $index;
                 }
 
+                /** @var array<ValidationError> $errors */
                 $errors = [];
 
                 foreach ($seen as $entry) {
@@ -143,9 +152,11 @@ class ArrayValidator extends FieldValidator
                                 . ')',
                         };
 
-                        $errors[$idx] = [
-                            $fieldName => [$defaultMessage],
-                        ];
+                        $errors[] = new ValidationError(
+                            "{$idx}.{$fieldName}",
+                            ValidationCode::NOT_UNIQUE,
+                            $defaultMessage,
+                        );
                     }
                 }
 
@@ -178,7 +189,9 @@ class ArrayValidator extends FieldValidator
                 static fn(): \Closure => self::buildValidationOperation(
                     self::buildContainsRule($valueOrValidator->clone()),
                     $message,
+                    ValidationCode::CONTAINS,
                 ),
+                ValidationCode::CONTAINS,
             );
 
             return $this;
@@ -187,6 +200,8 @@ class ArrayValidator extends FieldValidator
         $this->addValidationStep(
             self::buildContainsRule($valueOrValidator),
             $message,
+            null,
+            ValidationCode::CONTAINS,
         );
 
         return $this;
@@ -244,12 +259,12 @@ class ArrayValidator extends FieldValidator
     protected function validateType(mixed $value, string $key): mixed
     {
         if (!is_array($value)) {
-            throw new ValidationException(['Value must be an array']);
+            throw self::typeError('Value must be an array', 'array');
         }
 
         // Check if it's a list (indexed array starting from 0)
         if (!array_is_list($value)) {
-            throw new ValidationException(['Value must be an indexed array (list)']);
+            throw self::typeError('Value must be an indexed array (list)', 'indexed_array');
         }
 
         // Apply filterEmpty transformation if enabled
@@ -263,10 +278,10 @@ class ArrayValidator extends FieldValidator
         // If item validator is set, validate each item
         if ($this->itemValidator !== null) {
             $validatedItems = [];
+            /** @var array<ValidationError> $errors */
             $errors = [];
 
             foreach ($value as $index => $item) {
-                $itemKey = ($key ? $key . '.' : '') . $index;
                 [$valid, $validatedItem, $itemErrors] = $this->itemValidator->tryValidate(
                     $item,
                     (string) $index,
@@ -274,8 +289,9 @@ class ArrayValidator extends FieldValidator
                 );
 
                 if (!$valid) {
-                    // Wrap item errors under the index key
-                    $errors[$index] = $itemErrors;
+                    foreach ($itemErrors ?? [] as $error) {
+                        $errors[] = $error->withPathPrefix((string) $index);
+                    }
                     continue;
                 }
 
