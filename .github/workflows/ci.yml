@@ -49,7 +49,7 @@ jobs:
         run: composer lint
 
       - name: Static analysis
-        run: composer analyse
+        run: composer analyze
 
       - name: Tests
         run: composer test

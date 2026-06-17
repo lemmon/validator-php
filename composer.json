@@ -50,14 +50,14 @@
         "sort-packages": true
     },
     "scripts": {
-        "analyse": "phpstan analyse",
+        "analyze": "phpstan analyse",
         "check": [
             "@platform-check",
             "mago format --check",
             "@lint",
             "npm run format:check",
             "@test",
-            "@analyse"
+            "@analyze"
         ],
         "format": "mago format",
         "lint": "mago lint",

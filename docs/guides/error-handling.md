@@ -68,10 +68,10 @@ try {
 
 `getStructuredErrors()` returns a flat list of `ValidationError` value objects. Each one carries:
 
-- `getCode()` -- a stable machine-readable code (see `ValidationCode`), decoupled from wording
-- `getMessage()` -- the human-readable message
-- `getPath()` -- dotted location within the input (`''` at the root)
-- `getParams()` -- the values that produced the message (e.g. `['min' => 5]`)
+- `getCode()` — a stable machine-readable code (see `ValidationCode`), decoupled from wording
+- `getMessage()` — the human-readable message
+- `getPath()` — dotted location within the input (`''` at the root)
+- `getParams()` — the values that produced the message (e.g. `['min' => 5]`)
 
 ```php
 use Lemmon\Validator\ValidationCode;
@@ -85,7 +85,7 @@ $error->getPath();    // ''
 $error->getParams();  // ['min' => 5]
 ```
 
-Codes are stable across releases, so match on them rather than message text -- this is what makes
+Codes are stable across releases, so match on them rather than message text — this is what makes
 i18n and programmatic handling reliable:
 
 ```php
@@ -109,12 +109,12 @@ message:
 
 ```php
 $validator = Validator::isString()->satisfies(
-    fn($value) => strlen($value) >= 8,
-    'Must be at least {min} characters',
-    'PASSWORD_TOO_SHORT',
-    ['min' => 8],
+    fn($value) => preg_match_all('/\d/', $value) >= 2,
+    'Must contain at least {min} digits',
+    'PASSWORD_TOO_FEW_DIGITS',
+    ['min' => 2],
 );
-// On failure: code 'PASSWORD_TOO_SHORT', message 'Must be at least 8 characters', params ['min' => 8]
+// On failure: code 'PASSWORD_TOO_FEW_DIGITS', message 'Must contain at least 2 digits', params ['min' => 2]
 ```
 
 ## Error Code Reference
@@ -127,7 +127,7 @@ constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or messag
 
 | Code           | Emitted by                          | Params                                                               |
 | -------------- | ----------------------------------- | -------------------------------------------------------------------- |
-| `REQUIRED`     | `required()` when the value is null | --                                                                   |
+| `REQUIRED`     | `required()` when the value is null | —                                                                    |
 | `INVALID_TYPE` | any validator's type check          | `expected` (e.g. `'string'`, `'int'`, `'indexed_array'`, `'object'`) |
 | `IN`           | `in()` / `oneOf()`                  | `allowed` (array)                                                    |
 | `CONST`        | `const()`                           | `expected`                                                           |
@@ -138,9 +138,9 @@ constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or messag
 
 | Code      | Emitted by                              | Params |
 | --------- | --------------------------------------- | ------ |
-| `ALL_OF`  | `satisfiesAll()` / `Validator::allOf()` | --     |
-| `ANY_OF`  | `satisfiesAny()` / `Validator::anyOf()` | --     |
-| `NONE_OF` | `satisfiesNone()` / `Validator::not()`  | --     |
+| `ALL_OF`  | `satisfiesAll()` / `Validator::allOf()` | —      |
+| `ANY_OF`  | `satisfiesAny()` / `Validator::anyOf()` | —      |
+| `NONE_OF` | `satisfiesNone()` / `Validator::not()`  | —      |
 
 ### String
 
@@ -150,19 +150,19 @@ constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or messag
 | `STRING_TOO_LONG`  | `maxLength()`           | `max`        |
 | `STRING_LENGTH`    | `length()`              | `length`     |
 | `STRING_BETWEEN`   | `between()`             | `min`, `max` |
-| `NOT_EMPTY`        | `notEmpty()`            | --           |
-| `EMAIL`            | `email()`               | --           |
-| `URL`              | `url()`                 | --           |
+| `NOT_EMPTY`        | `notEmpty()`            | —            |
+| `EMAIL`            | `email()`               | —            |
+| `URL`              | `url()`                 | —            |
 | `UUID`             | `uuid()`                | `variant`    |
 | `IP`               | `ip()`                  | `version`    |
 | `PATTERN`          | `pattern()` / `regex()` | `pattern`    |
 | `DATETIME`         | `datetime()`            | `format`     |
 | `DATE`             | `date()`                | `format`     |
-| `HOSTNAME`         | `hostname()`            | --           |
-| `DOMAIN`           | `domain()`              | --           |
-| `TIME`             | `time()`                | --           |
+| `HOSTNAME`         | `hostname()`            | —            |
+| `DOMAIN`           | `domain()`              | —            |
+| `TIME`             | `time()`                | —            |
 | `BASE64`           | `base64()`              | `variant`    |
-| `HEX`              | `hex()`                 | --           |
+| `HEX`              | `hex()`                 | —            |
 
 ### Numeric
 
@@ -174,9 +174,9 @@ constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or messag
 | `GREATER_THAN`     | `gt()`                                 | `threshold`  |
 | `LESS_THAN`        | `lt()`                                 | `threshold`  |
 | `MULTIPLE_OF`      | `multipleOf()`                         | `divisor`    |
-| `POSITIVE`         | `positive()`                           | --           |
-| `NEGATIVE`         | `negative()`                           | --           |
-| `PORT`             | `port()` (int)                         | --           |
+| `POSITIVE`         | `positive()`                           | —            |
+| `NEGATIVE`         | `negative()`                           | —            |
+| `PORT`             | `port()` (int)                         | —            |
 
 ### Array
 
@@ -184,8 +184,8 @@ constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or messag
 | ---------------------- | --------------- | ------ |
 | `ARRAY_TOO_FEW_ITEMS`  | `minItems()`    | `min`  |
 | `ARRAY_TOO_MANY_ITEMS` | `maxItems()`    | `max`  |
-| `CONTAINS`             | `contains()`    | --     |
-| `NOT_UNIQUE`           | `uniqueField()` | --     |
+| `CONTAINS`             | `contains()`    | —      |
+| `NOT_UNIQUE`           | `uniqueField()` | —      |
 
 ## Flattened Errors for API Consumption
 
@@ -390,7 +390,7 @@ try {
 
 **Cross-Item Validation Errors (Field-Level):**
 
-For uniqueness of a nested field, use `uniqueField()` -- it produces the nested error structure and field-level paths automatically:
+For uniqueness of a nested field, use `uniqueField()` — it produces the nested error structure and field-level paths automatically:
 
 ```php
 $schema = Validator::isAssociative([
@@ -752,6 +752,6 @@ function displayErrors(array $errors): void
 
 ## Next Steps
 
-- [Custom Validation Guide](custom-validation.md) -- Complex validation scenarios
-- [Form Validation Examples](../examples/form-validation.md) -- See error handling in action
-- [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete method reference
+- [Custom Validation Guide](custom-validation.md) — Complex validation scenarios
+- [Form Validation Examples](../examples/form-validation.md) — See error handling in action
+- [API Reference - Validator Factory](../api-reference/validator-factory.md) — Complete method reference

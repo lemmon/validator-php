@@ -883,7 +883,7 @@ class FileUploadValidator
 
 ## Next Steps
 
-- [String Validation Guide](../guides/string-validation.md) -- Advanced string validation patterns
-- [Numeric Validation Guide](../guides/numeric-validation.md) -- Numeric validation techniques
-- [Object & Schema Validation](../guides/object-validation.md) -- Complex nested structure validation
-- [Error Handling Guide](../guides/error-handling.md) -- Advanced error handling techniques
+- [String Validation Guide](../guides/string-validation.md) — Advanced string validation patterns
+- [Numeric Validation Guide](../guides/numeric-validation.md) — Numeric validation techniques
+- [Object & Schema Validation](../guides/object-validation.md) — Complex nested structure validation
+- [Error Handling Guide](../guides/error-handling.md) — Advanced error handling techniques

@@ -154,7 +154,7 @@ $result = $safeQuantity->validate('5'); // Returns: 5
 
 ### Execution Order Matters
 
-**Critical**: Pipeline steps execute in the **exact order written**. This matters for `pipe()`, `transform()`, and `nullifyEmpty()`. Both `required()` and `default()` are flags -- their position does not change execution order. `default()` fills in null after the pipeline as a last resort; `required()` enforces presence at the very end.
+**Critical**: Pipeline steps execute in the **exact order written**. This matters for `pipe()`, `transform()`, and `nullifyEmpty()`. Both `required()` and `default()` are flags — their position does not change execution order. `default()` fills in null after the pipeline as a last resort; `required()` enforces presence at the very end.
 
 ```php
 // Order matters for transformations
@@ -347,7 +347,7 @@ $withFallback = Validator::isString()
 
 ## Next Steps
 
-- [Core Concepts](core-concepts.md) -- Understand the architecture
-- [String Validation Guide](../guides/string-validation.md) -- Detailed string validation
-- [Numeric Validation Guide](../guides/numeric-validation.md) -- Integer and float validation
-- [Custom Validation Guide](../guides/custom-validation.md) -- Create your own validation rules
+- [Core Concepts](core-concepts.md) — Understand the architecture
+- [String Validation Guide](../guides/string-validation.md) — Detailed string validation
+- [Numeric Validation Guide](../guides/numeric-validation.md) — Integer and float validation
+- [Custom Validation Guide](../guides/custom-validation.md) — Create your own validation rules

@@ -517,7 +517,7 @@ $scoreValidator = Validator::isFloat()
 
 ## Next Steps
 
-- [Array Validation Guide](array-validation.md) -- Learn about array and list validation
-- [Object & Schema Validation](object-validation.md) -- Handle complex nested structures
-- [Custom Validation Guide](custom-validation.md) -- Create custom numeric rules
-- [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete method reference
+- [Array Validation Guide](array-validation.md) — Learn about array and list validation
+- [Object & Schema Validation](object-validation.md) — Handle complex nested structures
+- [Custom Validation Guide](custom-validation.md) — Create custom numeric rules
+- [API Reference - Validator Factory](../api-reference/validator-factory.md) — Complete method reference

@@ -564,7 +564,7 @@ $efficientValidator = Validator::isString()
 
 ## Next Steps
 
-- [Numeric Validation Guide](numeric-validation.md) -- Learn about integer and float validation
-- [Object & Schema Validation](object-validation.md) -- Handle complex nested structures
-- [Custom Validation Guide](custom-validation.md) -- Create custom validation rules
-- [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete method reference
+- [Numeric Validation Guide](numeric-validation.md) — Learn about integer and float validation
+- [Object & Schema Validation](object-validation.md) — Handle complex nested structures
+- [Custom Validation Guide](custom-validation.md) — Create custom validation rules
+- [API Reference - Validator Factory](../api-reference/validator-factory.md) — Complete method reference

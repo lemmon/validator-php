@@ -44,16 +44,16 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- **CRITICAL BUG**: Fixed `default()` and `required()` interaction -- `required()` was rejecting null values before `default()` had a chance to provide a fallback
+- **CRITICAL BUG**: Fixed `default()` and `required()` interaction — `required()` was rejecting null values before `default()` had a chance to provide a fallback
   - **Issue**: Chaining `->default($value)->required()` always threw "Value is required" for null inputs because `required` checked for null before `default` was applied
   - **Root Cause**: `tryValidate()` had a scattered, multi-branch architecture with `default` and `required` checks duplicated across 5+ locations (early returns, pre-pipeline, mid-loop, post-loop), making the interaction order unpredictable
   - **Fix**: Simplified `tryValidate()` to a clean linear 5-step flow: coerce, type check, pipeline, default, required
-  - **Impact**: `default()` and `required()` now work cooperatively -- `default()` is the last-resort fallback for null, `required()` only fails if the value is still null after default
+  - **Impact**: `default()` and `required()` now work cooperatively — `default()` is the last-resort fallback for null, `required()` only fails if the value is still null after default
   - **Real-World Benefit**: Enables patterns like `->pipe(fn($x) => null)->default($fallback)->required()` where a pipeline step intentionally nullifies a value and `default()` catches it before `required()` enforces presence
 
 ### Changed
 
-- **Simplified `tryValidate()` pipeline architecture** -- reduced from 67 lines with 5+ branch points to 33 lines with a linear flow
+- **Simplified `tryValidate()` pipeline architecture** — reduced from 67 lines with 5+ branch points to 33 lines with a linear flow
   - Removed 2 duplicated early returns for null + no-pipeline + not-required
   - Removed mid-loop `default()` and `required()` checks (were duplicating post-loop logic)
   - `default()` now applies in exactly one place: after the pipeline, as the last-resort fallback

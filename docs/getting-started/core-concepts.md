@@ -124,12 +124,12 @@ Validator::isObject($schema)            // stdClass object with schema
 Understanding the validation flow helps debug and optimize your validators:
 
 1. **Type Coercion** - If enabled, attempt type conversion (empty strings become `null` for primitives)
-2. **Type Validation** - Check value type (skipped for null -- lets the pipeline and default/required handle it)
+2. **Type Validation** - Check value type (skipped for null — lets the pipeline and default/required handle it)
 3. **Pipeline Execution** - Validations and transformations run in the order written (fail-fast per field)
 4. **Default** - Last-resort fallback: if the result is null and a default exists, apply it
 5. **Required** - Single check, always last: if the value is still null after default, fail
 
-`default()` and `required()` are both flags -- their position in the fluent chain does not change when they are evaluated. `default()` always applies after the pipeline as the last-resort fallback for null. `required()` always enforces presence at the very end, after default has had its chance.
+`default()` and `required()` are both flags — their position in the fluent chain does not change when they are evaluated. `default()` always applies after the pipeline as the last-resort fallback for null. `required()` always enforces presence at the very end, after default has had its chance.
 
 ## Data Transformations
 
@@ -258,7 +258,7 @@ $processed = Validator::isArray()
 
 ### Transformation Pipeline Order
 
-Pipeline methods (`pipe()`, `transform()`, `nullifyEmpty()`, `satisfies()`, etc.) execute in their written order. `required()` and `default()` are flags -- their position does not change execution order:
+Pipeline methods (`pipe()`, `transform()`, `nullifyEmpty()`, `satisfies()`, etc.) execute in their written order. `required()` and `default()` are flags — their position does not change execution order:
 
 ```php
 // Execution order: trim → nullifyEmpty
@@ -498,7 +498,7 @@ $email2 = $emailValidator->validate('user2@example.com');
 
 Now that you understand the core concepts:
 
-- [String Validation Guide](../guides/string-validation.md) -- Master string validation
-- [Numeric Validation Guide](../guides/numeric-validation.md) -- Work with numbers
-- [Object & Schema Validation](../guides/object-validation.md) -- Handle complex structures
-- [Custom Validation Guide](../guides/custom-validation.md) -- Create custom business rules
+- [String Validation Guide](../guides/string-validation.md) — Master string validation
+- [Numeric Validation Guide](../guides/numeric-validation.md) — Work with numbers
+- [Object & Schema Validation](../guides/object-validation.md) — Handle complex structures
+- [Custom Validation Guide](../guides/custom-validation.md) — Create custom business rules

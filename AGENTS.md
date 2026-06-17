@@ -25,9 +25,9 @@ Core validation logic lives in `src/Lemmon/Validator/`. Tests in `tests/` follow
 
 - `composer test` - Run Pest test suite
 - `composer lint` / `composer format` - Mago linting and formatting (dev dependency)
-- `composer analyse` - PHPStan at max level
+- `composer analyze` - PHPStan at max level
 - `composer platform-check` - Verify PHP 8.3 and extension requirements
-- `composer check` - Run all checks (platform, format, lint, Prettier, test, analyse); use before PR
+- `composer check` - Run all checks (platform, format, lint, Prettier, test, analyze); use before PR
 - `npm run format` - Prettier for YAML, JSON, Markdown
 - `npm run check` - Alias for `composer check`
 - Pre-commit hook (Husky): Prettier check, Mago format --staged, Mago lint --staged
@@ -38,4 +38,4 @@ Dev tooling: symfony/var-dumper, symfony/error-handler, ergebnis/composer-normal
 
 ## Coding Style & Formatting
 
-PSR-12 for PHP. Mago for lint/format (`composer lint`, `composer format`). Prettier (`.prettierrc`) for YAML, JSON, Markdown. Add PHPDoc where behavior is non-obvious. Stick to ASCII punctuation in code and docs (e.g. `--` not em dash) so diffs stay predictable. Emojis sparingly.
+PSR-12 for PHP. Mago for lint/format (`composer lint`, `composer format`). Prettier (`.prettierrc`) for YAML, JSON, Markdown. Add PHPDoc where behavior is non-obvious. Stick to ASCII punctuation in PHP code (e.g. `--`, not an em dash); Markdown and other docs may use proper typographic characters.

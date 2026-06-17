@@ -732,7 +732,7 @@ $validator = Validator::isObject()->defaultUsing(
 $result = $validator->validate(null); // Returns a new stdClass each time
 ```
 
-Use this whenever the default contains mutable objects -- whether a plain object or an array with nested objects. Each call to `validate()` will invoke the factory and receive a fresh instance.
+Use this whenever the default contains mutable objects — whether a plain object or an array with nested objects. Each call to `validate()` will invoke the factory and receive a fresh instance.
 
 ---
 

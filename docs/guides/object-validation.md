@@ -294,7 +294,7 @@ $result = $schema->validate($input);
 // Result: ['level' => 5, 'override' => false]
 ```
 
-> **Scope:** `coerceAll()` propagates through schema fields, nested schemas, and array item validators. It does not reach into assertion operands -- validators passed to `satisfies()`, `satisfiesAll()`, `satisfiesAny()`, `satisfiesNone()`, or `contains()`. Call `coerce()` on those validators individually when needed.
+> **Scope:** `coerceAll()` propagates through schema fields, nested schemas, and array item validators. It does not reach into assertion operands — validators passed to `satisfies()`, `satisfiesAll()`, `satisfiesAny()`, `satisfiesNone()`, or `contains()`. Call `coerce()` on those validators individually when needed.
 
 ### Object-Array Coercion
 

@@ -17,43 +17,6 @@ composer require lemmon/validator
 
 **Requirements:** PHP 8.3 or higher
 
-## About
-
-**Philosophy: "Simple and Minimal with Extensibility Over Reinvention"**
-
-Rather than reimplementing every possible transformation or validation rule, Lemmon Validator provides a solid foundation with generic `transform()` and `pipe()` methods that integrate seamlessly with PHP's ecosystem. Need complex string transformations? Plug in Laravel's `Str` class through our transformation system. Need advanced array operations? Connect Laravel Collections via our fluent API. The library focuses on what it does best: type-safe validation with excellent developer experience, while enabling you to leverage the entire PHP ecosystem.
-
-**Key Design Principles:**
-
-- **Type-Safe Architecture**: Modern PHP 8.1+ enums provide IDE autocomplete, refactoring safety, and eliminate magic strings throughout the codebase
-- **Smart Null Handling**: Validations skip `null` unless `required()`. `transform()` and `pipe()` skip `null` by default for type safety. Use `transform($fn, skipNull: false)` to process null values.
-- **Form Safety First**: Empty strings coerce to `null` (not dangerous `0`/`false`) to prevent real-world issues like accidental zero bank balances
-- **Fluent API with Execution Order Guarantee**: Validation rules read like natural language and execute in the exact order written -- `Validator::isString()->pipe('trim')->nullifyEmpty()->required()`
-- **Last-Resort Default**: `default()` is a flag applied after the pipeline -- fills in null only as a last resort, before `required()` enforces presence
-- **Fail-Fast Per Field**: Each validator stops at the first failing rule, while schema validation still aggregates errors across fields
-- **API-Friendly Error Format**: Flattened errors with field paths (`'_root'` for root-level, dot notation for nested) perfect for frontend consumption
-- **Type-Aware Transformations**: Intelligent transformation system that maintains type context and handles coercion automatically
-- **Extensible Architecture**: Generic transformation methods work with any PHP callable or external library
-- **Strict Typing**: All files use `declare(strict_types=1);`, keeping internal type hints strict; opt into `coerce()` when you need form-friendly conversions.
-
-## Features
-
-- **Type-safe architecture** - PHP 8.1+ enums with IDE autocomplete, refactoring safety, and zero magic strings
-- **Smart null handling** - validations skip `null` unless `required()`, `transform()`/`pipe()`/`nullifyEmpty()` skip `null` by default
-- **Type-safe validation** for strings, integers, floats, arrays, and objects
-- **Fluent, chainable API** with guaranteed execution order -- methods execute exactly as written in the chain
-- **Schema-level error aggregation** with fail-fast behavior per field for clear, early feedback
-- **Structured errors** - `getStructuredErrors()` returns `ValidationError` objects with a stable `code` (see `ValidationCode`), dotted `path`, `message`, and `params` for programmatic handling and i18n; match on codes rather than message text
-- **API-friendly flattened errors** with field paths for easy frontend integration (`getFlattenedErrors()`, `ValidationException::flattenErrors()`)
-- **Intuitive custom validation** with `satisfies()` method and optional error messages
-- **Single-value validation** with `const()` for exact value matching (available on all validators)
-- **PHP enum validation** with `enum()` for `BackedEnum` (backed values) and `UnitEnum` (case instances or string case names) (available on all validators)
-- **Logical combinators** (`Validator::allOf()`, `Validator::anyOf()`, `Validator::not()`) for complex validation logic
-- **Form-safe coercion** - empty strings become `null` (not dangerous `0`/`false`) for real-world safety
-- **Accurate schema validation** - results only include provided fields and fields with defaults (no unexpected properties)
-- **Universal transformations** (`transform()`, `pipe()`) for post-validation data processing
-- **Null-safe operations** with `nullifyEmpty()` method for consistent empty value handling
-
 ## Quick Start
 
 All runtime classes live under the `Lemmon\Validator` namespace.
@@ -63,16 +26,16 @@ use Lemmon\Validator\Validator;
 
 // Simple validation with form-safe coercion
 $email = Validator::isString()
-    ->email()
     ->nullifyEmpty() // Empty strings become null (form-safe)
+    ->email()
     ->validate('user@example.com');
 
 // Schema validation with custom logic
 $userSchema = Validator::isAssociative([
     'name' => Validator::isString()->required(),
     'age' => Validator::isInt()->min(18)->coerce(),
-    'email' => Validator::isString()->email()->nullifyEmpty(),
-    'password' => Validator::isString()->satisfies(fn($v) => strlen($v) >= 8, 'Password too short')
+    'email' => Validator::isString()->nullifyEmpty()->email(),
+    'password' => Validator::isString()->minLength(8, 'Password too short')
 ]);
 
 // Tuple-based validation (no exceptions)
@@ -91,6 +54,26 @@ try {
 }
 ```
 
+## Features
+
+- **Type-safe validation** for strings, integers, floats, arrays, and objects, powered by PHP enums for IDE autocomplete, refactoring safety, and zero magic strings
+- **Fluent, chainable API** with a guaranteed execution order — methods run exactly as written (`->pipe('trim')->nullifyEmpty()->required()`)
+- **Smart null handling** — validations skip `null` unless `required()`; `transform()`/`pipe()`/`nullifyEmpty()` skip `null` by default
+- **Form-safe coercion** — empty strings become `null` (not dangerous `0`/`false`); opt into `coerce()` for form-friendly type conversions
+- **Universal transformations** (`transform()`, `pipe()`) that plug in any PHP callable or external library
+- **Custom validation** with `satisfies()`, plus logical combinators (`satisfiesAll()`/`satisfiesAny()`/`satisfiesNone()`)
+- **Exact-value and enum matching** — `const()` for single values, `enum()` for `BackedEnum`/`UnitEnum` (available on all validators)
+- **Last-resort defaults** — `default()` fills `null` after the pipeline, before `required()` enforces presence
+- **Structured errors** — `getStructuredErrors()` returns `ValidationError` objects with a stable `code` (see `ValidationCode`), dotted `path`, `message`, and `params` for programmatic handling and i18n
+- **Fail-fast per field, aggregated per schema** — each validator stops at its first failure while schema validation collects errors across all fields
+- **API-friendly flattened errors** with field paths (`_root` for root, dot notation for nested) via `getFlattenedErrors()`
+- **Accurate schema results** — output includes only provided fields and fields with defaults, never unexpected properties
+- **Strict typing throughout** — every file uses `declare(strict_types=1);`
+
+## Philosophy
+
+**Simple and minimal, with extensibility over reinvention.** Rather than reimplementing every possible transformation or validation rule, Lemmon Validator provides a solid foundation with generic `transform()` and `pipe()` methods that integrate seamlessly with PHP's ecosystem. Need complex string transformations? Plug in Laravel's `Str` class. Need advanced array operations? Connect Laravel Collections. The library focuses on what it does best — type-safe validation with excellent developer experience — while letting you leverage the entire PHP ecosystem.
+
 ## Documentation
 
 ### Getting Started
@@ -101,12 +84,12 @@ try {
 
 ### Validation Guides
 
-- [String Validation](docs/guides/string-validation.md) -- Email, URL, patterns, length constraints
-- [Numeric Validation](docs/guides/numeric-validation.md) -- Integers, floats, ranges, constraints
-- [Array Validation](docs/guides/array-validation.md) -- Indexed arrays and item validation
-- [Object & Schema Validation](docs/guides/object-validation.md) -- Complex nested structures
-- [Custom Validation](docs/guides/custom-validation.md) -- User-defined functions and business logic
-- [Error Handling](docs/guides/error-handling.md) -- Working with validation errors
+- [String Validation](docs/guides/string-validation.md) — Email, URL, patterns, length constraints
+- [Numeric Validation](docs/guides/numeric-validation.md) — Integers, floats, ranges, constraints
+- [Array Validation](docs/guides/array-validation.md) — Indexed arrays and item validation
+- [Object & Schema Validation](docs/guides/object-validation.md) — Complex nested structures
+- [Custom Validation](docs/guides/custom-validation.md) — User-defined functions and business logic
+- [Error Handling](docs/guides/error-handling.md) — Working with validation errors
 
 ### API Reference
 

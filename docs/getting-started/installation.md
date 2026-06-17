@@ -78,11 +78,11 @@ composer lint
 composer fix
 
 # Run static analysis
-composer analyse
+composer analyze
 ```
 
 ## Next Steps
 
-- [Basic Usage](basic-usage.md) -- Learn the fundamentals
-- [Core Concepts](core-concepts.md) -- Understand the architecture
-- [String Validation Guide](../guides/string-validation.md) -- Start with string validation
+- [Basic Usage](basic-usage.md) — Learn the fundamentals
+- [Core Concepts](core-concepts.md) — Understand the architecture
+- [String Validation Guide](../guides/string-validation.md) — Start with string validation

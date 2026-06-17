@@ -278,16 +278,16 @@ as `{name}` placeholders substituted into the message:
 
 ```php
 $validator = Validator::isString()->satisfies(
-    fn($value) => strlen($value) >= 12,
-    'Password must be at least {min} characters',
-    'PASSWORD_TOO_SHORT',
-    ['min' => 12],
+    fn($value) => preg_match_all('/\d/', $value) >= 2,
+    'Password must contain at least {min} digits',
+    'PASSWORD_TOO_FEW_DIGITS',
+    ['min' => 2],
 );
 
 [$valid, $data, $errors] = $validator->tryValidate('weak');
-// $errors[0]->getCode()    === 'PASSWORD_TOO_SHORT'
-// $errors[0]->getMessage() === 'Password must be at least 12 characters'
-// $errors[0]->getParams()  === ['min' => 12]
+// $errors[0]->getCode()    === 'PASSWORD_TOO_FEW_DIGITS'
+// $errors[0]->getMessage() === 'Password must contain at least 2 digits'
+// $errors[0]->getParams()  === ['min' => 2]
 ```
 
 See the [Error Handling Guide](error-handling.md#structured-errors) for the full structured-error model.
@@ -625,7 +625,7 @@ $badValidator = Validator::isString()->satisfies(
 
 ## Next Steps
 
-- [Array Validation Guide](array-validation.md) -- Logical combinators and complex rules
-- [Error Handling Guide](error-handling.md) -- Working with validation errors
-- [API Reference - Validator Factory](../api-reference/validator-factory.md) -- Complete `satisfies()` reference
-- [Form Validation Examples](../examples/form-validation.md) -- See custom validation in action
+- [Array Validation Guide](array-validation.md) — Logical combinators and complex rules
+- [Error Handling Guide](error-handling.md) — Working with validation errors
+- [API Reference - Validator Factory](../api-reference/validator-factory.md) — Complete `satisfies()` reference
+- [Form Validation Examples](../examples/form-validation.md) — See custom validation in action
