@@ -391,8 +391,9 @@ $validator = Validator::isArray();
 try {
     $validator->validate('not an array');
 } catch (ValidationException $e) {
-    echo $e->getMessage(); // "Validation failed"
-    print_r($e->getErrors()); // ['Value must be an array']
+    foreach ($e->getErrors() as $error) {
+        echo "{$error->getCode()}: {$error->getMessage()}\n"; // INVALID_TYPE: Value must be an array
+    }
 }
 ```
 
@@ -405,17 +406,9 @@ try {
     $validator->validate(['valid', 123, 'also valid']);
 } catch (ValidationException $e) {
     // Errors preserve array indices to identify which item failed
-    print_r($e->getErrors());
-    // Output:
-    // [
-    //     '1' => ['Value must be a string']
-    // ]
-
-    // Flattened errors show full path with index
-    $flattened = $e->getFlattenedErrors();
-    // [
-    //     ['path' => '1', 'message' => 'Value must be a string']
-    // ]
+    foreach ($e->getErrors() as $error) {
+        echo "{$error->getPath()}: {$error->getMessage()}\n"; // 1: Value must be a string
+    }
 }
 ```
 
@@ -428,15 +421,9 @@ $validator = Validator::isArray()->items(Validator::isInt()->coerce());
 
 if (!$valid) {
     echo "Validation failed:\n";
-    // $errors is a flat list of ValidationError objects:
+    // $errors is a flat list of ValidationError objects, indices preserved in the path:
     // [
     //     ValidationError(path: '1', code: 'INVALID_TYPE', message: 'Value must be an integer'),
-    // ]
-
-    // Flattened errors preserve array indices
-    $flattened = ValidationException::flattenErrors($errors);
-    // [
-    //     ['path' => '1', 'message' => 'Value must be an integer']
     // ]
 } else {
     echo "Valid array:\n";
@@ -466,11 +453,8 @@ $input = [
 try {
     $schema->validate($input);
 } catch (ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // [
-    //     ['path' => 'users.0.email', 'message' => 'Value is required'],
-    //     ['path' => 'users.1.email', 'message' => 'Value must be a valid email address']
-    // ]
+    $paths = array_map(fn($err) => $err->getPath(), $e->getErrors());
+    // ['users.0.email', 'users.1.email']
 }
 ```
 
@@ -502,11 +486,11 @@ $input = [
 try {
     $schema->validate($input);
 } catch (ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // [
-    //     ['path' => 'symlinks.0.destination', 'message' => "Value '/same/path' is not unique (also at index 2)"],
-    //     ['path' => 'symlinks.2.destination', 'message' => "Value '/same/path' is not unique (also at index 0)"],
-    // ]
+    foreach ($e->getErrors() as $err) {
+        echo "{$err->getPath()}: {$err->getMessage()}\n";
+    }
+    // symlinks.0.destination: Value '/same/path' is not unique (also at index 2)
+    // symlinks.2.destination: Value '/same/path' is not unique (also at index 0)
 }
 ```
 

@@ -281,7 +281,7 @@ All validators created by the factory support both validation methods:
 try {
     $result = Validator::isString()->email()->validate('invalid-email');
 } catch (ValidationException $e) {
-    echo 'Validation failed: ' . implode(', ', $e->getErrors());
+    echo 'Validation failed: ' . implode(', ', array_map(fn($err) => $err->getMessage(), $e->getErrors()));
 }
 ```
 

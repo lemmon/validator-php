@@ -41,16 +41,18 @@ $userSchema = Validator::isAssociative([
 // Tuple-based validation (no exceptions)
 [$valid, $user, $errors] = $userSchema->tryValidate($input);
 if (!$valid) {
-    $flattened = \Lemmon\Validator\ValidationException::flattenErrors($errors);
-    // Returns: [['path' => 'name', 'message' => 'Value is required'], ...]
+    // $errors is a flat list of ValidationError objects (path, code, message, params)
+    foreach ($errors as $error) {
+        echo "{$error->getPath()}: {$error->getMessage()}\n";
+    }
 }
 
 // Exception-based validation
 try {
     $user = $userSchema->validate($input);
 } catch (\Lemmon\Validator\ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // Returns: [['path' => 'name', 'message' => 'Value is required'], ...]
+    $all = $e->getErrors();             // every ValidationError
+    $nameErrors = $e->getErrors('name'); // just the 'name' field (and its subtree)
 }
 ```
 
@@ -64,9 +66,8 @@ try {
 - **Custom validation** with `satisfies()`, plus logical combinators (`satisfiesAll()`/`satisfiesAny()`/`satisfiesNone()`)
 - **Exact-value and enum matching** — `const()` for single values, `enum()` for `BackedEnum`/`UnitEnum` (available on all validators)
 - **Last-resort defaults** — `default()` fills `null` after the pipeline, before `required()` enforces presence
-- **Structured errors** — `getStructuredErrors()` returns `ValidationError` objects with a stable `code` (see `ValidationCode`), dotted `path`, `message`, and `params` for programmatic handling and i18n
+- **Structured errors** — `getErrors()` returns `ValidationError` objects with a stable `code` (see `ValidationCode`), dotted `path`, `message`, and `params` for programmatic handling and i18n; pass a path (`getErrors('address')`) to filter to one field and its subtree. `ValidationError` is `JsonSerializable`, so the list drops straight into a JSON API response
 - **Fail-fast per field, aggregated per schema** — each validator stops at its first failure while schema validation collects errors across all fields
-- **API-friendly flattened errors** with field paths (`_root` for root, dot notation for nested) via `getFlattenedErrors()`
 - **Accurate schema results** — output includes only provided fields and fields with defaults, never unexpected properties
 - **Strict typing throughout** — every file uses `declare(strict_types=1);`
 

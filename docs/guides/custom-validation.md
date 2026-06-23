@@ -341,11 +341,11 @@ $input = [
 try {
     $schema->validate($input);
 } catch (ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // [
-    //     ['path' => 'items.0.id', 'message' => "Value '1' is not unique (also at index 2)"],
-    //     ['path' => 'items.2.id', 'message' => "Value '1' is not unique (also at index 0)"],
-    // ]
+    foreach ($e->getErrors() as $err) {
+        echo "{$err->getPath()}: {$err->getMessage()}\n";
+    }
+    // items.0.id: Value '1' is not unique (also at index 2)
+    // items.2.id: Value '1' is not unique (also at index 0)
 }
 ```
 

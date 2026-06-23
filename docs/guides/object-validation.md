@@ -442,12 +442,11 @@ $input = [
 try {
     $schema->validate($input);
 } catch (ValidationException $e) {
-    print_r($e->getErrors());
-    // Output:
-    // [
-    //     'name' => ['Value is required'],
-    //     'age' => ['Value must be at least 18']
-    // ]
+    foreach ($e->getErrors() as $error) {
+        echo "{$error->getPath()}: {$error->getMessage()}\n";
+    }
+    // name: Value is required
+    // age: Value must be at least 18
 }
 ```
 
@@ -473,8 +472,10 @@ $input = [
 try {
     $nestedSchema->validate($input);
 } catch (ValidationException $e) {
-    print_r($e->getErrors());
-    // Nested error structure reflects the schema structure
+    foreach ($e->getErrors() as $error) {
+        echo "{$error->getPath()}: {$error->getMessage()}\n";
+    }
+    // user.profile.email: Value must be a valid email address
 }
 ```
 
@@ -500,9 +501,9 @@ if (!$valid) {
 }
 ```
 
-### Flattened Errors for API Responses
+### Errors for API Responses
 
-For API consumption, you can flatten the nested error structure:
+`ValidationError` is `JsonSerializable`, so the error list drops straight into a JSON response:
 
 ```php
 use Lemmon\Validator\ValidationException;
@@ -511,22 +512,19 @@ use Lemmon\Validator\ValidationException;
 try {
     $schema->validate($input);
 } catch (ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // Returns: [
-    //     ['path' => 'name', 'message' => 'Value is required'],
-    //     ['path' => 'user.profile.email', 'message' => 'Value must be a valid email address']
-    // ]
+    $response = ['success' => false, 'errors' => $e->getErrors()];
+    // Each error serializes to {path, code, message, params}, e.g.
+    //     {"path": "name", "code": "REQUIRED", "message": "Value is required", "params": {}}
 }
 
-// With tryValidate
+// With tryValidate -- the third tuple element is the same ValidationError[]
 [$valid, $data, $errors] = $schema->tryValidate($input);
 if (!$valid) {
-    $flattened = ValidationException::flattenErrors($errors);
-    // Same format as above
+    $json = json_encode($errors);
 }
 ```
 
-See the [Error Handling Guide](../guides/error-handling.md#flattened-errors-for-api-consumption) for complete documentation on flattened errors.
+See the [Error Handling Guide](../guides/error-handling.md#errors-for-a-single-field) for filtering errors by field and the full error API.
 
 ## Advanced Examples
 

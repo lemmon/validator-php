@@ -6,13 +6,18 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Structured error model. `ValidationException::getStructuredErrors()` returns a flat list of new `ValidationError` value objects, each with `getPath()` (dotted, `''` at root), `getCode()` (a stable code from the new `ValidationCode` catalog, e.g. `STRING_TOO_SHORT`, `INVALID_TYPE`, `REQUIRED`), `getMessage()`, and `getParams()` (e.g. `['min' => 5]`). `ValidationError` is `JsonSerializable`. All built-in validators now emit codes and params; messages support `{name}` placeholder substitution from params
+- Structured error model. Validation errors are now a flat list of new `ValidationError` value objects, each with `getPath()` (dotted, `''` at root), `getCode()` (a stable code from the new `ValidationCode` catalog, e.g. `STRING_TOO_SHORT`, `INVALID_TYPE`, `REQUIRED`), `getMessage()`, and `getParams()` (e.g. `['min' => 5]`). `ValidationError` is `JsonSerializable` (`{path, code, message, params}`), so `json_encode($e->getErrors())` is API-ready — a param value that cannot be encoded (a resource, `NAN`/`INF`, or an object whose `jsonSerialize()` throws) renders as `(complex value)` rather than failing serialization. All built-in validators now emit codes and params; messages support `{name}` placeholder substitution from params
+- `ValidationException::getErrors(?string $path = null)` filters to a single field: with no argument it returns every error; with a path it returns errors at that path and everything nested beneath it (`getErrors('')` returns only root-level errors; the segment-aware match means `getErrors('name')` won't catch `name_full`)
 - `satisfies()` accepts two optional trailing arguments: `?string $code` (defaults to `CUSTOM`) and `array $params` for structured error codes and message placeholders on custom rules
 - `enum()` on `FieldValidator` now accepts PHP `UnitEnum` (non-backed enums): the value must be an instance of the enum or a string equal to one of the case names; `BackedEnum` behavior is unchanged (int or string backed values via `tryFrom()`)
 
 ### Changed
 
-- **BREAKING:** the third element of the `tryValidate()` tuple is now a flat list of `ValidationError` objects (previously a nested array of message strings). `ValidationException::flattenErrors()` now accepts this list. `ValidationException::getErrors()` still returns the legacy nested message array (back-compatible) and `getFlattenedErrors()` is unchanged
+- **BREAKING:** the third element of the `tryValidate()` tuple is now a flat list of `ValidationError` objects (previously a nested array of message strings)
+- **BREAKING:** `ValidationException::getErrors()` now returns a flat list of `ValidationError` objects (previously a nested array of message strings) and accepts an optional `$path` filter. The legacy nested-array view has been removed
+- **BREAKING:** removed `ValidationException::getFlattenedErrors()` and the static `ValidationException::flattenErrors()`. They are superseded by `getErrors()`, whose `ValidationError` entries are `JsonSerializable`; `json_encode($e->getErrors())` produces an equivalent (richer) API payload
+- **BREAKING:** root-level errors use an empty-string path `''` (previously the flattened view used a `'_root'` sentinel); there is now a single error model with one root representation
+- **BREAKING:** the `ValidationException` message is now a JSON dump of the structured errors (`[{path, code, message, params}]`) rather than the nested message tree
 - **BREAKING:** `ValidationException::__construct()` now takes a list of `ValidationError` objects instead of a raw error array (affects only code that constructs the exception directly)
 
 - Internal refactor (no public API or behavior change): `Validator::allOf()`, `anyOf()`, and `not()` now build on a new concrete `MixedValidator` base instead of repeating an inline anonymous class; validator pipeline steps are now a typed `PipelineStep` value object (internal) instead of an associative array, simplifying `FieldValidator::__clone()`

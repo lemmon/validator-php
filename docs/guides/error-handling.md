@@ -20,7 +20,7 @@ try {
     $result = $validator->validate('invalid-email');
     echo "Valid: " . $result;
 } catch (ValidationException $e) {
-    echo "Validation failed: " . implode(', ', $e->getErrors());
+    echo "Validation failed: " . implode(', ', array_map(fn($err) => $err->getMessage(), $e->getErrors()));
 }
 ```
 
@@ -44,29 +44,30 @@ if ($valid) {
 
 ## ValidationException Structure
 
-The `ValidationException` class provides structured access to validation errors:
+`ValidationException::getErrors()` is the single access point for validation errors. It returns a
+flat list of `ValidationError` objects, and an optional `$path` argument filters to one field:
 
 ```php
 try {
     $validator->validate($invalidData);
 } catch (ValidationException $e) {
-    // Structured errors: a flat list of ValidationError objects (the source of truth)
-    $structured = $e->getStructuredErrors();
+    // Every error (a flat list of ValidationError objects)
+    $all = $e->getErrors();
 
-    // Legacy nested view (back-compatible): messages keyed by path segments
-    $errors = $e->getErrors();
+    // Just one field and everything nested beneath it
+    $emailErrors = $e->getErrors('email');
 
-    // Flat list of ['path' => ..., 'message' => ...] pairs for API responses
-    $flattened = $e->getFlattenedErrors();
+    // Only root-level errors (those whose path is the empty string)
+    $rootErrors = $e->getErrors('');
 
-    // Get exception message (JSON-encoded legacy error structure)
+    // Exception message: a JSON dump of the errors (path, code, message, params)
     $message = $e->getMessage();
 }
 ```
 
 ## Structured Errors
 
-`getStructuredErrors()` returns a flat list of `ValidationError` value objects. Each one carries:
+`getErrors()` returns a flat list of `ValidationError` value objects. Each one carries:
 
 - `getCode()` — a stable machine-readable code (see `ValidationCode`), decoupled from wording
 - `getMessage()` — the human-readable message
@@ -89,7 +90,7 @@ Codes are stable across releases, so match on them rather than message text — 
 i18n and programmatic handling reliable:
 
 ```php
-foreach ($e->getStructuredErrors() as $error) {
+foreach ($e->getErrors() as $error) {
     $label = match ($error->getCode()) {
         ValidationCode::REQUIRED => __('errors.required'),
         ValidationCode::STRING_TOO_SHORT => __('errors.too_short', $error->getParams()),
@@ -142,6 +143,21 @@ constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or messag
 | `ANY_OF`  | `satisfiesAny()` / `Validator::anyOf()` | —      |
 | `NONE_OF` | `satisfiesNone()` / `Validator::not()`  | —      |
 
+Each combinator emits a single error with its own code at the value's path; the inner validators' structured errors (their codes, paths, and params) are **not** surfaced. This is deliberate — for `ANY_OF` there is no single cause to report, and collapsing keeps the error shape predictable.
+
+If you need the individual coded errors that a combinator flattens, chain the rules directly on the validator instead:
+
+```php
+// One ALL_OF error on failure:
+Validator::isString()->satisfiesAll([
+    Validator::isString()->minLength(8),
+    Validator::isString()->pattern('/[A-Z]/'),
+]);
+
+// A single granular error per rule (STRING_TOO_SHORT, then PATTERN), fail-fast:
+Validator::isString()->minLength(8)->pattern('/[A-Z]/');
+```
+
 ### String
 
 | Code               | Emitted by              | Params       |
@@ -180,68 +196,55 @@ constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or messag
 
 ### Array
 
-| Code                   | Emitted by      | Params |
-| ---------------------- | --------------- | ------ |
-| `ARRAY_TOO_FEW_ITEMS`  | `minItems()`    | `min`  |
-| `ARRAY_TOO_MANY_ITEMS` | `maxItems()`    | `max`  |
-| `CONTAINS`             | `contains()`    | —      |
-| `NOT_UNIQUE`           | `uniqueField()` | —      |
+| Code                   | Emitted by      | Params                                           |
+| ---------------------- | --------------- | ------------------------------------------------ |
+| `ARRAY_TOO_FEW_ITEMS`  | `minItems()`    | `min`                                            |
+| `ARRAY_TOO_MANY_ITEMS` | `maxItems()`    | `max`                                            |
+| `CONTAINS`             | `contains()`    | `value` (scalar form only)                       |
+| `NOT_UNIQUE`           | `uniqueField()` | `field`, `value`, `others` (conflicting indices) |
 
-## Flattened Errors for API Consumption
+## Errors for a Single Field
 
-For API responses, you often need a flat list of errors with field paths. The `ValidationException` class provides methods to convert nested error structures into a flattened format suitable for frontend consumption.
-
-### Using getFlattenedErrors() with Exceptions
-
-When catching a `ValidationException`, use `getFlattenedErrors()` to get a flattened list:
+Pass a path to `getErrors()` to filter to one field and everything nested beneath it. This replaces
+the need to walk a nested structure by hand:
 
 ```php
-use Lemmon\Validator\ValidationException;
-
 try {
     $schema->validate($input);
 } catch (ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // Returns: [
-    //     ['path' => 'name', 'message' => 'Value is required'],
-    //     ['path' => 'email', 'message' => 'Value must be a valid email address'],
-    //     ['path' => 'user.profile.phone', 'message' => 'Invalid phone format']
-    // ]
+    $emailErrors   = $e->getErrors('email');           // errors at 'email'
+    $addressErrors = $e->getErrors('address');         // 'address' plus 'address.street', 'address.zip', ...
+    $streetErrors  = $e->getErrors('address.street');  // just that leaf
+    $rootErrors    = $e->getErrors('');                // only root-level errors (empty path)
 }
 ```
 
-### Using flattenErrors() with tryValidate()
+Path matching rules:
 
-When using `tryValidate()` (which doesn't throw exceptions), use the static `flattenErrors()` method:
-
-```php
-use Lemmon\Validator\ValidationException;
-
-[$valid, $data, $errors] = $validator->tryValidate($input);
-
-if (!$valid) {
-    $flattened = ValidationException::flattenErrors($errors);
-    // Returns empty array if $errors is null
-    // Otherwise returns same format as getFlattenedErrors()
-}
-```
+- **No argument** returns every error.
+- **A field path** matches that exact path _and_ its descendants — `getErrors('address')` includes `address.street`. The match is segment-aware, so `getErrors('name')` will **not** pick up a sibling like `name_full`.
+- **`''`** returns only root-level errors (scalar validator failures and container type errors all use the empty-string path).
+- Returns an empty list (never `null`) when nothing matches.
 
 ### Error Path Convention
 
-- **Root-level errors**: Use `'_root'` path for scalar validator errors and container type errors
-- **Field paths**: Use dot notation for nested fields (e.g., `'user.profile.email'`)
-- **Array items**: Use index notation (e.g., `'items.0'`, `'items.1'`)
+- **Root-level errors**: the empty string `''` (scalar validator failures and container type errors)
+- **Field paths**: dot notation for nested fields (e.g. `'user.profile.email'`)
+- **Array items**: index notation (e.g. `'items.0'`, `'items.1'`)
 
-### Example: API Response Format
+## API Responses
+
+`ValidationError` implements `JsonSerializable`, so the error list drops straight into a JSON
+response — no transformation step needed:
 
 ```php
 try {
-    $schema->validate($input);
+    $validated = $schema->validate($input);
     return ['success' => true, 'data' => $validated];
 } catch (ValidationException $e) {
     return [
         'success' => false,
-        'errors' => $e->getFlattenedErrors()
+        'errors' => $e->getErrors(),
     ];
 }
 ```
@@ -252,27 +255,34 @@ JSON output example:
 {
   "success": false,
   "errors": [
-    { "path": "name", "message": "Value is required" },
-    { "path": "email", "message": "Value must be a valid email address" },
-    { "path": "user.profile.phone", "message": "Invalid phone format" }
+    {
+      "path": "name",
+      "code": "REQUIRED",
+      "message": "Value is required",
+      "params": {}
+    },
+    {
+      "path": "email",
+      "code": "EMAIL",
+      "message": "Value must be a valid email address",
+      "params": {}
+    },
+    {
+      "path": "user.profile.phone",
+      "code": "PATTERN",
+      "message": "Invalid phone format",
+      "params": { "pattern": "/^\\d{10}$/" }
+    }
   ]
 }
 ```
 
-### Example: Root-Level Errors
+The same works from a `tryValidate()` tuple — its third element is the same `ValidationError[]`, so
+`json_encode($errors)` produces identical output.
 
-For scalar validators or container type errors:
-
-```php
-try {
-    Validator::isString()->email()->validate('invalid');
-} catch (ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // Returns: [
-    //     ['path' => '_root', 'message' => 'Value must be a valid email address']
-    // ]
-}
-```
+Serialization is safe by construction: if a param value cannot be JSON-encoded (a resource,
+`NAN`/`INF`, or an object whose `jsonSerialize()` throws), it renders as `"(complex value)"` rather
+than making the response fail.
 
 ## Fail-Fast Per Field
 
@@ -319,13 +329,6 @@ $invalidData = [
 //     ValidationError(path: 'email', code: 'EMAIL',            message: 'Value must be a valid email address'),
 //     ValidationError(path: 'age',   code: 'NUMBER_TOO_SMALL', message: 'Value must be at least 18'),
 // ]
-
-// For the legacy nested array form, catch the exception and call $e->getErrors():
-// [
-//     'name' => ['Value must be at least 2 characters long'],
-//     'email' => ['Value must be a valid email address'],
-//     'age' => ['Value must be at least 18']
-// ]
 ```
 
 ### Array Item Validation Errors
@@ -351,13 +354,6 @@ $input = [
 //     ValidationError(path: 'items.1', code: 'NUMBER_TOO_SMALL', message: 'Value must be at least 1'),
 //     ValidationError(path: 'items.2', code: 'NUMBER_TOO_SMALL', message: 'Value must be at least 1'),
 // ]
-
-// Flattened errors show full paths with indices:
-$flattened = ValidationException::flattenErrors($errors);
-// [
-//     ['path' => 'items.1', 'message' => 'Value must be at least 1'],
-//     ['path' => 'items.2', 'message' => 'Value must be at least 1']
-// ]
 ```
 
 For nested structures with array items, the full path including indices is preserved:
@@ -380,11 +376,8 @@ $input = [
 try {
     $schema->validate($input);
 } catch (ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // [
-    //     ['path' => 'users.0.email', 'message' => 'Value is required'],
-    //     ['path' => 'users.1.email', 'message' => 'Value must be a valid email address']
-    //     ]
+    $paths = array_map(fn($err) => $err->getPath(), $e->getErrors());
+    // ['users.0.email', 'users.1.email']
 }
 ```
 
@@ -410,15 +403,15 @@ try {
         ],
     ]);
 } catch (ValidationException $e) {
-    $flattened = $e->getFlattenedErrors();
-    // [
-    //     ['path' => 'symlinks.0.destination', 'message' => "Value '/path1' is not unique (also at index 2)"],
-    //     ['path' => 'symlinks.2.destination', 'message' => "Value '/path1' is not unique (also at index 0)"],
-    // ]
+    foreach ($e->getErrors() as $err) {
+        echo "{$err->getPath()}: {$err->getMessage()}\n";
+    }
+    // symlinks.0.destination: Value '/path1' is not unique (also at index 2)
+    // symlinks.2.destination: Value '/path1' is not unique (also at index 0)
 }
 ```
 
-For custom cross-item logic, use `satisfies()` and throw a `ValidationException` containing `ValidationError` objects whose `path` is `"{index}.{field}"` (e.g. `new ValidationError("2.destination", ValidationCode::NOT_UNIQUE, $message)`) to get field-level paths in flattened output.
+For custom cross-item logic, use `satisfies()` and throw a `ValidationException` containing `ValidationError` objects whose `path` is `"{index}.{field}"` (e.g. `new ValidationError("2.destination", ValidationCode::NOT_UNIQUE, $message)`) to get field-level paths.
 
 ## Error Message Customization
 
@@ -568,8 +561,8 @@ class ConfigValidator
 
         if (!$valid) {
             $errorMessage = "Configuration validation failed:\n";
-            foreach (\Lemmon\Validator\ValidationException::flattenErrors($errors) as $entry) {
-                $errorMessage .= "- {$entry['path']}: {$entry['message']}\n";
+            foreach ($errors as $error) {
+                $errorMessage .= "- {$error->getPath()}: {$error->getMessage()}\n";
             }
             throw new InvalidConfigurationException($errorMessage);
         }
@@ -636,8 +629,7 @@ class UserValidationException extends Exception
     {
         $this->errors = $errors;
 
-        $flattened = \Lemmon\Validator\ValidationException::flattenErrors($errors);
-        $messages = array_column($flattened, 'message');
+        $messages = array_map(fn($error) => $error->getMessage(), $errors);
         $message = "User validation failed in {$context}: " . implode(', ', $messages);
 
         parent::__construct($message);
@@ -742,9 +734,10 @@ use Lemmon\Validator\ValidationError;
 
 function displayErrors(array $errors): void
 {
-    // $errors is a flat list of ValidationError objects with dotted paths -- no recursion needed
+    // $errors is a flat list of ValidationError objects with dotted paths -- no recursion needed.
+    // Root-level errors have an empty path; label them for display at the edge as you see fit.
     foreach ($errors as $error) {
-        $field = $error->getPath() === '' ? '_root' : $error->getPath();
+        $field = $error->getPath() === '' ? '(root)' : $error->getPath();
         echo "<div class='error'>{$field}: {$error->getMessage()}</div>";
     }
 }

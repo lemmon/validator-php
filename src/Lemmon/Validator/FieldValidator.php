@@ -673,7 +673,7 @@ abstract class FieldValidator
 
             return [true, $processedValue, null];
         } catch (ValidationException $e) {
-            return [false, $value, $e->getStructuredErrors()];
+            return [false, $value, $e->getErrors()];
         }
     }
 

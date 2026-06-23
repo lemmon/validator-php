@@ -51,7 +51,10 @@ it('should throw a validation exception for non-array input in AssociativeValida
     try {
         $schema->validate('not an array');
     } catch (ValidationException $e) {
-        expect($e->getErrors())->toBe(['Input must be an associative array']);
+        expect($e->getErrors())->toHaveCount(1);
+        expect($e->getErrors()[0]->getPath())->toBe('');
+        expect($e->getErrors()[0]->getCode())->toBe('INVALID_TYPE');
+        expect($e->getErrors()[0]->getMessage())->toBe('Input must be an associative array');
     }
 });
 

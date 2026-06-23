@@ -24,7 +24,7 @@ One unified design covering three things that share the same error object. The s
 - **Structured error codes** (e.g. `STRING_TOO_SHORT`, `INVALID_EMAIL`) for programmatic handling and i18n. Stable machine handles decouple error identity from human wording, so messages can be reworded freely after v1.0.
 - **Full error paths** for nested structures (`user.address.street`) instead of bare leaf keys.
 - **Message placeholders** (`{value}`, `{index}`, `{min}`, …) for custom messages and localization; pair with global/default message templates for consistent branding.
-- Keep the current flat `getErrors()` as a backward-compatible view; add `getStructuredErrors()` returning the error value objects.
+- Expose the errors through a single accessor, `ValidationException::getErrors(?string $path = null)`, returning the `ValidationError` value objects (a flat list; an optional path filters to one field and its subtree). The legacy nested-message view and the separate flattened helpers were dropped in favor of this one method. _(Landed; `ValidationError` is `JsonSerializable`.)_
 
 ### 2. Deprecation cleanup
 
@@ -60,6 +60,10 @@ None of these touch the public contract, so they are strictly better landed afte
 - Mutation testing pilot (Infection + baseline config, documented local run).
 - Property-based tests for core validators (string patterns, numeric constraints).
 - Performance benchmarking for hot paths (`validate`, `tryValidate`, schema validation).
+
+### Known limitations
+
+- **`uniqueField()` dedup key collides distinct resources.** Uniqueness is keyed on `serialize($fieldValue)`, but PHP serializes every resource to `i:0;`, so two _distinct_ resource handles compare equal and are wrongly reported as duplicates. (Related: the `serialize()` try/catch added for unserializable values only takes its object-identity branch for closures/objects — the non-object `item#index` fallback is effectively unreachable, since `serialize()` does not throw for resources.) `uniqueField` is meant for scalar fields; the fix is either a value-equality key that distinguishes non-serializable non-objects, or documenting the scalar-only intent. Pre-existing; surfaced during the structured-error work.
 
 ## Beyond core (likely separate packages)
 

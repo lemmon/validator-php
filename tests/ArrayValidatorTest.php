@@ -300,7 +300,7 @@ it('should use custom error message for contains', function () {
         $validator->validate(['other', 'values']);
         expect(false)->toBe(true); // Should not reach here
     } catch (ValidationException $e) {
-        expect($e->getErrors())->toContain('Array must contain "required"');
+        expect($e->getErrors()[0]->getMessage())->toBe('Array must contain "required"');
     }
 });
 
@@ -352,19 +352,20 @@ it('should validate uniqueField rejects duplicate field values', function () {
         ]);
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
-        $errors = $e->getErrors();
-        expect($errors)->toHaveKey(0);
-        expect($errors)->toHaveKey(2);
-        expect($errors[0])->toHaveKey('destination');
-        expect($errors[2])->toHaveKey('destination');
-        expect($errors[0]['destination'][0])->toContain("'/path/a'");
-        expect($errors[0]['destination'][0])->toContain('index 2');
-        expect($errors[2]['destination'][0])->toContain("'/path/a'");
-        expect($errors[2]['destination'][0])->toContain('index 0');
+        $byPath = [];
+        foreach ($e->getErrors() as $err) {
+            $byPath[$err->getPath()] = $err->getMessage();
+        }
+        expect($byPath)->toHaveKey('0.destination');
+        expect($byPath)->toHaveKey('2.destination');
+        expect($byPath['0.destination'])->toContain("'/path/a'");
+        expect($byPath['0.destination'])->toContain('index 2');
+        expect($byPath['2.destination'])->toContain("'/path/a'");
+        expect($byPath['2.destination'])->toContain('index 0');
     }
 });
 
-it('should produce correct flattened error paths from uniqueField', function () {
+it('should produce correct nested error paths from uniqueField', function () {
     $schema = Validator::isAssociative([
         'symlinks' => Validator::isArray()
             ->items(Validator::isAssociative([
@@ -385,12 +386,12 @@ it('should produce correct flattened error paths from uniqueField', function () 
         ]);
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
-        $flattened = $e->getFlattenedErrors();
-        expect($flattened)->toHaveCount(2);
-        $paths = array_map(fn($e) => $e['path'], $flattened);
+        $errors = $e->getErrors();
+        expect($errors)->toHaveCount(2);
+        $paths = array_map(fn($err) => $err->getPath(), $errors);
         expect($paths)->toContain('symlinks.0.destination');
         expect($paths)->toContain('symlinks.2.destination');
-        expect($flattened[0]['message'])->toContain("'/same'");
+        expect($errors[0]->getMessage())->toContain("'/same'");
     }
 });
 
@@ -411,16 +412,12 @@ it('should report multiple duplicates from uniqueField', function () {
         ]);
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
-        $errors = $e->getErrors();
-        expect($errors)->toHaveKey(0);
-        expect($errors)->toHaveKey(1);
-        expect($errors)->toHaveKey(2);
-        expect($errors)->toHaveKey(3);
-        expect($errors[0])->toHaveKey('id');
-        expect($errors[1])->toHaveKey('id');
-        expect($errors[2])->toHaveKey('id');
-        expect($errors[3])->toHaveKey('id');
-        expect($errors)->not->toHaveKey(4);
+        $paths = array_map(fn($err) => $err->getPath(), $e->getErrors());
+        expect($paths)->toContain('0.id');
+        expect($paths)->toContain('1.id');
+        expect($paths)->toContain('2.id');
+        expect($paths)->toContain('3.id');
+        expect($paths)->not->toContain('4.id');
     }
 });
 
@@ -455,9 +452,12 @@ it('should use custom error message for uniqueField', function () {
         ]);
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
-        $errors = $e->getErrors();
-        expect($errors[0]['email'][0])->toBe('Duplicate email address');
-        expect($errors[1]['email'][0])->toBe('Duplicate email address');
+        $byPath = [];
+        foreach ($e->getErrors() as $err) {
+            $byPath[$err->getPath()] = $err->getMessage();
+        }
+        expect($byPath['0.email'])->toBe('Duplicate email address');
+        expect($byPath['1.email'])->toBe('Duplicate email address');
     }
 });
 
@@ -474,11 +474,9 @@ it('should work with uniqueField on object items', function () {
         $validator->validate($items);
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
-        $errors = $e->getErrors();
-        expect($errors)->toHaveKey(0);
-        expect($errors)->toHaveKey(2);
-        expect($errors[0])->toHaveKey('code');
-        expect($errors[2])->toHaveKey('code');
+        $paths = array_map(fn($err) => $err->getPath(), $e->getErrors());
+        expect($paths)->toContain('0.code');
+        expect($paths)->toContain('2.code');
     }
 });
 
@@ -508,14 +506,17 @@ it('should mark all occurrences when three or more duplicates exist in uniqueFie
         ]);
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
-        $errors = $e->getErrors();
-        expect($errors)->toHaveKey(0);
-        expect($errors)->toHaveKey(2);
-        expect($errors)->toHaveKey(3);
-        expect($errors)->not->toHaveKey(1);
-        expect($errors[0]['code'][0])->toContain('indices 2, 3');
-        expect($errors[2]['code'][0])->toContain('indices 0, 3');
-        expect($errors[3]['code'][0])->toContain('indices 0, 2');
+        $byPath = [];
+        foreach ($e->getErrors() as $err) {
+            $byPath[$err->getPath()] = $err->getMessage();
+        }
+        expect($byPath)->toHaveKey('0.code');
+        expect($byPath)->toHaveKey('2.code');
+        expect($byPath)->toHaveKey('3.code');
+        expect($byPath)->not->toHaveKey('1.code');
+        expect($byPath['0.code'])->toContain('indices 2, 3');
+        expect($byPath['2.code'])->toContain('indices 0, 3');
+        expect($byPath['3.code'])->toContain('indices 0, 2');
     }
 });
 
@@ -540,11 +541,9 @@ it('should validate uniqueField after filterEmpty reindexes', function () {
         ]);
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
-        $errors = $e->getErrors();
-        expect($errors)->toHaveKey(0);
-        expect($errors)->toHaveKey(1);
-        expect($errors[0])->toHaveKey('dest');
-        expect($errors[1])->toHaveKey('dest');
+        $paths = array_map(fn($err) => $err->getPath(), $e->getErrors());
+        expect($paths)->toContain('0.dest');
+        expect($paths)->toContain('1.dest');
     }
 });
 

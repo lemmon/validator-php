@@ -39,7 +39,7 @@ try {
     $result = $validator->validate('user@example.com');
     echo "Valid email: " . $result;
 } catch (ValidationException $e) {
-    echo "Validation failed: " . implode(', ', $e->getErrors());
+    echo "Validation failed: " . implode(', ', array_map(fn($err) => $err->getMessage(), $e->getErrors()));
 }
 ```
 
@@ -56,7 +56,7 @@ try {
     $result = $validator->validate(50); // Returns: 50
     echo "Valid: " . $result;
 } catch (ValidationException $e) {
-    echo "Invalid: " . implode(', ', $e->getErrors());
+    echo "Invalid: " . implode(', ', array_map(fn($err) => $err->getMessage(), $e->getErrors()));
 }
 ```
 

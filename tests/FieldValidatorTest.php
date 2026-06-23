@@ -201,7 +201,9 @@ it('should throw a validation exception with a generic message for standalone va
     try {
         Validator::isString()->validate(123);
     } catch (Lemmon\Validator\ValidationException $e) {
-        expect($e->getErrors())->toBe(['Value must be a string']);
+        expect($e->getErrors())->toHaveCount(1);
+        expect($e->getErrors()[0]->getCode())->toBe('INVALID_TYPE');
+        expect($e->getErrors()[0]->getMessage())->toBe('Value must be a string');
     }
 });
 

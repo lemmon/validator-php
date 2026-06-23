@@ -120,7 +120,21 @@ class ArrayValidator extends FieldValidator
                         continue;
                     }
 
-                    $serialized = serialize($fieldValue);
+                    // Most field values are scalars, for which serialize() gives a stable
+                    // value-equality key (uniqueField is meant for scalar fields). Closures and
+                    // some internal objects throw on serialize() -- and that throw must not escape
+                    // uniqueField, which runs inside tryValidate() -- so fall back to identity: a
+                    // repeated object instance still collides (spl_object_id), while a non-object we
+                    // cannot value-compare is keyed by position and so is always treated as unique.
+                    // Resources are a known gap: serialize() does not throw for them but maps every
+                    // resource to "i:0;", so distinct handles collide (see ROADMAP known limitations).
+                    try {
+                        $serialized = serialize($fieldValue);
+                    } catch (\Throwable) {
+                        $serialized = is_object($fieldValue)
+                            ? 'object#' . spl_object_id($fieldValue)
+                            : 'item#' . $index;
+                    }
                     $seen[$serialized] ??= ['value' => $fieldValue, 'indices' => []];
                     $seen[$serialized]['indices'][] = $index;
                 }
@@ -133,11 +147,7 @@ class ArrayValidator extends FieldValidator
                         continue;
                     }
 
-                    $displayValue = (string) $entry['value'];
-                    if (!is_scalar($entry['value'])) {
-                        $encoded = json_encode($entry['value']);
-                        $displayValue = $encoded !== false ? $encoded : '(complex value)';
-                    }
+                    $displayValue = ValidationError::stringify($entry['value']);
 
                     foreach ($entry['indices'] as $idx) {
                         $others = array_values(array_filter(
@@ -145,17 +155,25 @@ class ArrayValidator extends FieldValidator
                             static fn($i) => $i !== $idx,
                         ));
 
-                        $defaultMessage = $message ?? match (count($others)) {
-                            1 => "Value '{$displayValue}' is not unique (also at index {$others[0]})",
-                            default => "Value '{$displayValue}' is not unique (also at indices "
-                                . implode(', ', $others)
-                                . ')',
-                        };
+                        $params = ['field' => $fieldName, 'value' => $entry['value'], 'others' => $others];
+
+                        // A custom message may use {field}/{value}/{others} placeholders, interpolated
+                        // like every other built-in rule. The default message already embeds the value
+                        // (which could itself contain brace characters), so it is left untouched.
+                        $resolvedMessage = $message !== null
+                            ? ValidationError::interpolate($message, $params)
+                            : match (count($others)) {
+                                1 => "Value '{$displayValue}' is not unique (also at index {$others[0]})",
+                                default => "Value '{$displayValue}' is not unique (also at indices "
+                                    . implode(', ', $others)
+                                    . ')',
+                            };
 
                         $errors[] = new ValidationError(
                             "{$idx}.{$fieldName}",
                             ValidationCode::NOT_UNIQUE,
-                            $defaultMessage,
+                            $resolvedMessage,
+                            $params,
                         );
                     }
                 }
@@ -202,6 +220,7 @@ class ArrayValidator extends FieldValidator
             $message,
             null,
             ValidationCode::CONTAINS,
+            ['value' => $valueOrValidator],
         );
 
         return $this;
