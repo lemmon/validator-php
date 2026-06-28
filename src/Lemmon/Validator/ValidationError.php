@@ -99,9 +99,11 @@ final readonly class ValidationError implements \JsonSerializable
 
     /**
      * Serializes to the public error shape. The string fields are already valid UTF-8 (normalised
-     * in the constructor) and each param value is passed through {@see jsonSafe()}, so json_encode()
-     * on a ValidationError -- the advertised API payload -- can never throw or return false, whatever
-     * value a rule put in the error.
+     * in the constructor); each param value is passed through {@see jsonSafe()} and each param key
+     * through {@see utf8Safe()} (a custom satisfies() call can supply a key with malformed UTF-8,
+     * which the surrounding object cast would otherwise carry through and make json_encode() fail).
+     * So json_encode() on a ValidationError -- the advertised API payload -- can never throw or
+     * return false, whatever key or value a rule put in the error.
      *
      * Params are an object (cast from the string-keyed array) so the JSON shape stays
      * predictable -- an empty params map is `{}`, never `[]`.
@@ -110,11 +112,16 @@ final readonly class ValidationError implements \JsonSerializable
      */
     public function jsonSerialize(): array
     {
+        $params = [];
+        foreach ($this->params as $name => $value) {
+            $params[self::utf8Safe((string) $name)] = self::jsonSafe($value);
+        }
+
         return [
             'path' => $this->path,
             'code' => $this->code,
             'message' => $this->message,
-            'params' => (object) array_map(self::jsonSafe(...), $this->params),
+            'params' => (object) $params,
         ];
     }
 

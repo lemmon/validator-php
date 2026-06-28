@@ -280,9 +280,9 @@ JSON output example:
 The same works from a `tryValidate()` tuple — its third element is the same `ValidationError[]`, so
 `json_encode($errors)` produces identical output.
 
-Serialization is safe by construction: if a param value cannot be JSON-encoded (a resource,
-`NAN`/`INF`, or an object whose `jsonSerialize()` throws), it renders as `"(complex value)"` rather
-than making the response fail.
+Serialization is safe by construction: malformed UTF-8 param keys are normalized, and if a param
+value cannot be JSON-encoded (a resource, `NAN`/`INF`, or an object whose `jsonSerialize()` throws),
+it renders as `"(complex value)"` rather than making the response fail.
 
 ## Fail-Fast Per Field
 

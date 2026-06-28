@@ -361,6 +361,13 @@ it('always yields a JSON-safe error list with valid-UTF-8 messages', function (C
                 ->tryValidate('whatever')[2] ?? []
         ),
     ],
+    'invalid UTF-8 in a satisfies() param key' => [
+        fn() => (
+            Validator::isString()
+                ->satisfies(static fn() => false, 'nope', 'X', ["bad \xC3\x28 key" => 5])
+                ->tryValidate('whatever')[2] ?? []
+        ),
+    ],
     'invalid UTF-8 in a custom message' => [
         fn() => (
             Validator::isString()
