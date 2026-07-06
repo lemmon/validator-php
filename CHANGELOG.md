@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-07-06
+
 ### Added
 
 - Structured error model. Validation errors are now a flat list of new `ValidationError` value objects, each with `getPath()` (dotted, `''` at root), `getCode()` (a stable code from the new `ValidationCode` catalog, e.g. `STRING_TOO_SHORT`, `INVALID_TYPE`, `REQUIRED`), `getMessage()`, and `getParams()` (e.g. `['min' => 5]`). `ValidationError` is `JsonSerializable` (`{path, code, message, params}`), so `json_encode($e->getErrors())` is API-ready — malformed UTF-8 param keys are normalized, and a param value that cannot be encoded (a resource, `NAN`/`INF`, or an object whose `jsonSerialize()` throws) renders as `(complex value)` rather than failing serialization. All built-in validators now emit codes and params; messages support `{name}` placeholder substitution from params
