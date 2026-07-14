@@ -308,7 +308,7 @@ class ArrayValidator extends FieldValidator
                 );
 
                 if (!$valid) {
-                    foreach ($itemErrors ?? [] as $error) {
+                    foreach ($itemErrors as $error) {
                         $errors[] = $error->withPathPrefix((string) $index);
                     }
                     continue;

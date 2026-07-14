@@ -70,7 +70,7 @@ class AssociativeValidator extends FieldValidator
             );
 
             if (!$valid) {
-                foreach ($fieldErrors ?? [] as $error) {
+                foreach ($fieldErrors as $error) {
                     $errors[] = $error->withPathPrefix((string) $fieldKey);
                 }
                 continue;

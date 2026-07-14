@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING:** the errors element of the `tryValidate()` tuple is now an empty list `[]` on success (previously `null`), so consumers can iterate or count the errors without a null-guard. Code that detected success via `$errors === null` should check `$valid` (or `$errors === []`) instead; `$valid` remains the canonical success signal
+
 ## [0.16.0] - 2026-07-06
 
 ### Added

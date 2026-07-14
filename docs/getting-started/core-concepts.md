@@ -40,7 +40,7 @@ All validators extend `FieldValidator`, which provides:
 ### Core Validation Methods
 
 - `validate(mixed $value): mixed` - Throws exception on failure
-- `tryValidate(mixed $value): array` - Returns `[bool $valid, mixed $data, ?array $errors]`, where `$errors` is a list of `ValidationError` objects
+- `tryValidate(mixed $value): array` - Returns `[bool $valid, mixed $data, array $errors]`, where `$errors` is a list of `ValidationError` objects (empty on success)
 
 ### Common Configuration
 

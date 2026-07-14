@@ -62,8 +62,8 @@ try {
 
 ### `tryValidate()` - Tuple-based
 
-Returns a tuple `[bool $valid, mixed $data, ?array $errors]`, where `$errors` is a flat list of
-`ValidationError` objects (or `null` on success):
+Returns a tuple `[bool $valid, mixed $data, array $errors]`, where `$errors` is a flat list of
+`ValidationError` objects (empty on success):
 
 ```php
 $validator = Validator::isString()->email();

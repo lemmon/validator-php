@@ -211,7 +211,7 @@ it('should return a result tuple for standalone validators', function () {
     [$valid, $data, $errors] = Validator::isString()->tryValidate('hello');
     expect($valid)->toBe(true);
     expect($data)->toBe('hello');
-    expect($errors)->toBe(null);
+    expect($errors)->toBe([]);
 
     [$valid, $data, $errors] = Validator::isString()->tryValidate(123);
     expect($valid)->toBe(false);

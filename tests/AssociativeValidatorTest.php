@@ -75,7 +75,7 @@ it('should handle null input for AssociativeValidator created without arguments 
     [$valid, $data, $errors] = $schema->tryValidate(null);
     expect($valid)->toBe(true);
     expect($data)->toBe(null);
-    expect($errors)->toBe(null);
+    expect($errors)->toBe([]);
 });
 
 it('should allow null for optional associative array validator', function () {

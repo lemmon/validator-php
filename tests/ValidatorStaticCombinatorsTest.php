@@ -71,7 +71,7 @@ describe('Validator Static Logical Combinators', function () {
             [$valid, $data, $errors] = $validator->tryValidate('test@example.com');
             expect($valid)->toBe(true);
             expect($data)->toBe('test@example.com');
-            expect($errors)->toBe(null);
+            expect($errors)->toBe([]);
 
             [$valid, $data, $errors] = $validator->tryValidate('invalid');
             expect($valid)->toBe(false);
@@ -139,7 +139,7 @@ describe('Validator Static Logical Combinators', function () {
             [$valid, $data, $errors] = $validator->tryValidate('hello');
             expect($valid)->toBe(true);
             expect($data)->toBe('hello');
-            expect($errors)->toBe(null);
+            expect($errors)->toBe([]);
 
             [$valid, $data, $errors] = $validator->tryValidate('hi');
             expect($valid)->toBe(false);
@@ -190,7 +190,7 @@ describe('Validator Static Logical Combinators', function () {
             [$valid, $data, $errors] = $validator->tryValidate('not-email');
             expect($valid)->toBe(true);
             expect($data)->toBe('not-email');
-            expect($errors)->toBe(null);
+            expect($errors)->toBe([]);
 
             [$valid, $data, $errors] = $validator->tryValidate('test@example.com');
             expect($valid)->toBe(false);

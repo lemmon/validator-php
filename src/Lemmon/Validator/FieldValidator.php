@@ -620,7 +620,7 @@ abstract class FieldValidator
         [$valid, $data, $errors] = $this->tryValidate($value, $key, $input);
         if (!$valid) {
             throw new ValidationException(
-                $errors ?? [new ValidationError('', ValidationCode::CUSTOM, 'Validation failed')],
+                $errors !== [] ? $errors : [new ValidationError('', ValidationCode::CUSTOM, 'Validation failed')],
             );
         }
         return $data;
@@ -632,10 +632,10 @@ abstract class FieldValidator
      * @param mixed $value The value to validate.
      * @param string $key The key of the field being validated.
      * @param mixed|null $input The entire input payload (array or object).
-     * @return array{bool, mixed, array<ValidationError>|null} A tuple containing:
+     * @return array{bool, mixed, array<ValidationError>} A tuple containing:
      *                                                 - bool: true if validation is successful, false otherwise.
      *                                                 - mixed: The validated and potentially coerced value on success, or the (possibly coerced) input value on failure.
-     *                                                 - array|null: A list of structured {@see ValidationError} objects on failure, or null on success.
+     *                                                 - array: A list of structured {@see ValidationError} objects on failure, or an empty list on success, so consumers can iterate it unconditionally.
      */
     public function tryValidate(mixed $value, string $key = '', mixed $input = null): array
     {
@@ -671,7 +671,7 @@ abstract class FieldValidator
                 ]);
             }
 
-            return [true, $processedValue, null];
+            return [true, $processedValue, []];
         } catch (ValidationException $e) {
             return [false, $value, $e->getErrors()];
         }

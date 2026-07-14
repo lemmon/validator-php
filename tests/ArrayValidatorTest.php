@@ -167,7 +167,7 @@ it('should allow null for optional array validator', function () {
     [$valid, $data, $errors] = $validator->tryValidate(null);
     expect($valid)->toBe(true);
     expect($data)->toBe(null);
-    expect($errors)->toBe(null);
+    expect($errors)->toBe([]);
 });
 
 it('should coerce empty string to empty array', function () {
