@@ -123,7 +123,7 @@ Validator::isObject($schema)            // stdClass object with schema
 
 Understanding the validation flow helps debug and optimize your validators:
 
-1. **Type Coercion** - If enabled, attempt type conversion (empty strings become `null` for primitives)
+1. **Type Coercion** - If enabled, attempt type conversion (empty strings become `null` for every typed validator except `isString()`; the type-agnostic combinators `anyOf()`/`allOf()`/`not()` don't coerce)
 2. **Type Validation** - Check value type (skipped for null — lets the pipeline and default/required handle it)
 3. **Pipeline Execution** - Validations and transformations run in the order written (fail-fast per field)
 4. **Default** - Last-resort fallback: if the result is null and a default exists, apply it
@@ -418,6 +418,23 @@ $price = $validator->validate(''); // Returns: null (not dangerous 0.0)
 $validator = Validator::isBool()->coerce();
 $isActive = $validator->validate(''); // Returns: null (not dangerous false)
 ```
+
+The same rule applies to the container types — an unfilled field means "no value provided", not "an empty collection":
+
+```php
+$validator = Validator::isArray()->coerce();
+$tags = $validator->validate(''); // Returns: null (not [])
+
+$validator = Validator::isAssociative()->coerce();
+$meta = $validator->validate(''); // Returns: null (not [])
+
+$validator = Validator::isObject()->coerce();
+$payload = $validator->validate(''); // Returns: null (not empty stdClass)
+```
+
+This keeps `required()` and `default()` meaningful for every type: a required container rejects an unfilled field, and `->coerce()->default([])` expresses "empty field means empty list" explicitly when that is what you want.
+
+The one exception is `isString()`: `''` is a legitimate string value and stays unchanged under coercion. Use `nullifyEmpty()` when an empty string should count as absent. The same reasoning covers the logical combinators (`anyOf()`, `allOf()`, `not()`): they are type-agnostic — `''` is a legitimate value for them, and `coerce()` on the combinator itself is a no-op. Enable `coerce()` on the operand validators instead.
 
 #### Real-World Form Scenarios
 

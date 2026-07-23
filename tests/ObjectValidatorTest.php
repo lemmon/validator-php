@@ -175,29 +175,26 @@ it('should still validate required fields even when not provided', function () {
         ->toThrow(ValidationException::class, 'Value is required');
 });
 
-it('should coerce empty string to empty object when coerce is enabled', function () {
+it('should coerce empty string to null for form safety', function () {
     $schema = Validator::isObject()->coerce();
 
-    $result = $schema->validate('');
-
-    expect($result)->toBeInstanceOf(stdClass::class);
-    expect(get_object_vars($result))->toHaveCount(0);
+    expect($schema->validate(''))->toBe(null);
 });
 
-it('should coerce empty string to object with defaults when schema has defaults', function () {
+it('should not run schema defaults for coerced empty string', function () {
+    // '' means "no value provided", so the schema (and its field defaults) never runs
     $schema = Validator::isObject([
-        'name' => Validator::isString(),
         'status' => Validator::isString()->default('active'),
-        'role' => Validator::isString()->default('user'),
     ])->coerce();
 
-    $result = $schema->validate('');
-
-    expect($result)->toBeInstanceOf(stdClass::class);
-    expect($result)->toHaveProperty('status', 'active');
-    expect($result)->toHaveProperty('role', 'user');
-    expect($result)->not->toHaveProperty('name'); // Not provided, no default
+    expect($schema->validate(''))->toBe(null);
 });
+
+it('should fail required for coerced empty string', function () {
+    $schema = Validator::isObject()->coerce()->required();
+
+    $schema->validate('');
+})->throws(ValidationException::class, 'Value is required');
 
 it('should reject non-empty strings even with coerce enabled', function () {
     $schema = Validator::isObject()->coerce();

@@ -264,9 +264,9 @@ class ArrayValidator extends FieldValidator
             return array_values($value);
         }
 
-        // Coerce scalar values to array: empty string to empty array, others to single-item array
+        // Form-safe: empty string means "no value provided"; other scalars wrap to single-item array
         if (is_scalar($value)) {
-            return $value === '' ? [] : [$value];
+            return $value === '' ? null : [$value];
         }
 
         return $value;

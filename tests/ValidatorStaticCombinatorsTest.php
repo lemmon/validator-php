@@ -79,6 +79,15 @@ describe('Validator Static Logical Combinators', function () {
             expect(array_map(fn($e) => $e->getMessage(), $errors))
                 ->toContain('Value must satisfy at least one validation rule');
         });
+
+        it('should pass empty string through unchanged under coerce', function () {
+            // Combinators are type-agnostic: '' is a legitimate value for them, so
+            // coerce() on the combinator itself does not nullify it; coercion belongs
+            // on the operand validators
+            $validator = Validator::anyOf([Validator::isInt()->coerce()])->coerce()->required();
+
+            expect($validator->validate(''))->toBe('');
+        });
     });
 
     describe('allOf', function () {

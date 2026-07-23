@@ -2,7 +2,7 @@
 
 ## Core Concepts
 
-- **Form-Safe Coercion:** `coerce()` converts types but treats empty strings `''` as `null` for `Int`, `Float`, and `Bool` to prevent dangerous defaults (0/false).
+- **Form-Safe Coercion:** `coerce()` treats an empty string `''` as `null` ("no value provided") on every typed validator except `String`, so `required()` and `default()` behave consistently for unfilled form fields. `''` stays `''` for `String` (use `nullifyEmpty()` to opt into null). The type-agnostic combinators (`anyOf`, `allOf`, `not`) do not coerce at all — `''` passes through unchanged; enable `coerce()` on their operand validators instead.
 - **Optional by Default:** All fields accept `null` unless `required()` is called.
 - **Fail-Fast Per Field:** Each validator chain stops at the first failing rule; schema validation still aggregates errors across fields.
 - **Null Handling:**
@@ -29,7 +29,7 @@
 - **Null Handling:** Validators skip `null` values unless `required()` is called. `default()` fills in null as a last-resort fallback after the pipeline; `required()` enforces presence at the very end.
 - **Pipeline:** Supports both validation (`satisfies`) and transformation (`transform`, `pipe`). Flow: coerce -> type check -> pipeline -> default -> required.
 - **Coercion:** `coerce()` enables smart type conversion (e.g., "true" -> `true`). Non-coercible values pass through unchanged.
-- **Form Safety:** Empty strings `''` are treated as `null` for primitives if coerced.
+- **Form Safety:** Empty strings `''` are treated as `null` for every typed validator except `String` if coerced; the type-agnostic combinators (`anyOf`, `allOf`, `not`) pass `''` through unchanged.
 
 ## API Reference
 

@@ -193,9 +193,9 @@ $result = $validator->validate(123);
 $result = $validator->validate(true);
 // Result: [true]
 
-// Empty string to empty array
+// Empty string to null — form-safe "no value provided"
 $result = $validator->validate('');
-// Result: []
+// Result: null (use ->default([]) if an empty field should mean an empty array)
 ```
 
 ### Associative Array to Indexed Array

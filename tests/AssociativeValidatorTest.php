@@ -220,30 +220,34 @@ it('should still validate required fields even when not provided', function () {
         ->toThrow(ValidationException::class, 'Value is required');
 });
 
-it('should coerce empty string to empty array when coerce is enabled', function () {
+it('should coerce empty string to null for form safety', function () {
     $schema = Validator::isAssociative()->coerce();
 
-    $result = $schema->validate('');
-
-    expect($result)->toBeArray();
-    expect($result)->toHaveCount(0);
+    expect($schema->validate(''))->toBe(null);
 });
 
-it('should coerce empty string to array with defaults when schema has defaults', function () {
+it('should not run schema defaults for coerced empty string', function () {
+    // '' means "no value provided", so the schema (and its field defaults) never runs
     $schema = Validator::isAssociative([
-        'name' => Validator::isString(),
         'status' => Validator::isString()->default('active'),
-        'role' => Validator::isString()->default('user'),
     ])->coerce();
 
-    $result = $schema->validate('');
+    expect($schema->validate(''))->toBe(null);
+});
 
-    expect($result)->toBeArray();
-    expect($result)->toHaveKey('status');
-    expect($result)->toHaveKey('role');
-    expect($result['status'])->toBe('active');
-    expect($result['role'])->toBe('user');
-    expect($result)->not->toHaveKey('name'); // Not provided, no default
+it('should fail required for coerced empty string', function () {
+    $schema = Validator::isAssociative()->coerce()->required();
+
+    $schema->validate('');
+})->throws(ValidationException::class, 'Value is required');
+
+it('should apply validator default for coerced empty string', function () {
+    // The default is a last-resort fallback returned as-is; the schema does not run on it
+    $schema = Validator::isAssociative([
+        'status' => Validator::isString()->default('active'),
+    ])->coerce()->default([]);
+
+    expect($schema->validate(''))->toBe([]);
 });
 
 it('should reject non-empty strings even with coerce enabled', function () {

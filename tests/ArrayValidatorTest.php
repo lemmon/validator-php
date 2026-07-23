@@ -170,10 +170,19 @@ it('should allow null for optional array validator', function () {
     expect($errors)->toBe([]);
 });
 
-it('should coerce empty string to empty array', function () {
+it('should coerce empty string to null for form safety', function () {
     $validator = Validator::isArray()->coerce();
-    $data = $validator->validate('');
-    expect($data)->toBe([]);
+    expect($validator->validate(''))->toBe(null);
+});
+
+it('should fail required for coerced empty string', function () {
+    $validator = Validator::isArray()->coerce()->required();
+    $validator->validate('');
+})->throws(ValidationException::class, 'Value is required');
+
+it('should apply default for coerced empty string', function () {
+    $validator = Validator::isArray()->coerce()->default([]);
+    expect($validator->validate(''))->toBe([]);
 });
 
 it('should nullify empty string and empty array when nullifyEmpty is called', function () {
