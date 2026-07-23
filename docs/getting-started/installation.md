@@ -3,6 +3,7 @@
 ## Requirements
 
 - **PHP 8.3 or higher**
+- **PHP `mbstring` extension**
 - **Composer** for dependency management
 
 > Note: The library ships with `declare(strict_types=1);`. Validation failures throw `ValidationException`; use `coerce()` if you need form-friendly conversions.
@@ -56,7 +57,10 @@ If you want to contribute to the project or run tests, clone the repository:
 git clone https://github.com/lemmon/validator-php.git
 cd validator-php
 composer install
+npm install
 ```
+
+Running the complete development checks also requires Node.js and npm for Prettier and the Git hooks.
 
 ### Running Tests
 
@@ -71,14 +75,18 @@ composer test -- --coverage
 ### Code Quality Tools
 
 ```bash
-# Check code style
-composer lint
+# Run every project check
+composer check
 
-# Fix code style issues
-composer fix
+# Format and lint PHP
+composer format
+composer lint
 
 # Run static analysis
 composer analyze
+
+# Format Markdown, YAML, and JSON
+npm run format
 ```
 
 ## Next Steps

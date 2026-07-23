@@ -2,9 +2,12 @@
 
 Contributions are welcome! Please feel free to submit a pull request.
 
+Security vulnerabilities must not be reported in public issues. Follow the
+[Security Policy](SECURITY.md) instead.
+
 ## Development
 
-To get started, you will need to have PHP 8.3+ and Composer installed.
+To get started, you will need PHP 8.3+ with `mbstring`, Composer, Node.js, and npm.
 
 1.  Fork the repository and clone it to your local machine.
 2.  Install the dependencies:
