@@ -35,29 +35,61 @@ class ValidationException extends \Exception
      * - `null` (default) returns every error, unfiltered.
      * - `''` returns only root-level errors (those whose path is the empty string).
      * - `'address'` returns errors at `address` and its subtree (`address.street`, `address.zip`, ...).
+     * - `['address', 'street']` performs an exact segment-aware match, preserving literal dots,
+     *   empty keys, and the distinction between integer indices and numeric string keys.
      *
      * The trailing-dot match means `getErrors('name')` will not pick up a sibling like `name_full`.
      * Returns an empty list (never null) when nothing matches.
      *
-     * @param string|null $path Optional field path to filter by.
+     * @param string|list<int|string>|null $path Optional field path to filter by.
      * @return array<int, ValidationError>
      */
-    public function getErrors(?string $path = null): array
+    public function getErrors(string|array|null $path = null): array
     {
         if ($path === null) {
             return $this->errors;
         }
 
+        if (is_array($path)) {
+            return array_values(array_filter(
+                $this->errors,
+                static fn(ValidationError $error): bool => self::isSegmentPrefix($path, $error->getSegments()),
+            ));
+        }
+
         return array_values(array_filter(
             $this->errors,
             // The subtree (trailing-dot) match is skipped at the root: '' means "exactly the root",
-            // not "every path" (that is the null default). Without this guard a malformed leading-dot
-            // path such as `.hidden` -- which an empty schema key composes into -- would match '.'.
+            // not "every path" (that is the null default). An empty-key path can have a leading dot
+            // in its dotted view, but its exact segment form remains available through getSegments().
             static fn(ValidationError $error): bool => (
                 $error->getPath() === $path
                 || $path !== ''
                 && str_starts_with($error->getPath(), $path . '.')
             ),
         ));
+    }
+
+    /**
+     * @param list<int|string> $prefix
+     * @param list<int|string> $segments
+     */
+    private static function isSegmentPrefix(array $prefix, array $segments): bool
+    {
+        if ($prefix === []) {
+            return $segments === [];
+        }
+
+        if (count($prefix) > count($segments)) {
+            return false;
+        }
+
+        foreach ($prefix as $index => $segment) {
+            if (!array_key_exists($index, $segments) || $segments[$index] !== $segment) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

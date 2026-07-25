@@ -32,7 +32,7 @@ class AssociativeValidator extends FieldValidator
      */
     protected function coerceValue(mixed $value): mixed
     {
-        if (is_object($value)) {
+        if ($value instanceof \stdClass) {
             return (array) $value;
         }
 
@@ -51,7 +51,7 @@ class AssociativeValidator extends FieldValidator
      */
     protected function validateType(mixed $value, string $key): mixed
     {
-        if (!is_array($value)) {
+        if (!is_array($value) || $value !== [] && array_is_list($value)) {
             throw self::typeError('Input must be an associative array', 'associative_array');
         }
 
@@ -65,20 +65,23 @@ class AssociativeValidator extends FieldValidator
 
             [$valid, $validatedFieldValue, $fieldErrors] = $validator->tryValidate(
                 $fieldValue,
-                $fieldKey,
+                (string) $fieldKey,
                 $value,
             );
 
             if (!$valid) {
                 foreach ($fieldErrors as $error) {
-                    $errors[] = $error->withPathPrefix((string) $fieldKey);
+                    // Not (string) $fieldKey: a numeric-string schema key ("2") normalizes to an
+                    // int array key, and withPathPrefix() preserves that distinction from a
+                    // literal string segment -- see ArrayValidator's identical (string) split.
+                    $errors[] = $error->withPathPrefix($fieldKey);
                 }
                 continue;
             }
 
             // Include fields that were provided in input OR have default values applied
             $wasProvided = array_key_exists($fieldKey, $value);
-            $hasDefault = $validator->hasDefault ?? false;
+            $hasDefault = $validator->hasDefault;
 
             if ($wasProvided || $hasDefault) {
                 $dataKey = $validator->outputKey ?? $fieldKey;

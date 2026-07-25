@@ -32,7 +32,7 @@ class ObjectValidator extends FieldValidator
      */
     protected function coerceValue(mixed $value): mixed
     {
-        if (is_array($value)) {
+        if (is_array($value) && ($value === [] || !array_is_list($value))) {
             return (object) $value;
         }
 
@@ -51,8 +51,8 @@ class ObjectValidator extends FieldValidator
      */
     protected function validateType(mixed $value, string $key): mixed
     {
-        if (!is_object($value)) {
-            throw self::typeError('Input must be an object', 'object');
+        if (!$value instanceof \stdClass) {
+            throw self::typeError('Input must be a stdClass object', 'stdClass');
         }
 
         $data = new \stdClass();
@@ -60,25 +60,31 @@ class ObjectValidator extends FieldValidator
         $errors = [];
 
         foreach ($this->schema as $fieldKey => $validator) {
+            // A numeric-string schema key ("2") normalizes to an int array key, but stdClass
+            // property names are always strings -- property_exists() and tryValidate() require it.
+            $fieldKeyName = (string) $fieldKey;
+
             // Get field value (null if not present)
-            $fieldValue = property_exists($value, $fieldKey) ? $value->{$fieldKey} : null;
+            $fieldValue = property_exists($value, $fieldKeyName) ? $value->{$fieldKeyName} : null;
 
             [$valid, $validatedFieldValue, $fieldErrors] = $validator->tryValidate(
                 $fieldValue,
-                $fieldKey,
+                $fieldKeyName,
                 $value,
             );
 
             if (!$valid) {
                 foreach ($fieldErrors as $error) {
-                    $errors[] = $error->withPathPrefix((string) $fieldKey);
+                    // Raw $fieldKey (not $fieldKeyName): withPathPrefix() preserves the int/string
+                    // distinction for numeric keys -- see ArrayValidator's identical (string) split.
+                    $errors[] = $error->withPathPrefix($fieldKey);
                 }
                 continue;
             }
 
             // Include fields that were provided in input OR have default values applied
-            $wasProvided = property_exists($value, $fieldKey);
-            $hasDefault = $validator->hasDefault ?? false;
+            $wasProvided = property_exists($value, $fieldKeyName);
+            $hasDefault = $validator->hasDefault;
 
             if ($wasProvided || $hasDefault) {
                 $dataKey = $validator->outputKey ?? $fieldKey;

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Lemmon\Validator\ValidationCode;
+use Lemmon\Validator\ValidationError;
 use Lemmon\Validator\ValidationException;
 use Lemmon\Validator\Validator;
 
@@ -142,6 +143,25 @@ it('filters to a field and its subtree via getErrors($path)', function () {
     }
 });
 
+it('filters by exact path segments when keys contain dots', function () {
+    $literal = new ValidationError(['user.name', 'email'], 'LITERAL', 'Literal dotted key');
+    $nested = new ValidationError(['user', 'name', 'email'], 'NESTED', 'Nested key');
+    $exception = new ValidationException([$literal, $nested]);
+
+    expect($exception->getErrors(['user.name']))->toBe([$literal]);
+    expect($exception->getErrors(['user']))->toBe([$nested]);
+    expect($exception->getErrors([]))->toBe([]);
+});
+
+it('distinguishes integer indices from numeric string keys in segment filters', function () {
+    $index = new ValidationError(['items', 0], 'INDEX', 'Integer index');
+    $key = new ValidationError(['items', '0'], 'KEY', 'String key');
+    $exception = new ValidationException([$index, $key]);
+
+    expect($exception->getErrors(['items', 0]))->toBe([$index]);
+    expect($exception->getErrors(['items', '0']))->toBe([$key]);
+});
+
 it('does not match sibling fields that share a path prefix', function () {
     $schema = Validator::isAssociative([
         'name' => Validator::isString()->required(),
@@ -168,9 +188,9 @@ it("returns only root-level errors for getErrors('')", function () {
     }
 });
 
-it("getErrors('') matches only the exact root, not a leading-dot path", function () {
-    // An empty schema key composes into a malformed leading-dot path ('.hidden'); the root filter
-    // must not treat it as a root-level error, since no error here has an exactly-empty path.
+it("getErrors('') matches only the exact root, not an empty-key path", function () {
+    // The dotted view of an empty schema-key segment starts with a dot ('.hidden'), while the exact
+    // segments preserve ['', 'hidden']; neither representation is a root-level error.
     $schema = Validator::isAssociative([
         '' => Validator::isAssociative(['hidden' => Validator::isString()->required()]),
         'name' => Validator::isString()->required(),
@@ -181,9 +201,11 @@ it("getErrors('') matches only the exact root, not a leading-dot path", function
         expect(false)->toBe(true);
     } catch (ValidationException $e) {
         $allPaths = array_map(fn($err) => $err->getPath(), $e->getErrors());
-        expect($allPaths)->toContain('.hidden'); // sanity: the leading-dot path exists
+        expect($allPaths)->toContain('.hidden');
 
         expect($e->getErrors(''))->toBe([]);
+        expect($e->getErrors([]))->toBe([]);
+        expect($e->getErrors(['']))->toHaveCount(1);
     }
 });
 

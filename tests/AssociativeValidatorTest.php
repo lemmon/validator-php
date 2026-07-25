@@ -64,6 +64,23 @@ it('should validate an empty associative array with an empty schema', function (
     expect($data)->toBe([]);
 });
 
+it('should validate a numeric-string schema key without crashing, preserving it as an int path segment', function () {
+    $validator = Validator::isAssociative(['2' => Validator::isString()->minLength(5)]);
+
+    [$valid, , $errors] = $validator->tryValidate(['2' => 'ab']);
+
+    expect($valid)->toBeFalse();
+    expect($errors[0]->getPath())->toBe('2');
+    expect($errors[0]->getSegments())->toBe([2]);
+});
+
+it('should reject a non-empty list as an associative array', function () {
+    $schema = Validator::isAssociative();
+
+    expect(fn() => $schema->validate(['first', 'second']))
+        ->toThrow(ValidationException::class, 'Input must be an associative array');
+});
+
 it('should allow Validator::isAssociative() to be called without arguments', function () {
     $schema = Validator::isAssociative();
     $data = $schema->validate([]);
@@ -125,6 +142,13 @@ it('should fail to validate stdClass object when coerce is not enabled', functio
 
     $schema->validate($object);
 })->throws(ValidationException::class, 'Input must be an associative array');
+
+it('should not coerce arbitrary objects to associative arrays', function () {
+    $schema = Validator::isAssociative()->coerce();
+
+    expect(fn() => $schema->validate(new DateTimeImmutable()))
+        ->toThrow(ValidationException::class, 'Input must be an associative array');
+});
 
 it('should only include provided fields in result (not all schema fields)', function () {
     $schema = Validator::isAssociative([

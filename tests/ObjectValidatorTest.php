@@ -86,11 +86,38 @@ it('should fail to validate an associative array when coerce is not enabled', fu
     } catch (Lemmon\Validator\ValidationException $e) {
         expect($e->getErrors())->toHaveCount(1);
         expect($e->getErrors()[0]->getCode())->toBe('INVALID_TYPE');
-        expect($e->getErrors()[0]->getMessage())->toBe('Input must be an object');
+        expect($e->getErrors()[0]->getMessage())->toBe('Input must be a stdClass object');
         return;
     }
 
     $this->fail('ValidationException was not thrown');
+});
+
+it('should reject arbitrary objects instead of treating them as stdClass', function () {
+    $schema = Validator::isObject();
+
+    expect(fn() => $schema->validate(new DateTimeImmutable()))
+        ->toThrow(ValidationException::class, 'Input must be a stdClass object');
+});
+
+it('should not coerce a non-empty list to stdClass', function () {
+    $schema = Validator::isObject()->coerce();
+
+    expect(fn() => $schema->validate(['first', 'second']))
+        ->toThrow(ValidationException::class, 'Input must be a stdClass object');
+});
+
+it('should validate a numeric-string schema key without crashing, preserving it as an int path segment', function () {
+    $validator = Validator::isObject(['2' => Validator::isString()->minLength(5)]);
+
+    $input = new stdClass();
+    $input->{'2'} = 'ab';
+
+    [$valid, , $errors] = $validator->tryValidate($input);
+
+    expect($valid)->toBeFalse();
+    expect($errors[0]->getPath())->toBe('2');
+    expect($errors[0]->getSegments())->toBe([2]);
 });
 
 it('should only include provided fields in result (not all schema fields)', function () {
@@ -200,7 +227,7 @@ it('should reject non-empty strings even with coerce enabled', function () {
     $schema = Validator::isObject()->coerce();
 
     expect(fn() => $schema->validate('not-empty'))
-        ->toThrow(ValidationException::class, 'Input must be an object');
+        ->toThrow(ValidationException::class, 'Input must be a stdClass object');
 });
 
 it('should remap output key with outputKey when field is provided', function () {

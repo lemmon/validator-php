@@ -56,6 +56,20 @@ it('builds dotted paths through nested schemas via getErrors', function () {
     }
 });
 
+it('preserves exact path segments for keys containing dots and empty strings', function () {
+    $validator = Validator::isAssociative([
+        'user.name' => Validator::isAssociative([
+            '' => Validator::isString()->required(),
+        ]),
+    ]);
+
+    [, , $errors] = $validator->tryValidate(['user.name' => ['' => null]]);
+
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getPath())->toBe('user.name.');
+    expect($errors[0]->getSegments())->toBe(['user.name', '']);
+});
+
 it('prefixes array item paths with the index', function () {
     $schema = Validator::isArray()->items(Validator::isInt()->min(1));
 
@@ -70,6 +84,8 @@ it('prefixes array item paths with the index', function () {
         '1' => ValidationCode::NUMBER_TOO_SMALL,
         '2' => ValidationCode::NUMBER_TOO_SMALL,
     ]);
+    expect($errors[0]->getSegments())->toBe([1]);
+    expect($errors[1]->getSegments())->toBe([2]);
 });
 
 it('produces field-level paths for uniqueField', function () {

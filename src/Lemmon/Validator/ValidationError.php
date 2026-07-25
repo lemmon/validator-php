@@ -9,8 +9,9 @@ namespace Lemmon\Validator;
  *
  * Carries a stable machine-readable {@see $code} (decoupled from the human {@see $message},
  * so wording can change without breaking integrators), a dotted {@see $path} locating the
- * failure within nested input (`''` at the root), and the {@see $params} that produced the
- * message (e.g. `['min' => 5]`), available for i18n re-rendering.
+ * failure within nested input (`''` at the root), exact {@see $segments} that preserve literal
+ * dots and distinguish integer indices from string keys, and the {@see $params} that produced
+ * the message (e.g. `['min' => 5]`), available for i18n re-rendering.
  */
 final readonly class ValidationError implements \JsonSerializable
 {
@@ -20,6 +21,9 @@ final readonly class ValidationError implements \JsonSerializable
     private const COMPLEX_VALUE = '(complex value)';
 
     private string $path;
+
+    /** @var list<int|string> */
+    private array $segments;
 
     private string $code;
 
@@ -34,11 +38,21 @@ final readonly class ValidationError implements \JsonSerializable
      * no rule has to sanitise what it emits. Params keep their original values and types for i18n
      * re-rendering and are made JSON-safe only at serialization ({@see jsonSerialize()}).
      *
+     * A string path is split on dots for backward compatibility. Pass a segment list when a key
+     * contains a literal dot, is empty, or must retain the distinction between an integer index
+     * and a numeric string key.
+     *
+     * @param string|list<int|string> $path
      * @param array<string, mixed> $params
      */
-    public function __construct(string $path, string $code, string $message, array $params = [])
+    public function __construct(string|array $path, string $code, string $message, array $params = [])
     {
-        $this->path = self::utf8Safe($path);
+        $segments = is_string($path) ? self::segmentsFromString($path) : $path;
+        $this->segments = array_map(
+            static fn(int|string $segment): int|string => is_string($segment) ? self::utf8Safe($segment) : $segment,
+            $segments,
+        );
+        $this->path = implode('.', $this->segments);
         $this->code = self::utf8Safe($code);
         $this->message = self::utf8Safe($message);
         $this->params = $params;
@@ -47,6 +61,17 @@ final readonly class ValidationError implements \JsonSerializable
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    /**
+     * Returns the exact path segments. Use this when input keys may contain dots, be empty, or
+     * overlap with integer array indices; {@see getPath()} remains the convenient dotted view.
+     *
+     * @return list<int|string>
+     */
+    public function getSegments(): array
+    {
+        return $this->segments;
     }
 
     public function getCode(): string
@@ -71,11 +96,9 @@ final readonly class ValidationError implements \JsonSerializable
      * Returns a copy with $prefix prepended to the path, used as errors bubble up through
      * nested schemas (e.g. a child error at `street` becomes `address.street`).
      */
-    public function withPathPrefix(string $prefix): self
+    public function withPathPrefix(int|string $prefix): self
     {
-        $path = $this->path === '' ? $prefix : $prefix . '.' . $this->path;
-
-        return new self($path, $this->code, $this->message, $this->params);
+        return new self([$prefix, ...$this->segments], $this->code, $this->message, $this->params);
     }
 
     /**
@@ -209,5 +232,13 @@ final readonly class ValidationError implements \JsonSerializable
         $decoded = $encoded === false ? null : json_decode($encoded);
 
         return is_string($decoded) ? $decoded : self::COMPLEX_VALUE;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function segmentsFromString(string $path): array
+    {
+        return $path === '' ? [] : explode('.', $path);
     }
 }
