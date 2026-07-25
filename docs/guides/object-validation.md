@@ -2,6 +2,11 @@
 
 This guide covers validation of structured data using `AssociativeValidator` (for associative arrays) and `ObjectValidator` (for stdClass objects), both supporting schema-based validation.
 
+The container boundaries are strict. `isAssociative()` accepts non-list arrays and the ambiguous
+empty array, but rejects non-empty lists. `isObject()` accepts `stdClass`, not arbitrary object
+instances. With coercion, conversion is limited to `stdClass` → associative array and associative
+array → `stdClass`; validating domain-class instances is reserved for the planned `isInstance()` API.
+
 ## Table of Contents
 
 - [Associative Array Validation](#associative-array-validation)

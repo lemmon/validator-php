@@ -69,16 +69,16 @@ try {
 ## Features
 
 - **No third-party Composer dependencies** — the runtime depends only on PHP and `mbstring`
-- **Runtime type validation** for strings, integers, floats, booleans, indexed arrays, associative
-  arrays, and `stdClass` objects
+- **Strict runtime type validation** for strings, integers, floats, booleans, indexed arrays,
+  associative arrays, and `stdClass` objects; conversions are opt-in through `coerce()`
 - **Form-safe optional fields** — validators accept `null` unless `required()`; numeric, boolean, and
   container coercion turns an empty string into `null`, while strings can opt in with `nullifyEmpty()`
 - **Predictable processing** — pipeline steps execute in chain order, then `default()` and `required()`
   resolve the final value
 - **Composable schemas** — validate nested data, omit undeclared fields by default, or retain them
   explicitly with `passthrough()`
-- **Structured errors** — stable codes, dotted paths, messages, and parameters support programmatic
-  handling, i18n, path filtering, and JSON serialization
+- **Structured errors** — stable codes, dotted display paths, exact path segments, messages, and
+  parameters support programmatic handling, i18n, path filtering, and JSON serialization
 - **Extensible rules** — use PHP callables with `transform()`, `pipe()`, and `satisfies()`, or compose
   validators with logical combinators
 

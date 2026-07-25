@@ -4,12 +4,66 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Exact structured-error path segments. `ValidationError::getSegments()` returns the source-of-truth
+  `int|string` segment list, while `getPath()` keeps the convenient dotted view.
+  `ValidationError::__construct()` and `ValidationException::getErrors()` now also accept segment
+  lists, allowing literal dotted or empty keys and integer indices to be addressed without ambiguity
+
 ### Changed
 
 - Declared the existing `ext-mbstring` runtime requirement in Composer metadata and documented it in
   the installation and contributor guides
+- **BREAKING:** `FloatValidator` now rejects numeric strings unless `coerce()` is enabled.
+  Integers remain accepted and widen to float — the one conversion PHP's own `strict_types` mode
+  permits, and the only way JSON can represent a whole number — except beyond +/-2^53, where not
+  every integer has an exact float representation; those are rejected instead of silently
+  corrupted into a different, nearby integer's float. The same +/-2^53 bound applies on the
+  `coerce()` path too, both to a raw int input and to an integer-form numeric string (e.g.
+  `"9007199254740993"`); a decimal or scientific-notation string isn't affected
+- **BREAKING:** `IntValidator::coerce()` now accepts only strings representing integers, including
+  zero-padded ones (`"08"`). Decimal strings, scientific notation, and out-of-range integers are
+  rejected instead of being truncated or clamped by an `(int)` cast
+- **BREAKING:** `AssociativeValidator` now rejects non-empty lists, and its coercion accepts only
+  `stdClass` objects. The empty array remains valid because PHP uses it for both empty lists and empty
+  maps
+- **BREAKING:** `ObjectValidator` now validates `stdClass` specifically and only coerces associative
+  arrays (including the ambiguous empty array). Arbitrary objects and non-empty lists are rejected
+- **BREAKING:** removed the unused `PipelineType` enum and type field from the internal pipeline step;
+  validation and transformation steps already share identical execution behavior
+- Invalid built-in constraint configuration now throws `InvalidArgumentException` immediately:
+  negative string lengths or array item counts, reversed `between()` bounds, a zero
+  `multipleOf()` divisor, and malformed regular expressions
+- Updated the Composer and npm development dependency locks, raised PHPStan from level 8 to `max`,
+  updated the GitHub-maintained workflow actions, and expanded CI from PHP 8.3 only to PHP 8.3, 8.4,
+  and 8.5 with the complete Composer/Prettier check
 - **BREAKING:** the errors element of the `tryValidate()` tuple is now an empty list `[]` on success (previously `null`), so consumers can iterate or count the errors without a null-guard. Code that detected success via `$errors === null` should check `$valid` (or `$errors === []`) instead; `$valid` remains the canonical success signal
 - **BREAKING:** with `coerce()` enabled, an empty string `''` now coerces to `null` for `ArrayValidator`, `AssociativeValidator`, and `ObjectValidator` (previously `[]`, `[]`, and an empty `stdClass` respectively), aligning the container types with the scalar validators' form-safe rule that an empty input means "no value provided". This makes `required()` reject unfilled container fields and lets `default()` apply; previously an unfilled field silently produced an empty container, bypassing both. As a consequence, `''` no longer runs a schema against an empty container, so schema field defaults are no longer populated from an empty input. To keep the old output shape, opt in explicitly per type: `->default([])` for `isArray()` and `isAssociative()`, and `->defaultUsing(static fn() => new \stdClass())` for `isObject()` (a fresh instance per run; a shared `default(new \stdClass())` instance would leak state across validations). Note the default is returned as-is — the schema does not run on it — so code that relied on `''` producing a container populated with schema field defaults must put the fully populated structure in the default itself. `StringValidator` is unchanged: `''` remains a legitimate string value; use `nullifyEmpty()` to treat it as absent
+
+### Fixed
+
+- `multipleOf()` no longer leaks `DivisionByZeroError` for a zero divisor and now treats negative
+  divisors as their positive mathematical equivalent
+- Invalid `pattern()`/`regex()` configuration no longer emits a PHP warning before failing
+- A rule's own argument-type mismatch is now caught at the exact point it's invoked, so a preceding
+  `transform()` that hands a built-in constraint (or a typed `satisfies()` callable) a value of the
+  wrong type fails validation with an `INVALID_TYPE` error (params: `actual`) instead of leaking a
+  `TypeError` past `tryValidate()`/`validate()`. Only a genuine argument-type mismatch on the rule's
+  first (value) parameter is treated this way; a `TypeError` raised from inside a rule's own body
+  (a bug unrelated to the value it was given), a mismatch on the rule's own _return_ type (e.g. a
+  `: bool` rule that returns something else), a type mismatch on a rule's other parameters (a badly
+  typed `$key`/`$input` in a `satisfies()` callable), or an `ArgumentCountError` from a rule
+  declaring more required parameters than it's called with, all still propagate normally
+- `in()` and `const()` now treat an int and a float of the same numeric value as equal, matching the
+  int -> float widening `isFloat()` already applies. Previously `isFloat()->in([1, 2, 3])` or
+  `isFloat()->const(1)` rejected the widened `1.0` because it no longer strictly equalled the `int`
+  literal in the allowed set. The comparison only equates values within +/-2^53, so it can't
+  false-positive between two distinct large ints that happen to widen to the same float (e.g.
+  `PHP_INT_MAX` and `PHP_INT_MAX - 1`)
+- `port()` now declares a native `int` parameter type like every other built-in constraint, so a
+  preceding `transform()` that changes the value's type reports `INVALID_TYPE` instead of the
+  misleading `PORT` code
 
 ## [0.16.0] - 2026-07-06
 

@@ -186,13 +186,13 @@ $result = Validator::isString()
 **Key Characteristics:**
 
 - **Preserves type context** - Maintains current type for consistency
-- **Type-specific coercion** - Applies intelligent coercion based on current type
+- **List preservation** - Reindexes list-array results when an array operation leaves sparse keys
 - **Multiple operations** - Accepts variadic arguments for clean chaining
 - **Null handling** - `pipe()` skips null values to avoid type errors for optional fields
 
 ### Type-Aware Transformation Chains
 
-The revolutionary aspect is how these methods work together to create intelligent transformation chains:
+Together, the two methods support readable transformation chains that can deliberately change type:
 
 ```php
 $result = Validator::isArray()
@@ -211,9 +211,9 @@ $result = Validator::isArray()
 4. **After second `pipe()`**: Still `string`, string operations applied
 5. **After final `transform()`**: Type context switches to `int`
 
-### Smart Type Coercion
+### List Preservation
 
-The `pipe()` method applies intelligent coercion based on the current type context:
+For list validators, `pipe()` reindexes array results when a PHP array function leaves sparse keys:
 
 ```php
 // Array pipe operations automatically reindex when needed
@@ -365,7 +365,11 @@ $validator->satisfies(
 
 ## Type Coercion
 
-Coercion attempts intelligent type conversion:
+Without `coerce()`, type factories are strict: integers, floats, lists, associative arrays, and
+`stdClass` objects remain distinct. The one exception is `isFloat()`, which widens integers to
+floats — the same widening PHP's `strict_types` mode permits — as long as the integer is within
++/-2^53, where every integer still has an exact float representation; beyond that, widening is
+rejected rather than silently losing precision. Coercion enables the documented conversions:
 
 ```php
 // String to Int
@@ -381,6 +385,14 @@ $arrayValidator = Validator::isAssociative()->coerce();
 $obj = new stdClass(); $obj->key = 'value';
 $result = $arrayValidator->validate($obj); // Returns: ['key' => 'value']
 ```
+
+Integer coercion accepts integer-form strings that fit the platform integer range; it does not
+truncate decimal strings or accept scientific notation. Float coercion accepts integers and numeric
+strings. `isAssociative()` rejects non-empty lists, while `isObject()` accepts `stdClass` rather than
+arbitrary object instances.
+
+Validation is runtime typed. `validate()` returns `mixed` because `transform()` can intentionally
+produce any PHP type; static schema-output inference is not part of the v1.0 API contract.
 
 ### Form-Safe Empty String Handling
 

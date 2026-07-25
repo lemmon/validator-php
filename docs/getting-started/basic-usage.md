@@ -74,7 +74,7 @@ if ($valid) {
     echo "Valid email: " . $data;
 } else {
     echo "Errors: " . implode(', ', array_map(fn($e) => $e->getMessage(), $errors));
-    // Each error also exposes getPath(), getCode(), and getParams()
+    // Each error also exposes getPath(), getSegments(), getCode(), and getParams()
 }
 ```
 
@@ -114,6 +114,11 @@ $result = $coercing->validate('');    // Returns: null (form-safe!)
 ```
 
 > **Form Safety Note**: Empty strings convert to `null` (not `0`/`0.0`/`false`) to prevent dangerous defaults in form handling. See [Core Concepts - Form-Safe Empty String Handling](core-concepts.md#form-safe-empty-string-handling) for details.
+
+Integer coercion accepts integer-form strings but does not truncate decimal strings. `isFloat()`
+accepts floats and integers (widening integers to float, as PHP's `strict_types` mode does) but
+rejects numeric strings unless `coerce()` is enabled. Container validators likewise preserve the
+boundaries between lists, associative arrays, and `stdClass`.
 
 ### Empty String Nullification
 

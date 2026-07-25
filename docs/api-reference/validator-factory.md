@@ -56,6 +56,9 @@ $idValidator = Validator::isInt()->positive();
 
 **Returns:** `IntValidator` instance with integer-specific validation methods.
 
+Without `coerce()`, only PHP integers are accepted. Coercion accepts integer-form strings within the
+platform integer range; decimal strings and scientific notation are rejected rather than truncated.
+
 **See Also:** [Numeric Validation Guide](../guides/numeric-validation.md)
 
 ---
@@ -74,6 +77,11 @@ $percentageValidator = Validator::isFloat()->min(0.0)->max(100.0);
 ```
 
 **Returns:** `FloatValidator` instance with float-specific validation methods.
+
+Floats and integers are accepted — integers widen to float, matching PHP's `strict_types` widening
+rule, as long as the integer is within +/-2^53 (beyond that, not every integer has an exact float
+representation, so it's rejected instead of silently losing precision). Use `coerce()` to
+additionally accept numeric strings.
 
 **See Also:** [Numeric Validation Guide](../guides/numeric-validation.md)
 
@@ -135,6 +143,10 @@ $user = $userValidator->validate([
 
 **Returns:** `AssociativeValidator` instance with schema validation capabilities.
 
+Non-empty lists are rejected. The empty array remains valid because PHP represents both an empty list
+and an empty map as `[]`. With `coerce()`, `stdClass` input is converted to an associative array;
+other objects are rejected.
+
 **See also:** [Object & Schema Validation Guide](../guides/object-validation.md) (`coerceAll()`, `passthrough()`, and schema patterns).
 
 ---
@@ -169,6 +181,9 @@ $validConfig = $configValidator->validate($config);
 - `$schema` (optional): Array mapping property names to `FieldValidator` instances
 
 **Returns:** `ObjectValidator` instance with schema validation capabilities.
+
+Only `stdClass` is accepted without coercion. With `coerce()`, associative arrays (and the ambiguous
+empty array) are converted to `stdClass`; non-empty lists and arbitrary object instances are rejected.
 
 **See also:** [Object & Schema Validation Guide](../guides/object-validation.md) (`coerceAll()`, `passthrough()`, and schema patterns).
 
@@ -701,6 +716,10 @@ $result = $stringValidator->validate(123); // Returns: '123' (string)
 // Coercion is disabled by default
 $strictString = Validator::isString(); // No coerce() call
 ```
+
+Integer coercion does not truncate decimal strings. Integers widen to float without `coerce()`; float
+coercion is only required for numeric string input. Container coercion preserves the documented
+boundaries between lists, associative arrays, and `stdClass`.
 
 ---
 

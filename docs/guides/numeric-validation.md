@@ -17,6 +17,10 @@ $coercingValidator = Validator::isInt()->coerce();
 $result = $coercingValidator->validate('123'); // Returns: 123 (int)
 ```
 
+Without `coerce()`, only PHP integers are accepted. Integer coercion accepts integer-form strings
+within the platform integer range. It rejects decimal strings, scientific notation, and out-of-range
+values instead of truncating or clamping them.
+
 ### Integer Constraints
 
 All numeric constraint methods are available for integers:
@@ -66,12 +70,17 @@ $customPort = Validator::isInt()->port('Must be a valid port number');
 ```php
 $floatValidator = Validator::isFloat();
 $result = $floatValidator->validate(3.14159); // Returns: 3.14159 (float)
+$result = $floatValidator->validate(42); // Returns: 42.0 (float, integers widen)
 
 // With coercion
 $coercingFloat = Validator::isFloat()->coerce();
 $result = $coercingFloat->validate('123.45'); // Returns: 123.45 (float)
-$result = $coercingFloat->validate(42); // Returns: 42.0 (float)
 ```
+
+Without `coerce()`, floats and integers are accepted — integers widen to float, the same conversion
+PHP's `strict_types` mode permits (and JSON decodes every whole number as an integer). Numeric
+strings require coercion. An integer beyond +/-2^53 is rejected rather than widened, since not
+every such integer has an exact float representation.
 
 ### Float Constraints
 
@@ -190,12 +199,9 @@ $coercingInt = Validator::isInt()->coerce();
 $result = $coercingInt->validate('123'); // Returns: 123 (int)
 $result = $coercingInt->validate('-456'); // Returns: -456 (int)
 
-// Float to int (truncates)
-$result = $coercingInt->validate(123.89); // Returns: 123 (int)
-
 // Invalid coercion
 try {
-    $coercingInt->validate('not-a-number'); // ValidationException
+    $coercingInt->validate('123.89'); // ValidationException; decimals are not truncated
 } catch (ValidationException $e) {
     // Handle error
 }
@@ -213,6 +219,18 @@ $result = $coercingFloat->validate('123'); // Returns: 123.0 (float)
 // Int to float
 $result = $coercingFloat->validate(42); // Returns: 42.0 (float)
 ```
+
+## Invalid Constraint Configuration
+
+Configuration errors throw `InvalidArgumentException` when the validator is built, rather than
+becoming validation failures for every input:
+
+```php
+Validator::isInt()->between(10, 1); // InvalidArgumentException
+Validator::isFloat()->multipleOf(0); // InvalidArgumentException
+```
+
+Negative `multipleOf()` divisors are valid and behave like their positive equivalent.
 
 ### Form-Safe Empty String Handling
 
@@ -302,6 +320,7 @@ $result = $explicitValidator->validate(''); // ❌ "Value is required"
 
 // Combined with defaults for optional numeric fields
 $optionalQuantity = Validator::isInt()
+    ->coerce()
     ->nullifyEmpty() // Empty strings → null
     ->default(1);    // Use 1 for null values
 
@@ -310,6 +329,7 @@ $result = $optionalQuantity->validate('5'); // Returns: 5
 
 // Form-safe optional pricing
 $discountValidator = Validator::isFloat()
+    ->coerce()
     ->nullifyEmpty() // Empty strings → null
     ->min(0.0)       // Must be non-negative if provided
     ->default(0.0);  // No discount if empty

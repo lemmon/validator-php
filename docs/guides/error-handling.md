@@ -72,6 +72,8 @@ try {
 - `getCode()` — a stable machine-readable code (see `ValidationCode`), decoupled from wording
 - `getMessage()` — the human-readable message
 - `getPath()` — dotted location within the input (`''` at the root)
+- `getSegments()` — exact `int|string` path segments for keys containing dots, empty keys, and array
+  indices
 - `getParams()` — the values that produced the message (e.g. `['min' => 5]`)
 
 ```php
@@ -83,6 +85,7 @@ $error = $errors[0];
 $error->getCode();    // 'STRING_TOO_SHORT' (=== ValidationCode::STRING_TOO_SHORT)
 $error->getMessage(); // 'Value must be at least 5 characters long'
 $error->getPath();    // ''
+$error->getSegments(); // []
 $error->getParams();  // ['min' => 5]
 ```
 
@@ -126,14 +129,14 @@ constant (e.g. `ValidationCode::STRING_TOO_SHORT`), not the raw string or messag
 
 ### Core
 
-| Code           | Emitted by                          | Params                                                               |
-| -------------- | ----------------------------------- | -------------------------------------------------------------------- |
-| `REQUIRED`     | `required()` when the value is null | —                                                                    |
-| `INVALID_TYPE` | any validator's type check          | `expected` (e.g. `'string'`, `'int'`, `'indexed_array'`, `'object'`) |
-| `IN`           | `in()` / `oneOf()`                  | `allowed` (array)                                                    |
-| `CONST`        | `const()`                           | `expected`                                                           |
-| `ENUM`         | `enum()`                            | `allowed` (array of backed values or case names)                     |
-| `CUSTOM`       | `satisfies()` (default)             | as supplied                                                          |
+| Code           | Emitted by                                                                                                                                                                                          | Params                                                                                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REQUIRED`     | `required()` when the value is null                                                                                                                                                                 | —                                                                                                                                                                                                        |
+| `INVALID_TYPE` | a validator's own type check; also a rule with a native parameter type (a built-in constraint, or a typed `satisfies()` callable) when a preceding `transform()` hands it a value of the wrong type | `expected` (e.g. `'string'`, `'int'`, `'indexed_array'`, `'stdClass'`) for a validator's type check; `actual` (the value's runtime type, e.g. `'string'`, `'int'`, `'array'`) for the rule-mismatch case |
+| `IN`           | `in()` / `oneOf()`                                                                                                                                                                                  | `allowed` (array)                                                                                                                                                                                        |
+| `CONST`        | `const()`                                                                                                                                                                                           | `expected`                                                                                                                                                                                               |
+| `ENUM`         | `enum()`                                                                                                                                                                                            | `allowed` (array of backed values or case names)                                                                                                                                                         |
+| `CUSTOM`       | `satisfies()` (default)                                                                                                                                                                             | as supplied                                                                                                                                                                                              |
 
 ### Logical combinators
 
@@ -216,14 +219,20 @@ try {
     $addressErrors = $e->getErrors('address');         // 'address' plus 'address.street', 'address.zip', ...
     $streetErrors  = $e->getErrors('address.street');  // just that leaf
     $rootErrors    = $e->getErrors('');                // only root-level errors (empty path)
+
+    // Exact segments avoid ambiguity when a literal key contains a dot:
+    $literalKeyErrors = $e->getErrors(['user.name']);
+    $nestedKeyErrors  = $e->getErrors(['user', 'name']);
 }
 ```
 
 Path matching rules:
 
 - **No argument** returns every error.
-- **A field path** matches that exact path _and_ its descendants — `getErrors('address')` includes `address.street`. The match is segment-aware, so `getErrors('name')` will **not** pick up a sibling like `name_full`.
+- **A dotted string path** matches that path _and_ its descendants — `getErrors('address')` includes `address.street`. The trailing-dot boundary means `getErrors('name')` will **not** pick up a sibling like `name_full`.
+- **A segment list** performs an exact segment-aware subtree match. Use it when literal keys contain dots or are empty, or when integer array indices must remain distinct from numeric string keys.
 - **`''`** returns only root-level errors (scalar validator failures and container type errors all use the empty-string path).
+- **`[]`** is the exact segment-list form of the root and likewise returns only root-level errors.
 - Returns an empty list (never `null`) when nothing matches.
 
 ### Error Path Convention
@@ -231,6 +240,18 @@ Path matching rules:
 - **Root-level errors**: the empty string `''` (scalar validator failures and container type errors)
 - **Field paths**: dot notation for nested fields (e.g. `'user.profile.email'`)
 - **Array items**: index notation (e.g. `'items.0'`, `'items.1'`)
+
+The dotted path is the primary display and serialization format. Internally, `ValidationError`
+stores exact segments and exposes them through `getSegments()`. Construct custom errors with a
+segment list when a path cannot be represented losslessly as a dotted string:
+
+```php
+new ValidationError(
+    ['items', 0, 'user.name'],
+    ValidationCode::CUSTOM,
+    'Invalid value',
+);
+```
 
 ## API Responses
 
@@ -411,7 +432,10 @@ try {
 }
 ```
 
-For custom cross-item logic, use `satisfies()` and throw a `ValidationException` containing `ValidationError` objects whose `path` is `"{index}.{field}"` (e.g. `new ValidationError("2.destination", ValidationCode::NOT_UNIQUE, $message)`) to get field-level paths.
+For custom cross-item logic, use `satisfies()` and throw a `ValidationException` containing
+`ValidationError` objects with exact segment paths (e.g.
+`new ValidationError([2, 'destination'], ValidationCode::NOT_UNIQUE, $message)`) to get field-level
+paths.
 
 ## Error Message Customization
 

@@ -12,33 +12,45 @@ Single source of truth for planned and considered work. Completed work lives in 
 ## Current behavior
 
 - Optional by default (null allowed unless `required()`); form-safe coercion (empty string → null, not `0`/`false`); pipeline order guaranteed; fail-fast per field; schema validation aggregates errors across fields.
+- Type factories are strict unless coercion is enabled: `isInt()` accepts integers, `isFloat()` accepts floats and integers (PHP's own `strict_types` int-to-float widening; JSON cannot express a whole-number float), `isArray()` accepts lists, `isAssociative()` accepts non-list arrays (plus the ambiguous empty array), and `isObject()` accepts `stdClass`.
+- Structured errors keep exact `int|string` path segments as their source of truth and derive the dotted `getPath()` view. String path filters remain convenient; segment-list filters are available when keys contain dots, are empty, or must distinguish an integer index from a numeric string key.
 
 ## Road to v1.0
 
 These are the changes that touch the public contract and are therefore best done before committing to API stability.
 
-### 1. Error model (the v1.0 centerpiece)
+### 1. Error model (landed; verify during the release audit)
 
-One unified design covering three things that share the same error object. The shape of what `ValidationException` exposes is a public contract, so it must be settled before v1.0.
+The unified structured error contract is in place:
 
 - **Structured error codes** (e.g. `STRING_TOO_SHORT`, `INVALID_EMAIL`) for programmatic handling and i18n. Stable machine handles decouple error identity from human wording, so messages can be reworded freely after v1.0.
 - **Full error paths** for nested structures (`user.address.street`) instead of bare leaf keys.
-- **Message placeholders** (`{value}`, `{index}`, `{min}`, …) for custom messages and localization; pair with global/default message templates for consistent branding.
-- Expose the errors through a single accessor, `ValidationException::getErrors(?string $path = null)`, returning the `ValidationError` value objects (a flat list; an optional path filters to one field and its subtree). The legacy nested-message view and the separate flattened helpers were dropped in favor of this one method. _(Landed; `ValidationError` is `JsonSerializable`.)_
-- **Open decision — path encoding (revisit before v1.0).** `ValidationError` stores the path as a dotted string, built by string concatenation in `withPathPrefix()`. That encoding is lossy: a literal key containing a dot (`'user.name'`) is indistinguishable from nesting, an empty-string schema key composes a leading-dot path (`.hidden`, special-cased in the `getErrors('')` guard), and `items.0.name` cannot distinguish array index `0` from string key `'0'`. Zod keeps a segment array (`['user', 'name']`) as the source of truth and derives the string view; we do the inverse, so segments are unrecoverable and a future `getSegments()` could never be correct for dotted keys. Two acceptable resolutions, decide one before freezing the contract: (a) store `array $segments` internally, prepend segments in `withPathPrefix()`, keep `getPath()` returning the dot-joined string unchanged — public API identical, filtering becomes exact, leaves room for an additive `getSegments()` post-1.0; or (b) declare literal dotted keys out of scope for a form/API validator and document the limitation (`llms.txt`). The dotted-string _view_ stays the primary API either way (it maps onto HTML input names, Laravel/Symfony error keys, and JS property access); the decision is only about what is stored underneath.
+- **Message placeholders** (`{value}`, `{index}`, `{min}`, …) for custom messages and localization.
+- A single `ValidationException::getErrors(string|array|null $path = null)` accessor returning a flat list of `ValidationError` objects. `ValidationError` is JSON-serializable, exposes both `getPath()` and `getSegments()`, and accepts a segment list in its constructor for exact custom paths.
+
+Before v1.0, perform one final naming/parameter audit of `ValidationCode` and the JSON error shape. After v1.0, codes and serialized field names are stable integration contracts.
 
 ### 2. Deprecation cleanup
 
-Remove the deprecated instance aliases `addValidation`, `allOf`, `anyOf`, `not`; the combinators live on `Validator::` (now backed by `MixedValidator`). Update call sites and docs.
+Remove the deprecated aliases `addValidation`, instance `allOf`, instance `anyOf`, instance `not`, and `oneOf`. The combinators live on `Validator::`; allowed-value validation uses `in()`. Update call sites, tests, and migration notes.
 
 ### 3. Schema posture completion
 
 - `strict()` — reject undeclared keys (completes the `default` / `passthrough()` / `strict()` trio).
 - `isInstance(ClassName::class)` — validate object instances (closes a type-coverage gap alongside scalars, arrays, and enums).
 
-### Release hygiene
+### 4. Public surface and typing contract
+
+- Audit every class in the runtime namespace and mark implementation-only types `@internal` or remove them before the namespace becomes stable. `PipelineType` was removed because it was unused internal metadata; `MixedValidator`, `PipelineStep`, and `PipelineContext` are implementation details.
+- Keep the v1.0 promise precise: Lemmon provides runtime validation and transformation. Because arbitrary `transform()` calls can change output type and validators are mutable, `validate()` and the data element of `tryValidate()` remain `mixed`; static schema-output inference is not part of the v1.0 contract.
+- Decide whether subclassing `FieldValidator` is supported. The current extension point is `satisfies()`/`transform()`, so unsupported inheritance should be made explicit before v1.0 rather than left accidental.
+
+### 5. Release hygiene
 
 - Docs refresh: ensure `README.md`, `docs/`, and `llms.txt` match the final v1.0 surface; add migration notes for the deprecation removals.
+- Run a focused mutation-testing pilot over coercion, null/default/required flow, and structured path aggregation before freezing their behavior.
+- Record a small performance baseline for `validate()`, `tryValidate()`, and nested schema failures. `tryValidate()` currently uses exceptions internally, so failure-heavy workloads should be measured even though no public optimization is required for v1.0.
+- Confirm the PHP 8.3–8.5 CI matrix and lowest-supported dependency installation before tagging the release candidate.
 
 ## Post-1.0 (additive, against a frozen API)
 
@@ -58,7 +70,6 @@ None of these touch the public contract, so they are strictly better landed afte
 
 ### Quality (ongoing)
 
-- Mutation testing pilot (Infection + baseline config, documented local run).
 - Property-based tests for core validators (string patterns, numeric constraints).
 - Performance benchmarking for hot paths (`validate`, `tryValidate`, schema validation).
 

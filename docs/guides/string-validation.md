@@ -338,6 +338,10 @@ $patternValidator->validate('123'); // Valid
 $regexValidator->validate('123'); // Valid
 ```
 
+Length counts must be non-negative, and `between()` requires the minimum not to exceed the maximum.
+Malformed regular expressions are configuration errors. These cases throw `InvalidArgumentException`
+when the validator is built instead of producing a validation error for an input.
+
 ## Form-Safe String Handling
 
 ### Empty String Nullification

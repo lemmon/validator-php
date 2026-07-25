@@ -2,7 +2,7 @@
 
 ## Core Concepts
 
-- **Form-Safe Coercion:** `coerce()` treats an empty string `''` as `null` ("no value provided") on every typed validator except `String`, so `required()` and `default()` behave consistently for unfilled form fields. `''` stays `''` for `String` (use `nullifyEmpty()` to opt into null). The type-agnostic combinators (`anyOf`, `allOf`, `not`) do not coerce at all — `''` passes through unchanged; enable `coerce()` on their operand validators instead.
+- **Form-Safe Coercion:** `coerce()` treats an empty string `''` as `null` ("no value provided") on every typed validator except `String`, so `required()` and `default()` behave consistently for unfilled form fields. `''` stays `''` for `String` (use `nullifyEmpty()` to opt into null). Integer coercion accepts integer-form strings without truncating decimals; float coercion accepts integers and numeric strings. Container coercion preserves the list/associative-array/`stdClass` boundaries. The type-agnostic combinators (`anyOf`, `allOf`, `not`) do not coerce at all — `''` passes through unchanged; enable `coerce()` on their operand validators instead.
 - **Optional by Default:** All fields accept `null` unless `required()` is called.
 - **Fail-Fast Per Field:** Each validator chain stops at the first failing rule; schema validation still aggregates errors across fields.
 - **Null Handling:**
@@ -25,11 +25,12 @@
   - `validate(mixed $value, string $key = '', mixed $input = null)` throws `ValidationException`.
   - `tryValidate(mixed $value, string $key = '', mixed $input = null)` returns tuple `[bool $valid, mixed $data, array $errors]`, where `$errors` is a flat list of `ValidationError` objects (empty on success, so it can be iterated without a null-guard).
 - **Fail-Fast:** Each validator chain stops at the first failing rule; schema validators aggregate errors across fields.
-- **Error Structure:** Validation errors are a flat list of `ValidationError` value objects, each with `getPath()` (dotted, `''` at root), `getCode()` (stable code, see `ValidationCode`), `getMessage()`, and `getParams()`. Access via `ValidationException::getErrors(?string $path = null)` or the `tryValidate` tuple. `getErrors()` (no arg) returns every error; `getErrors($path)` filters to a field and everything nested beneath it (`getErrors('')` returns only root-level errors; the trailing-dot match means `getErrors('name')` won't catch `name_full`). Match on codes, not message text. `satisfies()` accepts optional `(?string $code, array $params)`; params double as `{name}` message placeholders. `ValidationError` is `JsonSerializable` (`{path, code, message, params}`), so `json_encode($e->getErrors())` is API-ready; malformed UTF-8 param keys are normalized during serialization, and unencodable param values render as `"(complex value)"`.
+- **Error Structure:** Validation errors are a flat list of `ValidationError` value objects, each with `getPath()` (dotted, `''` at root), `getSegments()` (exact `int|string` segments), `getCode()` (stable code, see `ValidationCode`), `getMessage()`, and `getParams()`. Access via `ValidationException::getErrors(string|array|null $path = null)` or the `tryValidate` tuple. `getErrors()` (no arg) returns every error; a string path filters by the dotted view (`getErrors('')` returns only root-level errors; `getErrors('name')` won't catch `name_full`); a segment list performs exact subtree filtering for literal dots, empty keys, and integer indices. `ValidationError::__construct()` likewise accepts either a dotted string or an exact segment list. Match on codes, not message text. `satisfies()` accepts optional `(?string $code, array $params)`; params double as `{name}` message placeholders. `ValidationError` is `JsonSerializable` (`{path, code, message, params}`), so `json_encode($e->getErrors())` is API-ready; malformed UTF-8 param keys are normalized during serialization, and unencodable param values render as `"(complex value)"`.
 - **Null Handling:** Validators skip `null` values unless `required()` is called. `default()` fills in null as a last-resort fallback after the pipeline; `required()` enforces presence at the very end.
 - **Pipeline:** Supports both validation (`satisfies`) and transformation (`transform`, `pipe`). Flow: coerce -> type check -> pipeline -> default -> required.
 - **Coercion:** `coerce()` enables smart type conversion (e.g., "true" -> `true`). Non-coercible values pass through unchanged.
 - **Form Safety:** Empty strings `''` are treated as `null` for every typed validator except `String` if coerced; the type-agnostic combinators (`anyOf`, `allOf`, `not`) pass `''` through unchanged.
+- **Runtime Types:** Type factories are strict without coercion: integers, floats (with `isFloat()` widening integers to float, as PHP's `strict_types` mode does), lists, associative arrays (plus the ambiguous empty array), and `stdClass` objects remain distinct. The public execution result is intentionally `mixed` because `transform()` can produce any type; static output inference is not part of the v1.0 contract.
 
 ## API Reference
 
@@ -47,6 +48,13 @@ static anyOf(array<FieldValidator> $validators, ?string $message = null): FieldV
 static allOf(array<FieldValidator> $validators, ?string $message = null): FieldValidator
 static not(FieldValidator $validator, ?string $message = null): FieldValidator
 ```
+
+`isInt()` accepts only PHP integers; `coerce()` additionally accepts integer-form strings that fit
+the platform integer range. `isFloat()` accepts floats and integers (integers widen to float,
+matching PHP's `strict_types` widening); `coerce()` additionally accepts numeric strings.
+`isArray()` accepts lists. `isAssociative()` rejects non-empty lists
+but accepts `[]` because PHP cannot distinguish an empty list from an empty map. `isObject()` accepts
+`stdClass` only.
 
 ### Base API (`FieldValidator`)
 
@@ -99,6 +107,9 @@ in(array $values, ?string $message = null): static
 oneOf(array $values, ?string $message = null): static // Deprecated alias for in()
 ```
 
+Negative length arguments, reversed `between()` bounds, and malformed regular expressions throw
+`InvalidArgumentException` during validator configuration.
+
 ### IntValidator / FloatValidator
 
 _Both support NumericConstraintsTrait_
@@ -121,6 +132,9 @@ in(array $values, ?string $message = null): static
 oneOf(array $values, ?string $message = null): static // Deprecated alias for in()
 ```
 
+Reversed `between()` bounds and a zero `multipleOf()` divisor throw `InvalidArgumentException`
+during validator configuration. A negative divisor is treated as its positive equivalent.
+
 _IntValidator Only:_
 
 ```php
@@ -141,7 +155,9 @@ contains(mixed|FieldValidator $valueOrValidator, ?string $message = null): stati
 uniqueField(string $fieldName, ?string $message = null): static
 ```
 
-**Cross-Item Validation:** `uniqueField()` validates a nested field is unique across items. All members of a duplicate group receive errors with field-level paths (e.g., both `symlinks.0.destination` and `symlinks.2.destination`). For custom cross-item logic, use `satisfies()` directly -- throw a `ValidationException` of `ValidationError` objects with `path` `"{index}.{field}"` for field-level paths. Both run after item validation and receive validated data.
+Negative item counts throw `InvalidArgumentException` during validator configuration.
+
+**Cross-Item Validation:** `uniqueField()` validates a nested field is unique across items. All members of a duplicate group receive errors with field-level paths (e.g., both `symlinks.0.destination` and `symlinks.2.destination`). For custom cross-item logic, use `satisfies()` directly -- throw a `ValidationException` of `ValidationError` objects with an exact segment-list path such as `[$index, $field]`. Both run after item validation and receive validated data.
 
 ### AssociativeValidator / ObjectValidator
 
@@ -153,7 +169,7 @@ coerceAll(): static // Recursively enables coercion on schema fields, nested sch
 passthrough(): static // Copy undeclared keys/properties from input to output without validating them; schema fields still validated; does not overwrite keys already set from the schema (including outputKey targets)
 ```
 
-By default, outputs only schema-defined keys (plus defaults). With `passthrough()`, any input key not in the schema is copied through unchanged (shallow); nested structures are not recursively validated. For `ObjectValidator`, only **public** properties from the input object are considered (via `get_object_vars()`).
+By default, outputs only schema-defined keys (plus defaults). With `passthrough()`, any input key not in the schema is copied through unchanged (shallow); nested structures are not recursively validated. `AssociativeValidator` accepts non-list arrays (and `[]`) and coerces only `stdClass`. `ObjectValidator` accepts `stdClass` and coerces only associative arrays (and `[]`).
 
 ### BoolValidator
 
@@ -176,10 +192,6 @@ oneOf(array $values, ?string $message = null): static // Deprecated alias for in
 ### Base64Variant
 
 `Standard`, `UrlSafe`, `Any`
-
-### PipelineType
-
-`VALIDATION`, `TRANSFORMATION`
 
 ## Quick Examples
 

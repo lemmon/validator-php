@@ -229,6 +229,9 @@ $validator->validate(null); // Throws ValidationException
 
 ## Array Length Constraints
 
+`minItems()` and `maxItems()` require non-negative counts. A negative count throws
+`InvalidArgumentException` when the validator is configured.
+
 ### Non-Empty Arrays
 
 Use `notEmpty()` as a clearer alternative to `minItems(1)` when you just need at least one item.
@@ -502,7 +505,9 @@ Custom message:
 
 ### Custom Cross-Item Validation with satisfies()
 
-For validations beyond uniqueness (ordering, dependencies, custom logic), use `satisfies()` on the array validator. Throw a `ValidationException` of `ValidationError` objects whose `path` is `"{index}.{field}"` to get field-level paths.
+For validations beyond uniqueness (ordering, dependencies, custom logic), use `satisfies()` on the
+array validator. Throw a `ValidationException` of `ValidationError` objects with exact segment paths
+such as `[$index, $field]` to get field-level paths.
 
 ### Simple Uniqueness Check (Array-Level Error)
 
