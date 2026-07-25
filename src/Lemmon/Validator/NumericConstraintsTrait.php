@@ -22,7 +22,7 @@ trait NumericConstraintsTrait
     public function min(int|float $min, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value >= $min,
+            static fn(int|float $value): bool => $value >= $min,
             $message ?? "Value must be at least {$min}",
             ValidationCode::NUMBER_TOO_SMALL,
             ['min' => $min],
@@ -39,7 +39,7 @@ trait NumericConstraintsTrait
     public function max(int|float $max, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value <= $max,
+            static fn(int|float $value): bool => $value <= $max,
             $message ?? "Value must be at most {$max}",
             ValidationCode::NUMBER_TOO_LARGE,
             ['max' => $max],
@@ -56,8 +56,12 @@ trait NumericConstraintsTrait
      */
     public function between(int|float $min, int|float $max, ?string $message = null): static
     {
+        if ($min > $max) {
+            throw new \InvalidArgumentException('Minimum cannot be greater than maximum for between');
+        }
+
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value >= $min && $value <= $max,
+            static fn(int|float $value): bool => $value >= $min && $value <= $max,
             $message ?? "Value must be between {$min} and {$max}",
             ValidationCode::NUMBER_BETWEEN,
             ['min' => $min, 'max' => $max],
@@ -74,7 +78,7 @@ trait NumericConstraintsTrait
     public function gt(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value > $threshold,
+            static fn(int|float $value): bool => $value > $threshold,
             $message ?? "Value must be greater than {$threshold}",
             ValidationCode::GREATER_THAN,
             ['threshold' => $threshold],
@@ -91,7 +95,7 @@ trait NumericConstraintsTrait
     public function gte(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value >= $threshold,
+            static fn(int|float $value): bool => $value >= $threshold,
             $message ?? "Value must be at least {$threshold}",
             ValidationCode::NUMBER_TOO_SMALL,
             ['min' => $threshold],
@@ -108,7 +112,7 @@ trait NumericConstraintsTrait
     public function lt(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value < $threshold,
+            static fn(int|float $value): bool => $value < $threshold,
             $message ?? "Value must be less than {$threshold}",
             ValidationCode::LESS_THAN,
             ['threshold' => $threshold],
@@ -125,7 +129,7 @@ trait NumericConstraintsTrait
     public function lte(int|float $threshold, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value <= $threshold,
+            static fn(int|float $value): bool => $value <= $threshold,
             $message ?? "Value must be at most {$threshold}",
             ValidationCode::NUMBER_TOO_LARGE,
             ['max' => $threshold],
@@ -141,16 +145,21 @@ trait NumericConstraintsTrait
      */
     public function multipleOf(int|float $divisor, ?string $message = null): static
     {
+        if ($divisor === 0 || $divisor === 0.0) {
+            throw new \InvalidArgumentException('Divisor cannot be zero for multipleOf');
+        }
+
         return $this->satisfies(
-            static function ($value, $key = null, $input = null) use ($divisor) {
+            static function (int|float $value) use ($divisor): bool {
                 if (is_int($divisor) && is_int($value)) {
                     return ($value % $divisor) === 0;
                 }
 
                 // Use epsilon comparison for floating-point precision
-                $remainder = fmod((float) $value, (float) $divisor);
+                $absoluteDivisor = abs((float) $divisor);
+                $remainder = fmod(abs((float) $value), $absoluteDivisor);
                 $epsilon = 1e-9; // Tolerance for floating-point comparison
-                return abs($remainder) < $epsilon || abs($remainder - $divisor) < $epsilon;
+                return abs($remainder) < $epsilon || abs($remainder - $absoluteDivisor) < $epsilon;
             },
             $message ?? "Value must be a multiple of {$divisor}",
             ValidationCode::MULTIPLE_OF,
@@ -167,7 +176,7 @@ trait NumericConstraintsTrait
     public function positive(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value > 0,
+            static fn(int|float $value): bool => $value > 0,
             $message ?? 'Value must be positive',
             ValidationCode::POSITIVE,
         );
@@ -182,7 +191,7 @@ trait NumericConstraintsTrait
     public function negative(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => $value < 0,
+            static fn(int|float $value): bool => $value < 0,
             $message ?? 'Value must be negative',
             ValidationCode::NEGATIVE,
         );

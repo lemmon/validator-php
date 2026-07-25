@@ -118,6 +118,17 @@ it('should use custom error message for between length validation', function () 
     $validator->validate('');
 })->throws(ValidationException::class, 'Length out of range');
 
+it('should reject invalid length constraint configuration', function () {
+    expect(fn() => Validator::isString()->minLength(-1))
+        ->toThrow(InvalidArgumentException::class, 'Minimum length cannot be negative');
+    expect(fn() => Validator::isString()->maxLength(-1))
+        ->toThrow(InvalidArgumentException::class, 'Maximum length cannot be negative');
+    expect(fn() => Validator::isString()->length(-1))
+        ->toThrow(InvalidArgumentException::class, 'Exact length cannot be negative');
+    expect(fn() => Validator::isString()->between(5, 1))
+        ->toThrow(InvalidArgumentException::class, 'Minimum length cannot be greater than maximum length');
+});
+
 it('should validate non-empty strings', function () {
     $validator = Validator::isString()->notEmpty();
 
@@ -136,6 +147,11 @@ it('should validate regex patterns', function () {
     expect($phoneValidator->validate('123-456-7890'))->toBe('123-456-7890');
     $phoneValidator->validate('invalid-phone');
 })->throws(ValidationException::class, 'Value does not match the required pattern');
+
+it('should reject an invalid regular expression during configuration', function () {
+    expect(fn() => Validator::isString()->pattern('['))
+        ->toThrow(InvalidArgumentException::class, 'Pattern must be a valid regular expression');
+});
 
 it('should validate datetime formats', function () {
     $datetimeValidator = Validator::isString()->datetime();

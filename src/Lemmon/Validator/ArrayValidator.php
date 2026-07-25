@@ -51,7 +51,7 @@ class ArrayValidator extends FieldValidator
     public function notEmpty(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => count($value) >= 1,
+            static fn(array $value): bool => count($value) >= 1,
             $message ?? 'Value must not be empty',
             ValidationCode::NOT_EMPTY,
         );
@@ -66,8 +66,12 @@ class ArrayValidator extends FieldValidator
      */
     public function minItems(int $min, ?string $message = null): static
     {
+        if ($min < 0) {
+            throw new \InvalidArgumentException('Minimum item count cannot be negative');
+        }
+
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => count($value) >= $min,
+            static fn(array $value): bool => count($value) >= $min,
             $message ?? "Value must contain at least {$min} items",
             ValidationCode::ARRAY_TOO_FEW_ITEMS,
             ['min' => $min],
@@ -83,8 +87,12 @@ class ArrayValidator extends FieldValidator
      */
     public function maxItems(int $max, ?string $message = null): static
     {
+        if ($max < 0) {
+            throw new \InvalidArgumentException('Maximum item count cannot be negative');
+        }
+
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => count($value) <= $max,
+            static fn(array $value): bool => count($value) <= $max,
             $message ?? "Value must contain at most {$max} items",
             ValidationCode::ARRAY_TOO_MANY_ITEMS,
             ['max' => $max],
@@ -96,8 +104,7 @@ class ArrayValidator extends FieldValidator
      * Items are expected to be associative arrays or objects with the specified field.
      * Items where the field is missing or null are skipped.
      *
-     * Produces field-level error paths (e.g., `symlinks.2.destination`) by structuring
-     * errors as `[index => [fieldName => [message]]]`.
+     * Produces field-level structured error paths (e.g., `symlinks.2.destination`).
      *
      * @param string $fieldName The field name to check for uniqueness
      * @param null|string $message Custom error message for duplicate values
@@ -106,7 +113,7 @@ class ArrayValidator extends FieldValidator
     public function uniqueField(string $fieldName, ?string $message = null): static
     {
         return $this->satisfies(
-            static function ($value, $key = null, $input = null) use ($fieldName, $message) {
+            static function (array $value) use ($fieldName, $message): bool {
                 $seen = [];
 
                 foreach ($value as $index => $item) {
@@ -165,12 +172,15 @@ class ArrayValidator extends FieldValidator
                             : match (count($others)) {
                                 1 => "Value '{$displayValue}' is not unique (also at index {$others[0]})",
                                 default => "Value '{$displayValue}' is not unique (also at indices "
-                                    . implode(', ', $others)
+                                    . implode(', ', array_map(
+                                        static fn(int|string $other): string => (string) $other,
+                                        $others,
+                                    ))
                                     . ')',
                             };
 
                         $errors[] = new ValidationError(
-                            "{$idx}.{$fieldName}",
+                            [$idx, $fieldName],
                             ValidationCode::NOT_UNIQUE,
                             $resolvedMessage,
                             $params,
@@ -228,7 +238,7 @@ class ArrayValidator extends FieldValidator
 
     private static function buildContainsRule(mixed $valueOrValidator): \Closure
     {
-        return static function ($value, $key = null, $input = null) use ($valueOrValidator): bool {
+        return static function (array $value) use ($valueOrValidator): bool {
             if ($valueOrValidator instanceof FieldValidator) {
                 foreach ($value as $item) {
                     [$valid] = $valueOrValidator->tryValidate($item);
@@ -309,7 +319,7 @@ class ArrayValidator extends FieldValidator
 
                 if (!$valid) {
                     foreach ($itemErrors as $error) {
-                        $errors[] = $error->withPathPrefix((string) $index);
+                        $errors[] = $error->withPathPrefix($index);
                     }
                     continue;
                 }

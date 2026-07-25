@@ -102,6 +102,135 @@ it('should handle transformation exceptions gracefully', function () {
         ->toThrow(Exception::class, 'Transformation failed');
 });
 
+it('should fail validation instead of throwing a TypeError when transform() changes the type ahead of a built-in rule', function () {
+    $validator = Validator::isInt()->transform(fn() => 'oops')->min(5);
+
+    [$valid, $data, $errors] = $validator->tryValidate(10);
+
+    expect($valid)->toBeFalse();
+    expect($data)->toBe(10);
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getCode())->toBe(\Lemmon\Validator\ValidationCode::INVALID_TYPE);
+});
+
+it(
+    'should throw a ValidationException, not a TypeError, from validate() when transform() changes the type ahead of a built-in rule',
+    function () {
+        $validator = Validator::isString()
+            ->transform(fn() => 123)
+            ->minLength(2);
+
+        expect(fn() => $validator->validate('hi'))->toThrow(ValidationException::class);
+    },
+);
+
+it('should report the actual runtime type on the transform-mismatch INVALID_TYPE error', function () {
+    $validator = Validator::isInt()->transform(fn() => 'oops')->min(5);
+
+    [, , $errors] = $validator->tryValidate(10);
+
+    expect($errors[0]->getParams())->toBe(['actual' => 'string']);
+});
+
+it('should still let a TypeError from inside a user satisfies() callable escape, instead of reporting it as INVALID_TYPE', function () {
+    $validator = Validator::isString()->satisfies(function (string $value): bool {
+        $needsInt = static fn(int $n): int => $n;
+        $needsInt($value); // programmer bug unrelated to the rule's own $value type
+
+        return true;
+    });
+
+    expect(fn() => $validator->tryValidate('hello'))->toThrow(\TypeError::class);
+});
+
+it('should still let a satisfies() rule\'s own return-type violation escape, instead of reporting it as INVALID_TYPE', function () {
+    // Programmer bug: violates the rule's own `: bool` return type.
+    $validator = Validator::isString()->satisfies(static fn(string $value): bool => 'yes');
+
+    expect(fn() => $validator->tryValidate('hello'))->toThrow(\TypeError::class, 'Return value must be of type bool');
+});
+
+it('should still let an ArgumentCountError from a satisfies() rule escape, instead of reporting it as INVALID_TYPE', function () {
+    $validator = Validator::isString()->satisfies(
+        static fn(string $value, string $key, mixed $input, string $fourthRequired): bool => true,
+    );
+
+    expect(fn() => $validator->tryValidate('hello'))->toThrow(\ArgumentCountError::class);
+});
+
+it('should still let a type mismatch on a satisfies() rule\'s $key parameter escape, instead of reporting it as INVALID_TYPE', function () {
+    // Rule-definition bug: $key is always a string, never an int.
+    $validator = Validator::isString()->satisfies(static fn(string $value, int $key): bool => true);
+
+    expect(fn() => $validator->tryValidate('hi'))->toThrow(\TypeError::class, 'Argument #2');
+});
+
+it(
+    'should still let a type mismatch on a satisfies() rule\'s $input parameter escape, instead of reporting it as INVALID_TYPE',
+    function () {
+        // Rule-definition bug: $input is mixed (often null at the root), never strictly an int.
+        $validator = Validator::isString()->satisfies(static fn(string $value, string $key, int $input): bool => true);
+
+        expect(fn() => $validator->tryValidate('hi'))->toThrow(\TypeError::class, 'Argument #3');
+    },
+);
+
+it('should fail validation instead of throwing for a satisfies() rule typed with true/false in a union', function () {
+    $validator = Validator::isString()
+        ->transform(fn() => 123)
+        ->satisfies(static fn(string|false $value): bool => $value !== false);
+
+    [$valid, , $errors] = $validator->tryValidate('hi');
+
+    expect($valid)->toBeFalse();
+    expect($errors[0]->getCode())->toBe(\Lemmon\Validator\ValidationCode::INVALID_TYPE);
+    expect($errors[0]->getParams())->toBe(['actual' => 'int']);
+});
+
+it('should still invoke a satisfies() rule typed with true/false in a union when the value matches', function () {
+    $validator = Validator::isString()->satisfies(static fn(string|false $value): bool => $value !== false);
+
+    expect($validator->tryValidate('hi'))->toMatchArray([true, 'hi', []]);
+});
+
+it('should invoke a satisfies() rule typed with true/false in a union when the value is exactly false', function () {
+    $validator = Validator::isString()
+        ->transform(fn() => false)
+        ->satisfies(static fn(string|false $value): bool => $value === false);
+
+    expect($validator->tryValidate('hi'))->toMatchArray([true, false, []]);
+});
+
+it('should invoke a satisfies() rule typed with true/false in a union when the value is exactly true', function () {
+    $validator = Validator::isString()
+        ->transform(fn() => true)
+        ->satisfies(static fn(string|true $value): bool => $value === true);
+
+    expect($validator->tryValidate('hi'))->toMatchArray([true, true, []]);
+});
+
+it('should fail validation instead of throwing for a satisfies() rule typed with a class name in a union', function () {
+    $validator = Validator::isString()
+        ->transform(fn() => 123)
+        ->satisfies(static fn(string|\stdClass $value): bool => true);
+
+    [$valid, , $errors] = $validator->tryValidate('hi');
+
+    expect($valid)->toBeFalse();
+    expect($errors[0]->getCode())->toBe(\Lemmon\Validator\ValidationCode::INVALID_TYPE);
+});
+
+it('should still invoke a satisfies() rule typed with a class name in a union when the value is an instance', function () {
+    $validator = Validator::isString()
+        ->transform(fn() => new stdClass())
+        ->satisfies(static fn(string|\stdClass $value): bool => true);
+
+    [$valid, $data] = $validator->tryValidate('hi');
+
+    expect($valid)->toBeTrue();
+    expect($data)->toBeInstanceOf(stdClass::class);
+});
+
 // Type-aware transformation tests
 it('should maintain indexed array structure with pipe operations', function () {
     $validator = Validator::isArray()->pipe('array_unique');

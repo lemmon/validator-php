@@ -10,6 +10,8 @@ namespace Lemmon\Validator;
  * Used as the base for the {@see Validator::anyOf()}, {@see Validator::allOf()},
  * and {@see Validator::not()} combinators, which compose other validators rather
  * than constraining the value's type themselves.
+ *
+ * @internal
  */
 class MixedValidator extends FieldValidator
 {

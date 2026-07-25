@@ -18,6 +18,7 @@ it('should coerce numeric strings to floats', function () {
     expect($validator->validate('0'))->toBe(0.0);
     expect($validator->validate('-42.7'))->toBe(-42.7);
     expect($validator->validate('123'))->toBe(123.0);
+    expect($validator->validate(42))->toBe(42.0);
 });
 
 it('should fail coercion for non-numeric strings', function () {
@@ -30,20 +31,102 @@ it('should validate floats', function () {
     $validator = Validator::isFloat();
 
     expect($validator->validate(42.5))->toBe(42.5);
-    expect($validator->validate(100))->toBe(100.0);
-    expect($validator->validate('123.45'))->toBe(123.45);
 
     $validator->validate('not-a-float');
 })->throws(ValidationException::class, 'Value must be a float');
 
+it('should widen integers to floats without coercion', function () {
+    $validator = Validator::isFloat();
+
+    expect($validator->validate(100))->toBe(100.0);
+    expect($validator->validate(-3))->toBe(-3.0);
+    expect($validator->validate(0))->toBe(0.0);
+});
+
+it('should reject an int beyond +/-2^53 instead of silently widening it to an imprecise float', function () {
+    $validator = Validator::isFloat();
+
+    [$valid, $data] = $validator->tryValidate(2 ** 53 + 1);
+    expect($valid)->toBeFalse();
+    expect($data)->toBe(2 ** 53 + 1);
+
+    expect($validator->validate(2 ** 53))->toBe((float) 2 ** 53);
+});
+
+it('should reject an int beyond +/-2^53 on the coerce() path too, instead of silently widening it', function () {
+    $validator = Validator::isFloat()->coerce();
+
+    [$valid, $data] = $validator->tryValidate(2 ** 53 + 1);
+    expect($valid)->toBeFalse();
+    expect($data)->toBe(2 ** 53 + 1);
+
+    expect($validator->validate(2 ** 53))->toBe((float) 2 ** 53);
+});
+
+it('should reject an integer-form string beyond +/-2^53 on the coerce() path, instead of silently widening it', function () {
+    $validator = Validator::isFloat()->coerce();
+
+    [$valid, $data] = $validator->tryValidate('9007199254740993');
+    expect($valid)->toBeFalse();
+    expect($data)->toBe('9007199254740993');
+
+    expect($validator->validate('9007199254740992'))->toBe((float) 2 ** 53);
+    expect($validator->validate('-9007199254740992'))->toBe((float) -2 ** 53);
+
+    // Zero-padded and decimal/scientific-notation strings are unaffected by the safe-integer guard.
+    expect($validator->validate('007'))->toBe(7.0);
+    expect($validator->validate('1e3'))->toBe(1000.0);
+});
+
+it('should not let two distinct large ints collapse onto the same widened float in const()/in()', function () {
+    // Without a safe-integer guard, both widen to the same float and would false-positive.
+    [$valid] = Validator::isFloat()
+        ->const(2 ** 53)
+        ->tryValidate(2 ** 53 + 1);
+    expect($valid)->toBeFalse();
+
+    [$valid] = Validator::isFloat()
+        ->const(PHP_INT_MAX)
+        ->tryValidate(PHP_INT_MAX - 1);
+    expect($valid)->toBeFalse();
+
+    [$valid] = Validator::isFloat()->in([PHP_INT_MAX])->tryValidate(PHP_INT_MAX - 1);
+    expect($valid)->toBeFalse();
+});
+
+it('should match int() literals in in() after an integer input widens to float', function () {
+    $validator = Validator::isFloat()->in([1, 2, 3]);
+
+    expect($validator->validate(2))->toBe(2.0);
+
+    $validator->validate(5);
+})->throws(ValidationException::class);
+
+it('should match an int literal in const() after an integer input widens to float', function () {
+    $validator = Validator::isFloat()->const(1);
+
+    expect($validator->validate(1))->toBe(1.0);
+
+    $validator->validate(2);
+})->throws(ValidationException::class);
+
+it('should reject numeric strings without coercion', function () {
+    $validator = Validator::isFloat();
+
+    [$valid, $data] = $validator->tryValidate('123.45');
+
+    expect($valid)->toBeFalse();
+    expect($data)->toBe('123.45');
+});
+
 it('should validate float ranges', function () {
     $rangeValidator = Validator::isFloat()->min(10)->max(100);
 
-    expect($rangeValidator->validate(50))->toBe(50.0);
-    expect($rangeValidator->validate(10))->toBe(10.0);
-    expect($rangeValidator->validate(100))->toBe(100.0);
+    expect($rangeValidator->validate(50.0))->toBe(50.0);
+    expect($rangeValidator->validate(10.0))->toBe(10.0);
+    expect($rangeValidator->validate(100.0))->toBe(100.0);
 
-    $rangeValidator->validate(5);
+    $rangeValidator->validate(5.0);
 })->throws(ValidationException::class);
 
 it('should validate floats between bounds', function () {
@@ -69,19 +152,19 @@ it('should use custom error message for float between validation', function () {
 it('should validate float multiples', function () {
     $multipleValidator = Validator::isFloat()->multipleOf(5);
 
-    expect($multipleValidator->validate(15))->toBe(15.0);
-    expect($multipleValidator->validate(20))->toBe(20.0);
+    expect($multipleValidator->validate(15.0))->toBe(15.0);
+    expect($multipleValidator->validate(20.0))->toBe(20.0);
 
-    $multipleValidator->validate(13);
+    $multipleValidator->validate(13.0);
 })->throws(ValidationException::class, 'Value must be a multiple of 5');
 
 it('should validate positive floats', function () {
     $positiveValidator = Validator::isFloat()->positive();
 
-    expect($positiveValidator->validate(1))->toBe(1.0);
+    expect($positiveValidator->validate(1.0))->toBe(1.0);
     expect($positiveValidator->validate(0.1))->toBe(0.1);
 
-    $positiveValidator->validate(-1);
+    $positiveValidator->validate(-1.0);
 })->throws(ValidationException::class, 'Value must be positive');
 
 it('should validate non-negative and non-positive floats', function () {

@@ -33,3 +33,12 @@ it('should support comparison helpers and clamp across numeric validators', func
 it('should throw when clamp is misconfigured', function () {
     Validator::isInt()->clampToRange(5, 1);
 })->throws(InvalidArgumentException::class, 'Minimum cannot be greater than maximum for clamp');
+
+it('should throw when between is misconfigured', function () {
+    Validator::isInt()->between(5, 1);
+})->throws(InvalidArgumentException::class, 'Minimum cannot be greater than maximum for between');
+
+it('should treat negative divisors as their positive equivalent', function () {
+    expect(Validator::isInt()->multipleOf(-3)->validate(9))->toBe(9);
+    expect(Validator::isFloat()->multipleOf(-0.5)->validate(1.5))->toBe(1.5);
+});

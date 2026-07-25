@@ -38,7 +38,7 @@ class StringValidator extends FieldValidator
     public function email(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => filter_var($value, FILTER_VALIDATE_EMAIL) !== false,
+            static fn(string $value): bool => filter_var($value, FILTER_VALIDATE_EMAIL) !== false,
             $message ?? 'Value must be a valid email address',
             ValidationCode::EMAIL,
         );
@@ -47,7 +47,7 @@ class StringValidator extends FieldValidator
     public function url(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => filter_var($value, FILTER_VALIDATE_URL) !== false,
+            static fn(string $value): bool => filter_var($value, FILTER_VALIDATE_URL) !== false,
             $message ?? 'Value must be a valid URL',
             ValidationCode::URL,
         );
@@ -56,7 +56,7 @@ class StringValidator extends FieldValidator
     public function uuid(UuidVariant $variant = UuidVariant::Any, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => match ($variant) {
+            static fn(string $value): bool => match ($variant) {
                 UuidVariant::Any => preg_match(
                     '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-7][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
                     $value,
@@ -103,7 +103,7 @@ class StringValidator extends FieldValidator
     public function ip(IpVersion $version = IpVersion::Any, ?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => match ($version) {
+            static fn(string $value): bool => match ($version) {
                 IpVersion::Any => filter_var($value, FILTER_VALIDATE_IP) !== false,
                 IpVersion::IPv4 => filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false,
                 IpVersion::IPv6 => filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false,
@@ -120,8 +120,10 @@ class StringValidator extends FieldValidator
 
     public function minLength(int $min, ?string $message = null): static
     {
+        self::assertNonNegativeLength($min, 'Minimum length');
+
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => mb_strlen($value) >= $min,
+            static fn(string $value): bool => mb_strlen($value) >= $min,
             $message ?? "Value must be at least {$min} characters long",
             ValidationCode::STRING_TOO_SHORT,
             ['min' => $min],
@@ -130,8 +132,10 @@ class StringValidator extends FieldValidator
 
     public function maxLength(int $max, ?string $message = null): static
     {
+        self::assertNonNegativeLength($max, 'Maximum length');
+
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => mb_strlen($value) <= $max,
+            static fn(string $value): bool => mb_strlen($value) <= $max,
             $message ?? "Value must be at most {$max} characters long",
             ValidationCode::STRING_TOO_LONG,
             ['max' => $max],
@@ -140,8 +144,10 @@ class StringValidator extends FieldValidator
 
     public function length(int $exact, ?string $message = null): static
     {
+        self::assertNonNegativeLength($exact, 'Exact length');
+
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => mb_strlen($value) === $exact,
+            static fn(string $value): bool => mb_strlen($value) === $exact,
             $message ?? "Value must be exactly {$exact} characters long",
             ValidationCode::STRING_LENGTH,
             ['length' => $exact],
@@ -150,8 +156,14 @@ class StringValidator extends FieldValidator
 
     public function between(int $min, int $max, ?string $message = null): static
     {
+        self::assertNonNegativeLength($min, 'Minimum length');
+        self::assertNonNegativeLength($max, 'Maximum length');
+        if ($min > $max) {
+            throw new \InvalidArgumentException('Minimum length cannot be greater than maximum length');
+        }
+
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => mb_strlen($value) >= $min && mb_strlen($value) <= $max,
+            static fn(string $value): bool => mb_strlen($value) >= $min && mb_strlen($value) <= $max,
             $message ?? "Value must be between {$min} and {$max} characters long",
             ValidationCode::STRING_BETWEEN,
             ['min' => $min, 'max' => $max],
@@ -161,7 +173,7 @@ class StringValidator extends FieldValidator
     public function notEmpty(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => mb_strlen($value) >= 1,
+            static fn(string $value): bool => mb_strlen($value) >= 1,
             $message ?? 'Value must not be empty',
             ValidationCode::NOT_EMPTY,
         );
@@ -169,8 +181,19 @@ class StringValidator extends FieldValidator
 
     public function pattern(string $regex, ?string $message = null): static
     {
+        set_error_handler(static fn(): bool => true);
+        try {
+            $validPattern = preg_match($regex, '') !== false;
+        } finally {
+            restore_error_handler();
+        }
+
+        if (!$validPattern) {
+            throw new \InvalidArgumentException('Pattern must be a valid regular expression');
+        }
+
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => preg_match($regex, $value) === 1,
+            static fn(string $value): bool => preg_match($regex, $value) === 1,
             $message ?? 'Value does not match the required pattern',
             ValidationCode::PATTERN,
             ['pattern' => $regex],
@@ -180,7 +203,7 @@ class StringValidator extends FieldValidator
     public function datetime(string $format = 'Y-m-d\TH:i:s', ?string $message = null): static
     {
         return $this->satisfies(
-            static function ($value, $key = null, $input = null) use ($format) {
+            static function (string $value) use ($format): bool {
                 $date = \DateTime::createFromFormat($format, $value);
                 return $date !== false && $date->format($format) === $value;
             },
@@ -193,7 +216,7 @@ class StringValidator extends FieldValidator
     public function date(string $format = 'Y-m-d', ?string $message = null): static
     {
         return $this->satisfies(
-            static function ($value, $key = null, $input = null) use ($format) {
+            static function (string $value) use ($format): bool {
                 $date = \DateTime::createFromFormat($format, $value);
                 return $date !== false && $date->format($format) === $value;
             },
@@ -206,7 +229,7 @@ class StringValidator extends FieldValidator
     public function hostname(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => (
+            static fn(string $value): bool => (
                 filter_var($value, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false
             ),
             $message ?? 'Value must be a valid hostname',
@@ -217,7 +240,7 @@ class StringValidator extends FieldValidator
     public function domain(?string $message = null): static
     {
         return $this->satisfies(
-            static function ($value, $key = null, $input = null) {
+            static function (string $value): bool {
                 // Domain must have at least one dot (rejects single labels like 'localhost')
                 if (!str_contains($value, '.')) {
                     return false;
@@ -232,9 +255,7 @@ class StringValidator extends FieldValidator
     public function time(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => (
-                preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/', $value) === 1
-            ),
+            static fn(string $value): bool => preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/', $value) === 1,
             $message ?? 'Value must be a valid time in format HH:MM or HH:MM:SS',
             ValidationCode::TIME,
         );
@@ -245,7 +266,7 @@ class StringValidator extends FieldValidator
         ?string $message = null,
     ): static {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => match ($variant) {
+            static fn(string $value): bool => match ($variant) {
                 Base64Variant::Standard => preg_match('/^[A-Za-z0-9+\/]*={0,2}$/', $value) === 1
                     && ($decoded = base64_decode($value, true)) !== false
                     && base64_encode($decoded) === $value,
@@ -259,9 +280,8 @@ class StringValidator extends FieldValidator
                     && base64_decode(strtr($value, '-_', '+/'), true) !== false,
             },
             $message ?? match ($variant) {
-                Base64Variant::Standard => 'Value must be a valid Base64 encoded string',
+                Base64Variant::Standard, Base64Variant::Any => 'Value must be a valid Base64 encoded string',
                 Base64Variant::UrlSafe => 'Value must be a valid URL-safe Base64 encoded string',
-                Base64Variant::Any => 'Value must be a valid Base64 encoded string',
             },
             ValidationCode::BASE64,
             ['variant' => $variant->name],
@@ -271,10 +291,7 @@ class StringValidator extends FieldValidator
     public function hex(?string $message = null): static
     {
         return $this->satisfies(
-            static fn($value, $key = null, $input = null) => (
-                preg_match('/^[0-9a-fA-F]+$/', $value) === 1
-                && strlen($value) > 0
-            ),
+            static fn(string $value): bool => preg_match('/^[0-9a-fA-F]+$/', $value) === 1,
             $message ?? 'Value must be a valid hexadecimal string',
             ValidationCode::HEX,
         );
@@ -283,5 +300,12 @@ class StringValidator extends FieldValidator
     public function regex(string $pattern, ?string $message = null): static
     {
         return $this->pattern($pattern, $message);
+    }
+
+    private static function assertNonNegativeLength(int $length, string $name): void
+    {
+        if ($length < 0) {
+            throw new \InvalidArgumentException("{$name} cannot be negative");
+        }
     }
 }

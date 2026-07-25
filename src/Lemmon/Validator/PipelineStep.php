@@ -12,14 +12,13 @@ namespace Lemmon\Validator;
 final readonly class PipelineStep
 {
     /**
-     * @param \Closure $operation    The operation applied to the value during validation; receives
-     *                               (mixed $value, PipelineContext $context, string $key, mixed $input).
+     * @param \Closure(mixed, PipelineContext, string, mixed): mixed $operation The operation
+     *                               applied to the value during validation.
      * @param bool     $skipNull     Whether the step is skipped when the value is null.
-     * @param \Closure|null $rebuildOperation Rebuilds $operation from a fresh clone of any
-     *                               captured FieldValidator operand, so cloning isolates state.
+     * @param (\Closure(): \Closure)|null $rebuildOperation Rebuilds $operation from a fresh clone
+     *                               of any captured FieldValidator operand, so cloning isolates state.
      */
     public function __construct(
-        public PipelineType $type,
         public \Closure $operation,
         public bool $skipNull,
         public ?\Closure $rebuildOperation = null,
@@ -31,7 +30,6 @@ final readonly class PipelineStep
     public function withOperation(\Closure $operation): self
     {
         return new self(
-            $this->type,
             $operation,
             $this->skipNull,
             $this->rebuildOperation,

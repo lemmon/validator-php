@@ -290,6 +290,13 @@ it('should clone contains() validators without sharing nested validator state', 
     expect($original->validate($input))->toBe($input);
 });
 
+it('should reject negative item-count constraints during configuration', function () {
+    expect(fn() => Validator::isArray()->minItems(-1))
+        ->toThrow(InvalidArgumentException::class, 'Minimum item count cannot be negative');
+    expect(fn() => Validator::isArray()->maxItems(-1))
+        ->toThrow(InvalidArgumentException::class, 'Maximum item count cannot be negative');
+});
+
 it('should reuse contains() validators across repeated validations', function () {
     $inner = Validator::isArray()
         ->pipe(fn($value) => ['a' => count($value)])

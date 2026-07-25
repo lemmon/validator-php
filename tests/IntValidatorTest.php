@@ -16,7 +16,29 @@ it('should coerce numeric strings to integers', function () {
 
     expect($validator->validate('123'))->toBe(123);
     expect($validator->validate('0'))->toBe(0);
+    expect($validator->validate('+42'))->toBe(42);
     expect($validator->validate('-42'))->toBe(-42);
+});
+
+it('should coerce zero-padded integer strings', function () {
+    $validator = Validator::isInt()->coerce();
+
+    expect($validator->validate('08'))->toBe(8);
+    expect($validator->validate('00'))->toBe(0);
+    expect($validator->validate('007'))->toBe(7);
+    expect($validator->validate('-08'))->toBe(-8);
+    expect($validator->validate('+08'))->toBe(8);
+});
+
+it('should not truncate non-integer numeric strings during coercion', function () {
+    $validator = Validator::isInt()->coerce();
+
+    foreach (['1.9', '1e3', '9223372036854775808'] as $input) {
+        [$valid, $data] = $validator->tryValidate($input);
+
+        expect($valid)->toBeFalse();
+        expect($data)->toBe($input);
+    }
 });
 
 it('should fail coercion for non-numeric strings', function () {
@@ -64,6 +86,11 @@ it('should validate integer multiples', function () {
 
     $multipleValidator->validate(13);
 })->throws(ValidationException::class, 'Value must be a multiple of 5');
+
+it('should reject a zero multipleOf divisor during configuration', function () {
+    expect(fn() => Validator::isInt()->multipleOf(0))
+        ->toThrow(InvalidArgumentException::class, 'Divisor cannot be zero for multipleOf');
+});
 
 it('should validate positive integers', function () {
     $positiveValidator = Validator::isInt()->positive();
@@ -148,6 +175,17 @@ it('should validate port numbers with coercion', function () {
     expect($validator->validate('443'))->toBe(443);
     expect($validator->validate('3000'))->toBe(3000);
     expect($validator->validate('65535'))->toBe(65_535);
+});
+
+it('should report INVALID_TYPE, not PORT, when transform() changes the type ahead of port()', function () {
+    $validator = Validator::isInt()
+        ->transform(fn() => 'oops')
+        ->port();
+
+    [$valid, , $errors] = $validator->tryValidate(80);
+
+    expect($valid)->toBeFalse();
+    expect($errors[0]->getCode())->toBe(\Lemmon\Validator\ValidationCode::INVALID_TYPE);
 });
 
 it('should reject port 0', function () {

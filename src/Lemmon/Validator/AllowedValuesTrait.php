@@ -20,6 +20,8 @@ trait AllowedValuesTrait
     /**
      * Restricts the field's value to a specific set of allowed values.
      * Executes in the unified pipeline, respecting the fluent API execution order.
+     * Uses strict comparison (===), except that an int and a float of the same numeric value are
+     * treated as equal -- see {@see FieldValidator::valuesAreEqual()}.
      *
      * @param array<mixed> $values An array of allowed values.
      * @param ?string $message Optional custom error message.
@@ -28,7 +30,14 @@ trait AllowedValuesTrait
     public function in(array $values, ?string $message = null): self
     {
         return $this->satisfies(
-            static fn($value) => in_array($value, $values, true),
+            static function ($value) use ($values): bool {
+                foreach ($values as $allowed) {
+                    if (self::valuesAreEqual($value, $allowed)) {
+                        return true;
+                    }
+                }
+                return false;
+            },
             $message ?? 'Value must be one of: ' . json_encode($values),
             ValidationCode::IN,
             ['allowed' => $values],

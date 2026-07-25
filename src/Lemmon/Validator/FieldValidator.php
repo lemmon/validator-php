@@ -127,7 +127,6 @@ abstract class FieldValidator
     public function nullifyEmpty(): self
     {
         $this->pipeline[] = new PipelineStep(
-            type: PipelineType::TRANSFORMATION,
             operation: static fn($value) => $value === '' || is_array($value) && $value === [] ? null : $value,
             skipNull: true,
         );
@@ -315,7 +314,7 @@ abstract class FieldValidator
 
     private static function buildFieldValidatorRule(FieldValidator $validation): \Closure
     {
-        return static function ($value, $key = null, $input = null) use ($validation): bool {
+        return static function (mixed $value, string $key = '', mixed $input = null) use ($validation): bool {
             [$valid] = $validation->tryValidate($value, $key, $input);
             return $valid;
         };
@@ -326,7 +325,7 @@ abstract class FieldValidator
      */
     private static function buildAllRule(array $validations): \Closure
     {
-        return static function ($value, $key = null, $input = null) use ($validations): bool {
+        return static function (mixed $value, string $key = '', mixed $input = null) use ($validations): bool {
             foreach ($validations as $validation) {
                 if ($validation instanceof FieldValidator) {
                     [$valid] = $validation->tryValidate($value, $key, $input);
@@ -350,7 +349,7 @@ abstract class FieldValidator
      */
     private static function buildAnyRule(array $validations): \Closure
     {
-        return static function ($value, $key = null, $input = null) use ($validations): bool {
+        return static function (mixed $value, string $key = '', mixed $input = null) use ($validations): bool {
             foreach ($validations as $validation) {
                 if ($validation instanceof FieldValidator) {
                     [$valid] = $validation->tryValidate($value, $key, $input);
@@ -374,7 +373,7 @@ abstract class FieldValidator
      */
     private static function buildNoneRule(array $validations): \Closure
     {
-        return static function ($value, $key = null, $input = null) use ($validations): bool {
+        return static function (mixed $value, string $key = '', mixed $input = null) use ($validations): bool {
             foreach ($validations as $validation) {
                 if ($validation instanceof FieldValidator) {
                     [$valid] = $validation->tryValidate($value, $key, $input);
@@ -405,13 +404,37 @@ abstract class FieldValidator
         string $code = ValidationCode::CUSTOM,
         array $params = [],
     ): \Closure {
-        return static function ($value, ?PipelineContext $context = null, $key = null, $input = null) use (
-            $rule,
-            $message,
-            $code,
-            $params,
-        ) {
-            if (!$rule($value, $key, $input)) {
+        return static function (
+            mixed $value,
+            ?PipelineContext $context = null,
+            string $key = '',
+            mixed $input = null,
+        ) use ($rule, $message, $code, $params) {
+            // Built-in rules declare native parameter types, so a preceding transform() that
+            // hands them a value of a different type throws here instead of failing the rule.
+            // self::invokeRule() isolates that one call so a TypeError raised *there* -- PHP
+            // throws it before the callee's body ever runs, with the trace's second frame
+            // pinned to this exact call -- can be told apart from a TypeError raised by a bug
+            // inside the rule's own body (built-in or user-supplied), which still throws
+            // normally instead of being reported as a validation error.
+            try {
+                $satisfied = self::invokeRule($rule, $value, $key, $input);
+            } catch (\TypeError $e) {
+                if (!self::isRuleArgumentMismatch($e)) {
+                    throw $e;
+                }
+
+                throw new ValidationException([
+                    new ValidationError(
+                        '',
+                        ValidationCode::INVALID_TYPE,
+                        'Value type is not valid for this validation rule',
+                        ['actual' => get_debug_type($value)],
+                    ),
+                ]);
+            }
+
+            if (!$satisfied) {
                 throw new ValidationException([
                     new ValidationError(
                         '',
@@ -424,6 +447,52 @@ abstract class FieldValidator
 
             return $value;
         };
+    }
+
+    /**
+     * The sole call site of a rule callable, kept to one line so it is the only place a
+     * TypeError can be thrown directly by $rule's own argument-type check.
+     */
+    private static function invokeRule(callable $rule, mixed $value, string $key, mixed $input): bool
+    {
+        return (bool) $rule($value, $key, $input);
+    }
+
+    /**
+     * True if $e was thrown by $rule's own argument-type check inside {@see invokeRule()},
+     * rather than by a bug somewhere inside or around the rule. PHP throws an argument-type
+     * TypeError before the callee's body runs, so the trace's second frame -- the call that
+     * invoked the rejecting function -- is invokeRule() itself only for a direct mismatch; a bug
+     * deeper in the rule's body pushes invokeRule() further down the trace instead.
+     *
+     * That trace shape alone isn't enough, though: it's identical for a mismatch on $rule's
+     * *return* type (e.g. a `: bool` rule that returns a string), for an ArgumentCountError
+     * (a TypeError subclass) when $rule declares more required params than invokeRule supplies,
+     * and for an argument-type mismatch on $key or $input (invokeRule()'s 2nd/3rd argument)
+     * rather than $value (its 1st) -- all of those are bugs in the rule's own definition, not in
+     * the value it was given, and must still propagate. ArgumentCountError is excluded by type;
+     * the others are excluded by message, since PHP's own message is the only place they differ
+     * from a $value mismatch: it names the argument by its call-site position, so only "Argument
+     * #1" (mixed $value, always the first argument invokeRule passes) counts -- "Argument #2"/
+     * "#3" ($key/$input) and "Return value" are both left to propagate.
+     */
+    private static function isRuleArgumentMismatch(\TypeError $e): bool
+    {
+        if ($e instanceof \ArgumentCountError) {
+            return false;
+        }
+
+        $callerFrame = $e->getTrace()[1] ?? null;
+
+        if (
+            $callerFrame === null
+            || $callerFrame['function'] !== 'invokeRule'
+            || ($callerFrame['class'] ?? null) !== self::class
+        ) {
+            return false;
+        }
+
+        return str_contains($e->getMessage(), 'Argument #1 (') && str_contains($e->getMessage(), 'must be of type');
     }
 
     /**
@@ -443,7 +512,6 @@ abstract class FieldValidator
         array $params = [],
     ): void {
         $this->pipeline[] = new PipelineStep(
-            type: PipelineType::VALIDATION,
             operation: self::buildValidationOperation($rule, $message, $code, $params),
             skipNull: true,
             rebuildOperation: $rebuildOperation,
@@ -475,7 +543,9 @@ abstract class FieldValidator
 
     /**
      * Restricts the value to exactly one allowed constant.
-     * Uses strict comparison (===).
+     * Uses strict comparison (===), except that an int and a float of the same numeric value are
+     * treated as equal -- mirroring the int -> float widening {@see FloatValidator::validateType()}
+     * already applies, so allowed values written as int literals still match a widened input.
      *
      * @param mixed $value The single allowed value.
      * @param ?string $message Optional custom error message.
@@ -484,11 +554,49 @@ abstract class FieldValidator
     public function const(mixed $value, ?string $message = null): self
     {
         return $this->satisfies(
-            static fn($v) => $v === $value,
+            static fn($v) => self::valuesAreEqual($v, $value),
             $message ?? 'Value must be ' . (is_scalar($value) ? var_export($value, true) : json_encode($value)),
             ValidationCode::CONST,
             ['expected' => $value],
         );
+    }
+
+    /**
+     * True if $value is within the range where every integer has an exact IEEE-754 double
+     * representation (the same +/-2^53 boundary as JavaScript's Number.isSafeInteger()). Beyond
+     * it, int -> float widening can silently collide two distinct integers onto the same float
+     * (e.g. PHP_INT_MAX and PHP_INT_MAX - 1 both round to 9.223372036854776E+18), so this is used
+     * to refuse widening those instead of corrupting them.
+     */
+    protected static function isSafeIntegerForFloat(int $value): bool
+    {
+        return $value >= -2 ** 53 && $value <= (2 ** 53);
+    }
+
+    /**
+     * Strict equality (===), except an int and a float of the same numeric value are treated as
+     * equal. Shared by {@see const()} and {@see AllowedValuesTrait::in()} so allowed values written
+     * as int literals still match after {@see FloatValidator::validateType()} widens the input.
+     *
+     * Only claims equality when the int is a {@see isSafeIntegerForFloat()} value: beyond +/-2^53
+     * not every integer has an exact float representation, so an unsafe int operand (e.g.
+     * PHP_INT_MAX) could otherwise false-positive against a nearby float it isn't actually equal to.
+     */
+    protected static function valuesAreEqual(mixed $a, mixed $b): bool
+    {
+        if ($a === $b) {
+            return true;
+        }
+
+        if (is_int($a) && is_float($b)) {
+            return self::isSafeIntegerForFloat($a) && (float) $a === $b;
+        }
+
+        if (is_float($a) && is_int($b)) {
+            return self::isSafeIntegerForFloat($b) && $a === (float) $b;
+        }
+
+        return false;
     }
 
     /**
@@ -573,7 +681,6 @@ abstract class FieldValidator
     public function transform(callable $transformer, bool $skipNull = true): self
     {
         $this->pipeline[] = new PipelineStep(
-            type: PipelineType::TRANSFORMATION,
             operation: static function ($value, PipelineContext $context) use ($transformer) {
                 $result = $transformer($value);
 
@@ -598,7 +705,6 @@ abstract class FieldValidator
     {
         foreach ($transformers as $transformer) {
             $this->pipeline[] = new PipelineStep(
-                type: PipelineType::TRANSFORMATION,
                 operation: static fn($value, PipelineContext $context) => $context->coerce($transformer($value)),
                 skipNull: true,
             );
