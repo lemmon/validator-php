@@ -1,10 +1,13 @@
 {
   "name": "lemmon/validator",
   "private": true,
+  "engines": {
+    "node": ">=22.22.1"
+  },
   "devDependencies": {
-    "husky": "^9.1",
-    "lint-staged": "^15.2",
-    "prettier": "^3.4"
+    "husky": "^9.1.7",
+    "lint-staged": "^17.2.0",
+    "prettier": "^3.9.6"
   },
   "scripts": {
     "format": "prettier --write .",

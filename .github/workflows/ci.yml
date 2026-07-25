@@ -9,20 +9,30 @@ on:
 
 jobs:
   ci:
-    name: Lint, Analyse, Test
+    name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.3", "8.4", "8.5"]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: ${{ matrix.php }}
           tools: composer:v2
           coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.22.1"
+          cache: npm
 
       - name: Get Composer cache directory
         id: composer-cache
@@ -32,9 +42,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-composer-
+            ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
       - name: Validate Composer
         run: composer validate --strict --no-check-publish
@@ -42,14 +52,8 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Platform check
-        run: composer platform-check
+      - name: Install Node.js dependencies
+        run: npm ci
 
-      - name: Lint
-        run: composer lint
-
-      - name: Static analysis
-        run: composer analyze
-
-      - name: Tests
-        run: composer test
+      - name: Check
+        run: composer check
