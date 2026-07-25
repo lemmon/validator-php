@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-07-25
+
 ### Added
 
 - Exact structured-error path segments. `ValidationError::getSegments()` returns the source-of-truth
