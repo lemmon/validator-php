@@ -575,6 +575,53 @@ it('should distinguish types strictly in uniqueField', function () {
     expect($result)->toHaveCount(3);
 });
 
+it('should not treat distinct resources as duplicates in uniqueField', function () {
+    $a = fopen('php://memory', 'r');
+    $b = fopen('php://memory', 'r');
+    $closed = fopen('php://memory', 'r');
+    fclose($closed);
+
+    [$valid] = Validator::isArray()
+        ->uniqueField('handle')
+        ->tryValidate([
+            ['handle' => $a],
+            ['handle' => $b],
+            ['handle' => $closed],
+        ]);
+
+    expect($valid)->toBeTrue();
+});
+
+it('should flag a repeated resource handle as a duplicate in uniqueField', function () {
+    $handle = fopen('php://memory', 'r');
+
+    [$valid, , $errors] = Validator::isArray()
+        ->uniqueField('handle')
+        ->tryValidate([
+            ['handle' => $handle],
+            ['handle' => fopen('php://memory', 'r')],
+            ['handle' => $handle],
+        ]);
+
+    expect($valid)->toBeFalse();
+    $segments = array_map(static fn($error) => $error->getSegments(), $errors);
+    expect($segments)->toBe([[0, 'handle'], [2, 'handle']]);
+});
+
+it('should treat values serialize() rejects as unique in uniqueField', function () {
+    // An array holding a closure is not an object, so it takes the positional fallback key.
+    $closure = static fn() => 1;
+
+    [$valid] = Validator::isArray()
+        ->uniqueField('payload')
+        ->tryValidate([
+            ['payload' => ['fn' => $closure]],
+            ['payload' => ['fn' => $closure]],
+        ]);
+
+    expect($valid)->toBeTrue();
+});
+
 it('should coerce items when items() is called before coerceAll()', function () {
     $validator = Validator::isArray()
         ->items(Validator::isInt())

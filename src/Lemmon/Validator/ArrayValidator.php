@@ -128,19 +128,25 @@ class ArrayValidator extends FieldValidator
                     }
 
                     // Most field values are scalars, for which serialize() gives a stable
-                    // value-equality key (uniqueField is meant for scalar fields). Closures and
-                    // some internal objects throw on serialize() -- and that throw must not escape
-                    // uniqueField, which runs inside tryValidate() -- so fall back to identity: a
-                    // repeated object instance still collides (spl_object_id), while a non-object we
-                    // cannot value-compare is keyed by position and so is always treated as unique.
-                    // Resources are a known gap: serialize() does not throw for them but maps every
-                    // resource to "i:0;", so distinct handles collide (see ROADMAP known limitations).
-                    try {
-                        $serialized = serialize($fieldValue);
-                    } catch (\Throwable) {
-                        $serialized = is_object($fieldValue)
-                            ? 'object#' . spl_object_id($fieldValue)
-                            : 'item#' . $index;
+                    // value-equality key (uniqueField is meant for scalar fields). Resources are keyed
+                    // by identity up front: serialize() maps every resource, open or closed, to "i:0;",
+                    // which would make distinct handles collide. (A resource nested inside an array
+                    // value still serializes that way; such values are outside the scalar intent.)
+                    // Closures and some internal objects -- alone or nested in an array -- throw on
+                    // serialize(), and that throw must not escape uniqueField, which runs inside
+                    // tryValidate(); so fall back to identity: a repeated object instance still
+                    // collides (spl_object_id), while a non-object we cannot value-compare is keyed by
+                    // position and so is always treated as unique.
+                    if (is_resource($fieldValue) || gettype($fieldValue) === 'resource (closed)') {
+                        $serialized = 'resource#' . get_resource_id($fieldValue);
+                    } else {
+                        try {
+                            $serialized = serialize($fieldValue);
+                        } catch (\Throwable) {
+                            $serialized = is_object($fieldValue)
+                                ? 'object#' . spl_object_id($fieldValue)
+                                : 'item#' . $index;
+                        }
                     }
                     $seen[$serialized] ??= ['value' => $fieldValue, 'indices' => []];
                     $seen[$serialized]['indices'][] = $index;

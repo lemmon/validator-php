@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file.
 - `AssociativeValidator::coerce()` now converts a `stdClass` (or subclass) using its public
   properties only. Previously an `(array)` cast exposed a subclass's private and protected
   properties under NUL-mangled keys, which `passthrough()` then copied into the output
+- `uniqueField()` no longer reports distinct resource handles as duplicates. `serialize()` maps
+  every resource to the same value, so resources (open or closed) are now compared by identity:
+  the same handle repeated is still a duplicate
 
 ## [0.17.0] - 2026-07-25
 

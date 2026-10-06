@@ -82,10 +82,6 @@ None of these touch the public contract, so they are strictly better landed afte
 - Property-based tests for core validators (string patterns, numeric constraints).
 - Performance benchmarking for hot paths (`validate`, `tryValidate`, schema validation).
 
-### Known limitations
-
-- **`uniqueField()` dedup key collides distinct resources.** Uniqueness is keyed on `serialize($fieldValue)`, but PHP serializes every resource to `i:0;`, so two _distinct_ resource handles compare equal and are wrongly reported as duplicates. (Related: the `serialize()` try/catch added for unserializable values only takes its object-identity branch for closures/objects — the non-object `item#index` fallback is effectively unreachable, since `serialize()` does not throw for resources.) `uniqueField` is meant for scalar fields; the fix is either a value-equality key that distinguishes non-serializable non-objects, or documenting the scalar-only intent. Pre-existing; surfaced during the structured-error work.
-
 ## Beyond core (likely separate packages)
 
 Kept for context; intentionally out of the lightweight core scope. Adoption is a secondary concern, so only pursue the cheap, well-aligned ones.
