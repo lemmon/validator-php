@@ -33,7 +33,10 @@ class AssociativeValidator extends FieldValidator
     protected function coerceValue(mixed $value): mixed
     {
         if ($value instanceof \stdClass) {
-            return (array) $value;
+            // get_object_vars(), not an (array) cast: on a stdClass subclass the cast exposes
+            // private/protected properties under NUL-mangled keys that then read as input keys
+            // (passthrough() copies them out). Public properties only, same as ObjectValidator.
+            return \get_object_vars($value);
         }
 
         // Form-safe: empty string means "no value provided"

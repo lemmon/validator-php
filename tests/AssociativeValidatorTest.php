@@ -379,6 +379,17 @@ it('should not let passthrough overwrite outputKey targets', function () {
     expect($data['service'])->toBe('550e8400-e29b-41d4-a716-446655440000');
 });
 
+it('should not pass through non-public properties of stdClass subclasses', function () {
+    $input = new class extends \stdClass {
+        public string $name = 'Ann';
+        private string $secret = 'hidden';
+    };
+
+    $data = Validator::isAssociative([])->coerce()->passthrough()->validate($input);
+
+    expect($data)->toBe(['name' => 'Ann']);
+});
+
 it('should not mutate shared field validators when using coerceAll', function () {
     $shared = Validator::isInt();
     $withCoerceAll = Validator::isAssociative([

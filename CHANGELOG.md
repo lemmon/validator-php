@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- `AssociativeValidator::coerce()` now converts a `stdClass` (or subclass) using its public
+  properties only. Previously an `(array)` cast exposed a subclass's private and protected
+  properties under NUL-mangled keys, which `passthrough()` then copied into the output
+
 ## [0.17.0] - 2026-07-25
 
 ### Added
