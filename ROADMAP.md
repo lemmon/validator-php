@@ -44,6 +44,7 @@ Remove the deprecated aliases `addValidation`, instance `allOf`, instance `anyOf
 ### 3. Schema posture and type coverage
 
 - `strict()` — landed: rejects undeclared keys with `UNRECOGNIZED_KEY`, completing the default / `passthrough()` / `strict()` trio.
+- `strictAll()` — deferred until a real nested config needs it (the motivating config is flat, so `strict()` covers it). A recursive counterpart to `coerceAll()`, but not a straight copy: coercion has no opposite setting, while strictness does (`passthrough()`). Open question: when it reaches a nested schema that explicitly called `passthrough()` (e.g. opaque metadata via `isAssociative([])->passthrough()`), should it override that choice (breaking the author's intent) or respect it (each schema must then track whether its posture was set explicitly, state that `clone()` and the section 4 composition helpers would have to carry)? Settle alongside `merge()`, which faces the same posture-conflict question.
 - `isInstance(ClassName::class)` — landed: validates `instanceof` a class, interface, or enum, reporting `INVALID_TYPE` with the class name as `expected`.
 
 ### 4. Features that stress the internals (build during 0.x)
