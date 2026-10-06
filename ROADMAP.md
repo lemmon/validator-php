@@ -19,6 +19,8 @@ Single source of truth for planned and considered work. Completed work lives in 
 
 These are the changes that touch the public contract and are therefore best done before committing to API stability.
 
+There is no target date. Building features has repeatedly uncovered underlying problems (structured errors led to exact path segments; stricter coercion led to the container empty-string rule), and 0.x is where those fixes are still cheap. v1.0 waits until real use stops turning up such problems. The list below is the set of contract decisions to settle before then, not a schedule.
+
 ### 1. Error model (landed; verify during the release audit)
 
 The unified structured error contract is in place:
@@ -30,22 +32,34 @@ The unified structured error contract is in place:
 
 Before v1.0, perform one final naming/parameter audit of `ValidationCode` and the JSON error shape. After v1.0, codes and serialized field names are stable integration contracts.
 
+Open questions for that audit:
+
+- **`segments` in the JSON shape.** `jsonSerialize()` emits `{path, code, message, params}`, so API consumers only receive the ambiguous dotted path even though `getSegments()` exists precisely because dotted paths are ambiguous. Adding the field after v1.0 changes the serialized contract; decide before.
+- **Code prefix convention.** Format codes are unprefixed (`EMAIL`, `URL`, `UUID`) while size codes carry a type prefix (`STRING_TOO_SHORT`, `ARRAY_TOO_FEW_ITEMS`), and `NOT_EMPTY` is shared by strings and arrays while length codes are split per type. Pick one rule and apply it once. (All codes stay UPPER_SNAKE string constants on `ValidationCode`.)
+
 ### 2. Deprecation cleanup
 
 Remove the deprecated aliases `addValidation`, instance `allOf`, instance `anyOf`, instance `not`, and `oneOf`. The combinators live on `Validator::`; allowed-value validation uses `in()`. Update call sites, tests, and migration notes.
 
-### 3. Schema posture completion
+### 3. Schema posture and type coverage
 
-- `strict()` — reject undeclared keys (completes the `default` / `passthrough()` / `strict()` trio).
+- `strict()` — landed: rejects undeclared keys with `UNRECOGNIZED_KEY`, completing the default / `passthrough()` / `strict()` trio.
 - `isInstance(ClassName::class)` — validate object instances (closes a type-coverage gap alongside scalars, arrays, and enums).
 
-### 4. Public surface and typing contract
+### 4. Features that stress the internals (build during 0.x)
+
+These are additive in principle, but they exercise schema cloning, nested error paths, and validator composition harder than anything so far. Building them before the freeze lets any underlying problems they uncover be fixed while breaking changes are still cheap.
+
+- `partial()`, `pick()`, `omit()`, `merge()` for schema variations (PATCH requests, API versioning).
+- `Validator::conditional($discriminator, [...])` for polymorphic data (select a schema based on input).
+
+### 5. Public surface and typing contract
 
 - Audit every class in the runtime namespace and mark implementation-only types `@internal` or remove them before the namespace becomes stable. `PipelineType` was removed because it was unused internal metadata; `MixedValidator`, `PipelineStep`, and `PipelineContext` are implementation details.
 - Keep the v1.0 promise precise: Lemmon provides runtime validation and transformation. Because arbitrary `transform()` calls can change output type and validators are mutable, `validate()` and the data element of `tryValidate()` remain `mixed`; static schema-output inference is not part of the v1.0 contract.
 - Decide whether subclassing `FieldValidator` is supported. The current extension point is `satisfies()`/`transform()`, so unsupported inheritance should be made explicit before v1.0 rather than left accidental.
 
-### 5. Release hygiene
+### 6. Release hygiene
 
 - Docs refresh: ensure `README.md`, `docs/`, and `llms.txt` match the final v1.0 surface; add migration notes for the deprecation removals.
 - Run a focused mutation-testing pilot over coercion, null/default/required flow, and structured path aggregation before freezing their behavior.
@@ -58,15 +72,10 @@ None of these touch the public contract, so they are strictly better landed afte
 
 ### Schema composition & structure
 
-- `partial()`, `pick()`, `omit()`, `merge()` for schema variations (PATCH requests, API versioning).
 - `forbidKeys(array $keys, ?string $message = null)` — explicit key deny-listing.
 - `patternProperties()`, `propertyNames()` — key validation.
 - `dependencies()` — cross-field dependencies.
 - Tuple validation / `additionalItems()` for arrays.
-
-### Conditional / discriminated schemas
-
-- `Validator::conditional($discriminator, [...])` for polymorphic data (select a schema based on input).
 
 ### Quality (ongoing)
 

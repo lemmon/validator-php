@@ -167,9 +167,10 @@ _Schema validation_
 // Constructor accepts array<string, FieldValidator>
 coerceAll(): static // Recursively enables coercion on schema fields, nested schemas, and array item validators (each validator is cloned so shared instances are not mutated); does not propagate into assertion operands (satisfies, contains, etc.) -- call coerce() on those individually
 passthrough(): static // Copy undeclared keys/properties from input to output without validating them; schema fields still validated; does not overwrite keys already set from the schema (including outputKey targets)
+strict(?string $message = null): static // Reject undeclared keys/properties: each fails with UNRECOGNIZED_KEY at its own path (params: key; message supports {key}), aggregated with field errors; declared = schema input keys (outputKey fields are known by input name); this level only, nested schemas opt in separately; mutually exclusive with passthrough() (last call wins)
 ```
 
-By default, outputs only schema-defined keys (plus defaults). With `passthrough()`, any input key not in the schema is copied through unchanged (shallow); nested structures are not recursively validated. `AssociativeValidator` accepts non-list arrays (and `[]`) and coerces only `stdClass`. `ObjectValidator` accepts `stdClass` and coerces only associative arrays (and `[]`).
+By default, outputs only schema-defined keys (plus defaults). With `passthrough()`, any input key not in the schema is copied through unchanged (shallow); nested structures are not recursively validated. With `strict()`, any input key not in the schema is a validation error instead. `AssociativeValidator` accepts non-list arrays (and `[]`) and coerces only `stdClass`. `ObjectValidator` accepts `stdClass` and coerces only associative arrays (and `[]`).
 
 ### BoolValidator
 

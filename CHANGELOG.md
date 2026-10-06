@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `strict(?string $message = null)` on `AssociativeValidator` and `ObjectValidator` rejects input
+  keys that are not declared in the schema, completing the strip (default) / `passthrough()` /
+  `strict()` trio. Each undeclared key fails with the new `ValidationCode::UNRECOGNIZED_KEY` at its
+  exact path (params: `key`, usable as a `{key}` message placeholder), aggregated with the schema
+  field errors. Fields remapped with `outputKey()` are known by their input name. `strict()` applies
+  to its own level only, and it is mutually exclusive with `passthrough()` (the last call wins)
+
 ### Fixed
 
 - `AssociativeValidator::coerce()` now converts a `stdClass` (or subclass) using its public

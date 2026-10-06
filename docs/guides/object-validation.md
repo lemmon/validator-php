@@ -14,6 +14,7 @@ array → `stdClass`; validating domain-class instances is reserved for the plan
 - [Schema Definition](#schema-definition)
 - [Output Key Remapping](#output-key-remapping)
 - [Passthrough (undeclared keys)](#passthrough-undeclared-keys)
+- [Strict mode (reject undeclared keys)](#strict-mode-reject-undeclared-keys)
 - [Type Coercion](#type-coercion)
 - [Advanced Features](#advanced-features)
 - [Common Patterns](#common-patterns)
@@ -196,7 +197,7 @@ $result = $schema->validate($input);
 
 This behavior ensures that:
 
-- **Results accurately reflect the validated data** without unexpected properties (unless you opt into `passthrough()` below)
+- **Results accurately reflect the validated data** without unexpected properties (unless you opt into `passthrough()` below; `strict()` goes further and rejects them)
 - **Default values are consistently applied** when fields are missing
 - **Required field validation still works** (missing required fields cause validation to fail)
 
@@ -230,6 +231,40 @@ $result = Validator::isAssociative([])->passthrough()
 ```
 
 For `ObjectValidator`, only **public** properties on the input object are considered for passthrough (same visibility as `get_object_vars()`).
+
+### Strict mode (reject undeclared keys)
+
+Call `strict()` to make every undeclared input key a **validation error** instead of silently dropping it. This is the right posture for hand-authored config files, where a typo should fail loudly rather than leave a setting at its default, and for API endpoints that must reject unexpected fields.
+
+```php
+$config = Validator::isAssociative([
+    'auto_update' => Validator::isBool()->default(false),
+    'branch' => Validator::isString()->default('main'),
+])->strict();
+
+[$valid, , $errors] = $config->tryValidate(['auto_updat' => true]);
+// $valid === false
+// $errors[0]->getPath()   === 'auto_updat'
+// $errors[0]->getCode()   === ValidationCode::UNRECOGNIZED_KEY
+// $errors[0]->getParams() === ['key' => 'auto_updat']
+```
+
+- Each undeclared key produces its own `UNRECOGNIZED_KEY` error at that key's path, aggregated with the schema field errors, so one run reports every typo.
+- "Declared" means an input key of the schema. A field remapped with `outputKey()` is known by its input name only; its output name is not accepted as input.
+- Use `getSegments()` (or a segment-list filter such as `getErrors(['a.b'])`) to identify the key exactly. The dotted `getPath()` view is ambiguous for unusual keys: an empty key `''` has the same path as a root error, and a key `a.b` looks like the nested path `a` → `b`. The `key` param always carries the literal key, including in the JSON output.
+- A custom message may use the `{key}` placeholder: `->strict('Unknown option "{key}"')`.
+- `strict()` applies to its own level only. Nested schemas opt in separately:
+
+```php
+$schema = Validator::isAssociative([
+    'db' => Validator::isAssociative([
+        'host' => Validator::isString(),
+    ])->strict(),
+])->strict();
+// ['db' => ['host' => 'x', 'prot' => 5432]] fails at path db.prot
+```
+
+`strict()` and `passthrough()` are mutually exclusive; whichever is called last wins.
 
 ### Nested Schemas
 

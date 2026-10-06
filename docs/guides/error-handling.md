@@ -206,6 +206,12 @@ Validator::isString()->minLength(8)->pattern('/[A-Z]/');
 | `CONTAINS`             | `contains()`    | `value` (scalar form only)                       |
 | `NOT_UNIQUE`           | `uniqueField()` | `field`, `value`, `others` (conflicting indices) |
 
+### Schema
+
+| Code               | Emitted by                                     | Params |
+| ------------------ | ---------------------------------------------- | ------ |
+| `UNRECOGNIZED_KEY` | `strict()` on `isAssociative()` / `isObject()` | `key`  |
+
 ## Errors for a Single Field
 
 Pass a path to `getErrors()` to filter to one field and everything nested beneath it. This replaces

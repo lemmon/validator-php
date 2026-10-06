@@ -92,6 +92,8 @@ class ObjectValidator extends FieldValidator
             }
         }
 
+        $errors = [...$errors, ...$this->unrecognizedKeyErrors($value)];
+
         if ($errors !== []) {
             throw new ValidationException($errors);
         }

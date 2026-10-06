@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Lemmon\Validator\ValidationCode;
 use Lemmon\Validator\ValidationException;
 use Lemmon\Validator\Validator;
 
@@ -294,6 +295,78 @@ it('should not let passthrough overwrite outputKey targets', function () {
     $data = $schema->validate($input);
 
     expect($data->service)->toBe('550e8400-e29b-41d4-a716-446655440000');
+});
+
+it('should reject undeclared properties when strict is enabled', function () {
+    $schema = Validator::isObject([
+        'auto_update' => Validator::isBool(),
+    ])->strict();
+
+    [$valid, , $errors] = $schema->tryValidate((object) ['auto_update' => true, 'auto_updat' => true]);
+
+    expect($valid)->toBeFalse();
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getSegments())->toBe(['auto_updat']);
+    expect($errors[0]->getCode())->toBe(ValidationCode::UNRECOGNIZED_KEY);
+    expect($errors[0]->getParams())->toBe(['key' => 'auto_updat']);
+});
+
+it('should accept declared properties when strict is enabled', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString()->required(),
+    ])->strict();
+
+    $data = $schema->validate((object) ['name' => 'Ann']);
+
+    expect(get_object_vars($data))->toBe(['name' => 'Ann']);
+});
+
+it('should aggregate strict errors with property errors', function () {
+    $schema = Validator::isObject([
+        'age' => Validator::isInt(),
+    ])->strict();
+
+    [, , $errors] = $schema->tryValidate((object) ['age' => 'old', 'extra' => 1]);
+
+    $byPath = [];
+    foreach ($errors as $error) {
+        $byPath[$error->getPath()] = $error->getCode();
+    }
+    expect($byPath)->toBe([
+        'age' => ValidationCode::INVALID_TYPE,
+        'extra' => ValidationCode::UNRECOGNIZED_KEY,
+    ]);
+});
+
+it('should treat numeric property names as declared in strict mode', function () {
+    $schema = Validator::isObject([
+        '2' => Validator::isString(),
+    ])->strict();
+
+    [$valid] = $schema->tryValidate((object) ['2' => 'two']);
+    [, , $errors] = $schema->tryValidate((object) ['3' => 'three']);
+
+    expect($valid)->toBeTrue();
+    expect($errors[0]->getSegments())->toBe([3]);
+});
+
+it('should check coerced associative arrays in strict mode', function () {
+    $schema = Validator::isObject([
+        'name' => Validator::isString(),
+    ])->coerce()->strict();
+
+    [, , $errors] = $schema->tryValidate(['name' => 'Ann', 'extra' => 1]);
+
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getSegments())->toBe(['extra']);
+});
+
+it('should let the last of strict and passthrough win for objects', function () {
+    $passthroughLast = Validator::isObject([])->strict()->passthrough();
+    expect(get_object_vars($passthroughLast->validate((object) ['extra' => 1])))->toBe(['extra' => 1]);
+
+    $strictLast = Validator::isObject([])->passthrough()->strict();
+    expect(fn() => $strictLast->validate((object) ['extra' => 1]))->toThrow(ValidationException::class);
 });
 
 it('should not mutate shared field validators when using coerceAll', function () {

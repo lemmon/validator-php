@@ -61,4 +61,7 @@ final class ValidationCode
     public const ARRAY_TOO_MANY_ITEMS = 'ARRAY_TOO_MANY_ITEMS';
     public const CONTAINS = 'CONTAINS';
     public const NOT_UNIQUE = 'NOT_UNIQUE';
+
+    // Schema
+    public const UNRECOGNIZED_KEY = 'UNRECOGNIZED_KEY';
 }

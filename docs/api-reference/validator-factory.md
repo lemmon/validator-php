@@ -147,7 +147,7 @@ Non-empty lists are rejected. The empty array remains valid because PHP represen
 and an empty map as `[]`. With `coerce()`, `stdClass` input is converted to an associative array;
 other objects are rejected.
 
-**See also:** [Object & Schema Validation Guide](../guides/object-validation.md) (`coerceAll()`, `passthrough()`, and schema patterns).
+**See also:** [Object & Schema Validation Guide](../guides/object-validation.md) (`coerceAll()`, `passthrough()`, `strict()`, and schema patterns).
 
 ---
 
@@ -185,7 +185,7 @@ $validConfig = $configValidator->validate($config);
 Only `stdClass` is accepted without coercion. With `coerce()`, associative arrays (and the ambiguous
 empty array) are converted to `stdClass`; non-empty lists and arbitrary object instances are rejected.
 
-**See also:** [Object & Schema Validation Guide](../guides/object-validation.md) (`coerceAll()`, `passthrough()`, and schema patterns).
+**See also:** [Object & Schema Validation Guide](../guides/object-validation.md) (`coerceAll()`, `passthrough()`, `strict()`, and schema patterns).
 
 ---
 

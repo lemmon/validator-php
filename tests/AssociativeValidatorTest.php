@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Lemmon\Validator\ValidationCode;
+use Lemmon\Validator\ValidationError;
 use Lemmon\Validator\ValidationException;
 use Lemmon\Validator\Validator;
 
@@ -379,6 +381,89 @@ it('should not let passthrough overwrite outputKey targets', function () {
     expect($data['service'])->toBe('550e8400-e29b-41d4-a716-446655440000');
 });
 
+it('should reject undeclared keys when strict is enabled', function () {
+    $schema = Validator::isAssociative([
+        'auto_update' => Validator::isBool(),
+    ])->strict();
+
+    [$valid, , $errors] = $schema->tryValidate(['auto_updat' => true]);
+
+    expect($valid)->toBeFalse();
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getSegments())->toBe(['auto_updat']);
+    expect($errors[0]->getCode())->toBe(ValidationCode::UNRECOGNIZED_KEY);
+    expect($errors[0]->getMessage())->toBe('Unrecognized key');
+    expect($errors[0]->getParams())->toBe(['key' => 'auto_updat']);
+});
+
+it('should accept declared keys and keep output unchanged when strict is enabled', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+        'role' => Validator::isString()->default('user'),
+    ])->strict();
+
+    expect($schema->validate(['name' => 'Ann']))->toBe(['name' => 'Ann', 'role' => 'user']);
+});
+
+it('should aggregate strict errors with field errors', function () {
+    $schema = Validator::isAssociative([
+        'name' => Validator::isString()->required(),
+    ])->strict();
+
+    [, , $errors] = $schema->tryValidate(['extra' => 1, 'other' => 2]);
+
+    $byPath = [];
+    foreach ($errors as $error) {
+        $byPath[$error->getPath()] = $error->getCode();
+    }
+    expect($byPath)->toBe([
+        'name' => ValidationCode::REQUIRED,
+        'extra' => ValidationCode::UNRECOGNIZED_KEY,
+        'other' => ValidationCode::UNRECOGNIZED_KEY,
+    ]);
+});
+
+it('should flag undeclared keys even when their value is null', function () {
+    $schema = Validator::isAssociative([])->strict();
+
+    [, , $errors] = $schema->tryValidate(['ghost' => null]);
+
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getSegments())->toBe(['ghost']);
+});
+
+it('should report exact segments for unusual undeclared keys in strict mode', function () {
+    $schema = Validator::isAssociative([
+        'a' => Validator::isInt(),
+    ])->strict();
+
+    [, , $errors] = $schema->tryValidate(['a' => 1, 'x.y' => 1, '' => 1, 7 => 1]);
+
+    $segments = array_map(static fn(ValidationError $error) => $error->getSegments(), $errors);
+    expect($segments)->toBe([['x.y'], [''], [7]]);
+
+    // The dotted view is lossy for these keys; the key param keeps the literal key.
+    expect($errors[1]->getPath())->toBe('');
+    expect($errors[1]->getParams())->toBe(['key' => '']);
+});
+
+it('should ignore non-public properties of stdClass subclasses when coercing in strict mode', function () {
+    $input = new class extends \stdClass {
+        public string $name = 'Ann';
+        protected int $internal = 1;
+        private string $secret = 'hidden';
+    };
+
+    $data = Validator::isAssociative([
+        'name' => Validator::isString(),
+    ])
+        ->coerce()
+        ->strict()
+        ->validate($input);
+
+    expect($data)->toBe(['name' => 'Ann']);
+});
+
 it('should not pass through non-public properties of stdClass subclasses', function () {
     $input = new class extends \stdClass {
         public string $name = 'Ann';
@@ -388,6 +473,84 @@ it('should not pass through non-public properties of stdClass subclasses', funct
     $data = Validator::isAssociative([])->coerce()->passthrough()->validate($input);
 
     expect($data)->toBe(['name' => 'Ann']);
+});
+
+it('should treat numeric-string schema keys as declared in strict mode', function () {
+    $schema = Validator::isAssociative([
+        '2' => Validator::isString(),
+    ])->strict();
+
+    expect($schema->validate(['2' => 'two']))->toBe([2 => 'two']);
+});
+
+it('should know outputKey fields by their input name in strict mode', function () {
+    $schema = Validator::isAssociative([
+        'service_id' => Validator::isString()->outputKey('service'),
+    ])->strict();
+
+    expect($schema->validate(['service_id' => 'abc']))->toBe(['service' => 'abc']);
+
+    [, , $errors] = $schema->tryValidate(['service_id' => 'abc', 'service' => 'abc']);
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getSegments())->toBe(['service']);
+});
+
+it('should interpolate the key into a custom strict message', function () {
+    $schema = Validator::isAssociative([])->strict('Unknown option "{key}"');
+
+    [, , $errors] = $schema->tryValidate(['colour' => 'red']);
+
+    expect($errors[0]->getMessage())->toBe('Unknown option "colour"');
+});
+
+it('should apply strict to its own level only', function () {
+    $schema = Validator::isAssociative([
+        'db' => Validator::isAssociative([
+            'host' => Validator::isString(),
+        ]),
+    ])->strict();
+
+    expect($schema->validate(['db' => ['host' => 'localhost', 'port' => 5432]]))->toBe([
+        'db' => ['host' => 'localhost'],
+    ]);
+});
+
+it('should prefix nested strict errors with the parent path', function () {
+    $schema = Validator::isAssociative([
+        'db' => Validator::isAssociative([
+            'host' => Validator::isString(),
+        ])->strict(),
+    ]);
+
+    [, , $errors] = $schema->tryValidate(['db' => ['host' => 'localhost', 'prot' => 5432]]);
+
+    expect($errors)->toHaveCount(1);
+    expect($errors[0]->getSegments())->toBe(['db', 'prot']);
+    expect($errors[0]->getCode())->toBe(ValidationCode::UNRECOGNIZED_KEY);
+});
+
+it('should let the last of strict and passthrough win', function () {
+    $input = ['name' => 'Ann', 'extra' => 1];
+
+    $passthroughLast = Validator::isAssociative([
+        'name' => Validator::isString(),
+    ])->strict()->passthrough();
+    expect($passthroughLast->validate($input))->toBe($input);
+
+    $strictLast = Validator::isAssociative([
+        'name' => Validator::isString(),
+    ])->passthrough()->strict();
+    expect(fn() => $strictLast->validate($input))->toThrow(ValidationException::class);
+});
+
+it('should preserve strict when cloning an associative schema', function () {
+    $original = Validator::isAssociative([
+        'name' => Validator::isString(),
+    ])->strict();
+    $copy = $original->clone()->passthrough();
+
+    expect(fn() => $original->validate(['extra' => 1]))->toThrow(ValidationException::class);
+    expect($copy->validate(['extra' => 1]))->toBe(['extra' => 1]);
 });
 
 it('should not mutate shared field validators when using coerceAll', function () {
