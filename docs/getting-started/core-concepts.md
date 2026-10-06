@@ -31,6 +31,7 @@ $array = Validator::isArray();      // → ArrayValidator
 $assoc = Validator::isAssociative(); // → AssociativeValidator
 $object = Validator::isObject();    // → ObjectValidator
 $bool = Validator::isBool();        // → BoolValidator
+$date = Validator::isInstance(DateTimeInterface::class); // → InstanceValidator
 ```
 
 ## FieldValidator - The Base Class

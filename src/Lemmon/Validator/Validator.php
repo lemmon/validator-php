@@ -79,6 +79,19 @@ class Validator
     }
 
     /**
+     * Creates a new InstanceValidator for values that must be an instance of a class,
+     * interface, or enum.
+     *
+     * @param string $className Class, interface, or enum name (e.g. `DateTimeInterface::class`).
+     * @return InstanceValidator
+     * @throws \InvalidArgumentException When no such class, interface, or enum exists.
+     */
+    public static function isInstance(string $className): InstanceValidator
+    {
+        return new InstanceValidator($className);
+    }
+
+    /**
      * Creates a validator that passes if ANY of the provided validators pass.
      *
      * @param array<FieldValidator> $validators Array of validators, at least one must pass.

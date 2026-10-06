@@ -70,7 +70,8 @@ try {
 
 - **No third-party Composer dependencies** — the runtime depends only on PHP and `mbstring`
 - **Strict runtime type validation** for strings, integers, floats, booleans, indexed arrays,
-  associative arrays, and `stdClass` objects; conversions are opt-in through `coerce()`
+  associative arrays, `stdClass` objects, and class instances; conversions are opt-in through
+  `coerce()`
 - **Form-safe optional fields** — validators accept `null` unless `required()`; numeric, boolean, and
   container coercion turns an empty string into `null`, while strings can opt in with `nullifyEmpty()`
 - **Predictable processing** — pipeline steps execute in chain order, then `default()` and `required()`

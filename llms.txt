@@ -44,6 +44,7 @@ static isBool(): BoolValidator
 static isArray(): ArrayValidator
 static isAssociative(array<string, FieldValidator> $schema = []): AssociativeValidator
 static isObject(array<string, FieldValidator> $schema = []): ObjectValidator
+static isInstance(string $className): InstanceValidator // throws InvalidArgumentException if no such class/interface/enum
 static anyOf(array<FieldValidator> $validators, ?string $message = null): FieldValidator
 static allOf(array<FieldValidator> $validators, ?string $message = null): FieldValidator
 static not(FieldValidator $validator, ?string $message = null): FieldValidator
@@ -54,7 +55,8 @@ the platform integer range. `isFloat()` accepts floats and integers (integers wi
 matching PHP's `strict_types` widening); `coerce()` additionally accepts numeric strings.
 `isArray()` accepts lists. `isAssociative()` rejects non-empty lists
 but accepts `[]` because PHP cannot distinguish an empty list from an empty map. `isObject()` accepts
-`stdClass` only.
+`stdClass` only. `isInstance()` accepts any instance of the given class, interface, or enum
+(`instanceof`, so subclasses and implementations pass) and returns it unchanged.
 
 ### Base API (`FieldValidator`)
 
@@ -179,6 +181,16 @@ in(array $values, ?string $message = null): static
 oneOf(array $values, ?string $message = null): static // Deprecated alias for in()
 // Coercion handles: 'true','on','1' -> true; 'false','off','0' -> false
 ```
+
+### InstanceValidator (`Validator::isInstance()`)
+
+```php
+// No type-specific methods; use the base API (required, default, defaultUsing, satisfies, transform, ...)
+// Wrong type: INVALID_TYPE with params ['expected' => <class name without leading backslash>]
+// Coercion: only '' -> null (form-safe); there is no conversion into an object
+```
+
+Identity check only -- for `stdClass` property validation against a schema, use `isObject()`.
 
 ## Enums
 

@@ -12,6 +12,11 @@ All notable changes to this project will be documented in this file.
   exact path (params: `key`, usable as a `{key}` message placeholder), aggregated with the schema
   field errors. Fields remapped with `outputKey()` are known by their input name. `strict()` applies
   to its own level only, and it is mutually exclusive with `passthrough()` (the last call wins)
+- `Validator::isInstance(string $className)` and the new `InstanceValidator` validate that a value
+  is an instance of a class, interface, or enum (`instanceof`, so subclasses and implementations
+  pass); the instance is returned unchanged. A wrong value fails with `INVALID_TYPE` (params:
+  `expected`, the class name). An unknown class name throws `InvalidArgumentException` immediately.
+  `coerce()` applies only the form-safe `''` -> `null` rule
 
 ### Fixed
 

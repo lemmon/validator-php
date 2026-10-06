@@ -44,7 +44,7 @@ Remove the deprecated aliases `addValidation`, instance `allOf`, instance `anyOf
 ### 3. Schema posture and type coverage
 
 - `strict()` — landed: rejects undeclared keys with `UNRECOGNIZED_KEY`, completing the default / `passthrough()` / `strict()` trio.
-- `isInstance(ClassName::class)` — validate object instances (closes a type-coverage gap alongside scalars, arrays, and enums).
+- `isInstance(ClassName::class)` — landed: validates `instanceof` a class, interface, or enum, reporting `INVALID_TYPE` with the class name as `expected`.
 
 ### 4. Features that stress the internals (build during 0.x)
 

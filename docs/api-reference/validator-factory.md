@@ -17,6 +17,7 @@ class Validator
     public static function isAssociative(array $schema = []): AssociativeValidator
     public static function isObject(array $schema = []): ObjectValidator
     public static function isBool(): BoolValidator
+    public static function isInstance(string $className): InstanceValidator
 }
 ```
 
@@ -207,6 +208,38 @@ $result = $coercingValidator->validate('false'); // Returns: false (bool)
 With `coerce()`, only **scalar** values are normalized to booleans from common string forms (`true` / `on` / `1`, etc.). Arrays, objects, and other non-scalars are not cast to string; they fail boolean type validation with `ValidationException`.
 
 **Returns:** `BoolValidator` instance with boolean-specific validation methods.
+
+---
+
+### `isInstance(string $className): InstanceValidator`
+
+Creates a validator for values that must be an instance of a class, interface, or enum. The check is
+`instanceof`, so subclasses and interface implementations pass, and the instance is returned
+unchanged.
+
+```php
+$validator = Validator::isInstance(DateTimeInterface::class);
+$result = $validator->validate(new DateTimeImmutable()); // Returns: the same instance
+
+$validator->validate('2026-10-06'); // Throws: INVALID_TYPE, params ['expected' => 'DateTimeInterface']
+
+// Combine with the base API like any other validator
+$schema = Validator::isAssociative([
+    'published_at' => Validator::isInstance(DateTimeInterface::class)->required(),
+    'tags' => Validator::isInstance(ArrayObject::class)->defaultUsing(static fn() => new ArrayObject()),
+]);
+```
+
+**Parameters:**
+
+- `$className`: Class, interface, or enum name, usually given as `Foo::class`. A leading backslash is
+  ignored. A name that does not exist throws `InvalidArgumentException` immediately.
+
+There is no meaningful conversion into an arbitrary object, so `coerce()` only applies the form-safe
+rule (`''` becomes `null`). Use `isObject()` instead when you need to validate the properties of a
+`stdClass` against a schema; `isInstance()` checks the type only.
+
+**Returns:** `InstanceValidator` instance.
 
 ## Usage Patterns
 

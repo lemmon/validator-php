@@ -14,7 +14,7 @@ Core validation logic lives in `src/Lemmon/Validator/`. Tests in `tests/` follow
 
 - **Namespace:** `Lemmon\Validator` (runtime), `Lemmon\Tests` (tests)
 - **Core:** `Validator` static factory; `FieldValidator` base; `ValidationException` for errors; `ValidationError` value object (dotted path/exact segments/code/message/params) is the structured-error source of truth, exposed via `ValidationException::getErrors(string|array|null $path = null)`; `ValidationCode` stable-code catalog
-- **Validators:** `isString`, `isInt`, `isFloat`, `isBool`, `isArray`, `isAssociative`, `isObject`
+- **Validators:** `isString`, `isInt`, `isFloat`, `isBool`, `isArray`, `isAssociative`, `isObject`, `isInstance`
 - **Shared:** `NumericConstraintsTrait` (min, max, multipleOf, etc.); `PipelineStep` value object (internal pipeline entry); `PipelineContext` (internal per-run type context threaded through the pipeline); variant enums `IpVersion`, `Base64Variant`, `UuidVariant` for format methods
 - **String formats:** email, URL, UUID, IP, hostname, domain, time, base64, hex, regex, datetime, date
 - **Schema validation:** AssociativeValidator/ObjectValidator with nested error aggregation; shared `SchemaValidatorOptionsTrait` (`coerceAll`, `passthrough`, `strict`, schema clone helper); `passthrough()` keeps undeclared keys/properties (unvalidated); `strict()` rejects them (`UNRECOGNIZED_KEY`); default output is schema keys only
