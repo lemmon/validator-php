@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-10-06
+
 ### Added
 
 - `strict(?string $message = null)` on `AssociativeValidator` and `ObjectValidator` rejects input
